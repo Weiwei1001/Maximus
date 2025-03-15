@@ -1,0 +1,55 @@
+stages:
+  - build
+
+variables:
+  CC: clang
+  CXX: clang++
+  BUILD_TYPE: Debug
+  SUFFIX: "${CC}-${BUILD_TYPE}"
+  CMAKE_PREFIX_PATH: "${CI_PROJECT_DIR}/libs"
+
+cache:
+  key: global-deps
+  paths:
+    - ${CI_PROJECT_DIR}/libs/apt.txt
+    - ${CI_PROJECT_DIR}/libs/arrow
+    - ${CI_PROJECT_DIR}/libs/taskflow
+  policy: pull-push
+
+build:
+  stage: build
+  image: ubuntu:latest
+  script:
+    - 'echo "Caching Linux dependencies"'
+    - 'if [ ! -f "${CI_PROJECT_DIR}/libs/apt.txt" ]; then apt-get update && apt-get install -y cmake make g++ clang wget git ninja-build libboost-all-dev brotli libgtest-dev libgmock-dev liblz4-tool protobuf-compiler libprotobuf-dev rapidjson-dev libsnappy-dev libthrift-dev zlib1g zstd; fi'
+    - 'mkdir -p ${CI_PROJECT_DIR}/libs && dpkg-query -f="${binary:Package}\n" -W > ${CI_PROJECT_DIR}/libs/apt.txt'
+
+    - 'export NUM_THREADS=$(nproc)'  # Get the number of CPU cores
+    - 'echo "Using ${NUM_THREADS} threads for build"'
+
+    # Installing Arrow
+    - 'echo "Installing Arrow"'
+    - 'if [ ! -d "${CI_PROJECT_DIR}/libs/arrow" ]; then git clone --recursive https://github.com/apache/arrow --branch apache-arrow-17.0.0 ${CI_PROJECT_DIR}/libs/arrow; fi'
+    - 'cd ${CI_PROJECT_DIR}/libs/arrow/cpp'
+    - 'mkdir -p build && cd build'
+    - 'cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/libs -GNinja -Dxsimd_SOURCE=BUNDLED -DARROW_WITH_UTF8PROC=OFF -DARROW_WITH_RE2=ON -DARROW_FILESYSTEM=ON -DARROW_TESTING=OFF -DARROW_WITH_LZ4=OFF -DARROW_WITH_ZSTD=OFF -DARROW_BUILD_STATIC=ON -DARROW_BUILD_SHARED=ON -DARROW_BUILD_TESTS=OFF -DARROW_BUILD_BENCHMARKS=OFF -DARROW_IPC=ON -DARROW_FLIGHT=OFF -DARROW_COMPUTE=ON -DARROW_CUDA=OFF -DARROW_JEMALLOC=OFF -DARROW_USE_GLOG=OFF -DARROW_DATASET=OFF -DARROW_BUILD_UTILITIES=OFF -DARROW_HDFS=OFF -DCMAKE_VERBOSE_MAKEFILE=OFF -DARROW_TENSORFLOW=OFF -DARROW_CSV=ON -DARROW_JSON=ON -DARROW_WITH_BROTLI=OFF -DARROW_WITH_SNAPPY=OFF -DARROW_WITH_ZLIB=ON -DARROW_PARQUET=ON -DARROW_SUBSTRAIT=OFF -DARROW_ACERO=ON -DARROW_WITH_BACKTRACE=OFF -DARROW_CXXFLAGS=-w -DARROW_S3=OFF -DARROW_ORC=OFF -DARROW_POSITION_INDEPENDENT_CODE=ON -DARROW_DEPENDENCY_USE_SHARED=ON ..'
+    - 'ninja -j ${NUM_THREADS}'
+    - 'ninja install'
+
+    # Installing Taskflow
+    - 'echo "Installing Taskflow"'
+    - 'if [ ! -d "${CI_PROJECT_DIR}/libs/taskflow" ]; then git clone https://github.com/taskflow/taskflow.git ${CI_PROJECT_DIR}/libs/taskflow; fi'
+    - 'cd ${CI_PROJECT_DIR}/libs/taskflow'
+    - 'mkdir -p build && cd build'
+    - 'cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/libs -GNinja ..'
+    - 'ninja -j ${NUM_THREADS}'
+    - 'ninja install'
+
+    # Installing Maximus
+    - 'echo "Building Maximus"'
+    - 'export CMAKE_PREFIX_PATH="${CI_PROJECT_DIR}/libs"'
+    - 'cd ${CI_PROJECT_DIR}'
+    - 'mkdir -p build && cd build'
+    - 'cmake .. -DMAXIMUS_WITH_TESTS=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -GNinja'
+    - 'ninja -j ${NUM_THREADS}'
+    - 'ninja test'

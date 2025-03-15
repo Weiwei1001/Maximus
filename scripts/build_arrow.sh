@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Clone the repository
+git clone --recursive https://github.com/apache/arrow --branch apache-arrow-17.0.0
+cd arrow/cpp
+
+base_path="$HOME"
+
+# Create build folder
+build_folder="build"
+mkdir "$build_folder"
+cd "$build_folder"
+
+# Set CMake options and run CMake
+cmake_options=(
+	"-DCMAKE_BUILD_TYPE=Release"
+	"-DCMAKE_INSTALL_PREFIX=$base_path/arrow_install"
+	"-GNinja"
+	"-Dxsimd_SOURCE=BUNDLED"
+	"-DARROW_WITH_UTF8PROC=OFF"
+	"-DARROW_WITH_RE2=ON"
+	"-DARROW_FILESYSTEM=ON"
+	"-DARROW_TESTING=OFF"
+	"-DARROW_WITH_LZ4=OFF"
+	"-DARROW_WITH_ZSTD=OFF"
+	"-DARROW_BUILD_STATIC=ON"
+	"-DARROW_BUILD_SHARED=ON"
+	"-DARROW_BUILD_TESTS=OFF"
+	"-DARROW_BUILD_BENCHMARKS=OFF"
+	"-DARROW_IPC=ON"
+	"-DARROW_FLIGHT=OFF"
+	"-DARROW_COMPUTE=ON"
+	"-DARROW_CUDA=OFF"
+	"-DARROW_JEMALLOC=ON"
+	"-DARROW_USE_GLOG=OFF"
+	"-DARROW_DATASET=ON"
+	"-DARROW_BUILD_UTILITIES=OFF"
+	"-DARROW_HDFS=OFF"
+	"-DCMAKE_VERBOSE_MAKEFILE=ON"
+	"-DARROW_TENSORFLOW=OFF"
+	"-DARROW_CSV=ON"
+	"-DARROW_JSON=ON"
+	"-DARROW_WITH_BROTLI=ON"
+	"-DARROW_WITH_SNAPPY=ON"
+	"-DARROW_WITH_ZLIB=ON"
+	"-DARROW_PARQUET=ON"
+	"-DARROW_SUBSTRAIT=OFF"
+	"-DCMAKE_VERBOSE_MAKEFILE=ON"
+	"-DARROW_ACERO=ON"
+	"-DARROW_WITH_BACKTRACE=ON"
+	"-DARROW_CXXFLAGS=-w"
+	"-DARROW_S3=OFF"
+	"-DARROW_ORC=OFF"
+	"-DARROW_POSITION_INDEPENDENT_CODE=ON"
+	"-DARROW_DEPENDENCY_USE_SHARED=ON"
+	"-DARROW_BOOST_USE_SHARED=ON"
+	"-DARROW_BROTLI_USE_SHARED=ON"
+	"-DARROW_GFLAGS_USE_SHARED=ON"
+	"-DARROW_GRPC_USE_SHARED=ON"
+	"-DARROW_PROTOBUF_USE_SHARED=ON"
+	"-DARROW_ZSTD_USE_SHARED=ON"
+	"-DProtobuf_SOURCE=BUNDLED"
+)
+
+# Run CMake with specified options
+CC=gcc CXX=g++ cmake "${cmake_options[@]}" ..
+
+# Build and install
+ninja -j 8
+ninja install
+
+# Go back to the parent directory
+cd ..
