@@ -21,6 +21,8 @@ public:
     TablePtr query(std::string sql_query);
     TablePtr query(std::shared_ptr<QueryPlan>& query_plan);
 
+    void parse_schema(std::string sql_query);
+
     void schedule(std::shared_ptr<QueryPlan>& query_plan);
 
     std::vector<TablePtr> execute();

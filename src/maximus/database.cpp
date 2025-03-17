@@ -40,9 +40,14 @@ TablePtr Database::query(std::string sql_query) {
     assert(ctx_);
 
     std::shared_ptr<QueryPlan> qp;
-    check_status(Parser::query_plan_from_sql(sql_query, db_catalogue_, ctx_, qp));
+    auto parser = new Parser(this->schemas_, db_catalogue_, ctx_);
+    check_status(parser->query_plan_from_sql(sql_query, qp));
     assert(qp);
     return query(qp);
+}
+
+void Database::parse_schema(std::string sql_query) {
+    check_status(Parser::schema_from_sql(sql_query, this->schemas_));
 }
 
 void Database::schedule(std::shared_ptr<QueryPlan> &query_plan) {
