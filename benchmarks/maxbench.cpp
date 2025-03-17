@@ -5,8 +5,8 @@
 #include "utils.hpp"
 
 int main(int argc, char** argv) {
-    cxxopts::Options options("MAXIMUS BENCHMARKS",
-                             "Running tpch, h2o, & clickbench queries with maximus and acero query engines.");
+    cxxopts::Options options("MAXIMUS BENCHMARKS (MAXBENCH)",
+                             "Running benchmarks with Maximus and Apache Acero query engines.");
     options.add_options()(
         "path", "Path to the CSV files", cxxopts::value<std::string>()->default_value(csv_path()))(
         "engines",
@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
         cxxopts::value<std::string>()->default_value({"maximus"}))(
         "r,n_reps", "Number of repetitions", cxxopts::value<int>()->default_value("1"))(
         "benchmark",
-        "which benchmark to run? (tpch)",
+        "which benchmark to run? (tpch, h2o, clickbench)",
         cxxopts::value<std::string>()->default_value("tpch"))(
         "q,queries",
         "name of the query in the benchmark",
@@ -73,18 +73,6 @@ int main(int argc, char** argv) {
     // Whether to persist the data
     auto persist_results = result["persist_results"].as<std::string>();
 
-    if (queries.size() == 1 && queries[0] == "all") {
-        // add all 22 tpch queries
-        queries = {"q1",  "q2",  "q3",  "q4",  "q5",  "q6",  "q7",  "q8",  "q9",  "q10", "q11",
-                   "q12", "q13", "q14", "q15", "q16", "q17", "q18", "q19", "q20", "q21", "q22"};
-    }
-
-    if (queries.size() == 1 && queries[0] == "empty") {
-        // add all empty tpch queries
-        queries = {
-            "lineitem", "orders", "customer", "part", "partsupp", "supplier", "nation", "region"};
-    }
-
     // initialize the profiler if compiled with profiling enabled
     PROFILER_INIT(mgr, profile);
     PROFILER_START(mgr);
@@ -140,9 +128,9 @@ int main(int argc, char** argv) {
     std::cout << "\n";
 
     std::cout << "===================================" << std::endl;
-    std::cout << "      MAXIMUS " << benchmark << " BENCHMARK:    " << std::endl;
+    std::cout << "    MAXBENCH " << uppercase(benchmark) << " BENCHMARK:    " << std::endl;
     std::cout << "===================================" << std::endl;
-    std::cout << "---> benchmark:                " << benchmark << "\n";
+    std::cout << "---> benchmark:                " << uppercase(benchmark) << "\n";
     std::cout << "---> queries:                  " << to_string(queries) << "\n";
     std::cout << "---> Tables path:              " << path << "\n";
     std::cout << "---> Engines:                  " << engines << "\n";
@@ -187,15 +175,8 @@ int main(int argc, char** argv) {
         for (int i = 0; i < n_reps; ++i) {
             // recreate the query plans as table sources might contain dangling pointers
             // since the tables have been exported out of the source operators
-            if (benchmark == "tpch") {
-                query_plan_acero   = maximus::tpch::query_plan(query, db);
-                query_plan_maximus = maximus::tpch::query_plan(query, db, device);
-            } else {
-                PL(query);
-                PROFILER_FLUSH(mgr);
-                std::cerr << "Unsupported benchmark: " + benchmark << std::endl;
-                return 1;
-            }
+            query_plan_acero = get_query(query, db, benchmark);
+            query_plan_maximus = get_query(query, db, device, benchmark);
 
             PE("Repetition_" + std::to_string(i));
             // define the variables
@@ -206,7 +187,7 @@ int main(int argc, char** argv) {
 
             // std::cout << "Running acero" << std::endl;
             if (maximus::contains(engines, "acero")) {
-                if (query == "q2" || query == "q20") {
+                if (benchmark == "tpch" && (query == "q2" || query == "q20")) {
                     // if (i > 0) {
                     timings_acero[query_idx][i] = -1;
                     // }

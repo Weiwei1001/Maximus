@@ -133,7 +133,7 @@ std::vector<std::string> get_table_names(const std::string& benchmark) {
         return maximus::h2o::table_names();
     }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch}");
+        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
 }
 
 std::vector<std::shared_ptr<maximus::Schema>> get_table_schemas(const std::string& benchmark) {
@@ -147,7 +147,7 @@ std::vector<std::shared_ptr<maximus::Schema>> get_table_schemas(const std::strin
         return maximus::h2o::schemas();
     }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch}");
+        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
 }
 
 std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
@@ -163,7 +163,7 @@ std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
         return maximus::h2o::query_plan(query, db);
     }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch}");
+        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
 }
 
 std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
@@ -180,5 +180,11 @@ std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
         return maximus::h2o::query_plan(query, db, device);
     }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch}");
+        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
+}
+
+std::string uppercase(const std::string& s) {
+    std::string result = s;
+    std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+    return result;
 }

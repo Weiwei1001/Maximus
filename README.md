@@ -88,18 +88,18 @@ CMAKE OPTION | POSSIBLE VALUES | DESCRIPTION
 
 ## Benchmarking
 
-Running the full TPC-H benchmark is possible by running the `engines_bench` executable. Within the `build` folder, it can be run e.g. with:
+Running the full TPC-H benchmark is possible by running the `maxbench` executable. Within the `build` folder, it can be run e.g. with:
 ```bash
-./benchmarks/engines_bench --queries=q1,q2,q3 --device=cpu --storage_device=cpu --engines=maximus --n_reps=5 --path=<path to CSV files>
+./benchmarks/maxbench --benchmark=tpch --queries=q1,q2,q3 --device=cpu --storage_device=cpu --engines=maximus --n_reps=5 --path=<path to CSV files>
 ```
 Possible values for each of these options are:
-- `queries`: any comma-separated list of queries q1, q2, ... , q22. Setting `--queries=all` will run all 22 TPC-H queries.
+- `benchmark`: the benchmarking suite to you, can be one of `tpch`, `clickbench` or `h2o`.
+- `queries`: any comma-separated list of queries. For example, for the tpch benchmark, any subset of `q1, q2, ... , q22` is valid.
 - `device`: `cpu`, `gpu`. This describes where the query will be executed.
 - `storage_device`: `cpu`, `cpu-pinned`, `gpu`. This describes where the tables are initially stored. The cpu-pinned memory requires the GPU-backend.
 - `engines`: `maximus`, `acero`. This specifies which engine to use.
 - `path`: any path where the tables are located.
 - `csv_batch_size`: a positive integer, or in a form of a power e.g. `2^20`. specifying the batch size of the tables that are initially stored on the CPU.
-- `benchmark`: `tpch`: the benchmark to run.
 
 Running this e.g. for a query q1, will yield the following output:
 ```bash
@@ -109,9 +109,10 @@ Running this e.g. for a query q1, will yield the following output:
 Loading tables to:                   cpu
 Loading times over repetitions [ms]: 25,
 ===================================
-      MAXIMUS TPC-H BENCHMARK:
+    MAXBENCH TPCH BENCHMARK:    
 ===================================
----> TPC-H queries:            q1
+---> benchmark:                TPCH
+---> queries:                  q1
 ---> Tables path:              /../maximus/tests/tpch/csv-0.01
 ---> Engines:                  maximus
 ---> Number of reps:           1

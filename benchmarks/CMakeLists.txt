@@ -1,4 +1,4 @@
-set (executables "engines_bench")
+set (executables "maxbench")
 
 foreach (exec ${executables})
     add_executable(${exec} "${exec}.cpp")

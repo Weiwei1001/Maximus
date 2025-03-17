@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
 project(maximus
         DESCRIPTION "Maximus: A Modular Accelerated Query Engine for Data Analytics on Heterogeneous Systems"
         HOMEPAGE_URL "https://gitlab.inf.ethz.ch/PUB-SYSTEMS/eth-dataprocessing/Maximus"
-        VERSION 0.1.0
+        VERSION 0.2.0
         LANGUAGES CXX C)
 
 SET(MAXIMUS_SO_VERSION 1)
