@@ -83,6 +83,12 @@ set(maximus_src_files
 
         # tpch
         tpch/tpch_queries.cpp
+
+        # clickbench
+        clickbench/clickbench_queries.cpp
+
+        # h2o
+        h2o/h2o_queries.cpp
 )
 
 set(maximus_src_files_cuda

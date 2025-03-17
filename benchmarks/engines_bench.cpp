@@ -6,7 +6,7 @@
 
 int main(int argc, char** argv) {
     cxxopts::Options options("MAXIMUS BENCHMARKS",
-                             "Running tpch, queries with maximus and acero query engines.");
+                             "Running tpch, h2o, & clickbench queries with maximus and acero query engines.");
     options.add_options()(
         "path", "Path to the CSV files", cxxopts::value<std::string>()->default_value(csv_path()))(
         "engines",

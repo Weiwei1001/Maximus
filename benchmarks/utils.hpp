@@ -5,6 +5,8 @@
 #include <maximus/database.hpp>
 #include <maximus/tpch/tpch_queries.hpp>
 #include <maximus/utils/utils.hpp>
+#include <maximus/clickbench/clickbench_queries.hpp>
+#include <maximus/h2o/h2o_queries.hpp>
 
 std::string csv_path() {
     std::string path = PROJECT_SOURCE_DIR;
@@ -124,6 +126,12 @@ std::vector<std::string> get_table_names(const std::string& benchmark) {
     if (benchmark == "tpch") {
         return maximus::tpch::table_names();
     }
+    if (benchmark == "clickbench") {
+        return maximus::clickbench::table_names();
+    }
+    if (benchmark == "h2o") {
+        return maximus::h2o::table_names();
+    }
     throw std::runtime_error(
         "The benchmark argument not recognized. It can only take the values {tpch}");
 }
@@ -131,6 +139,12 @@ std::vector<std::string> get_table_names(const std::string& benchmark) {
 std::vector<std::shared_ptr<maximus::Schema>> get_table_schemas(const std::string& benchmark) {
     if (benchmark == "tpch") {
         return maximus::tpch::schemas();
+    }
+    if (benchmark == "clickbench") {
+        return maximus::clickbench::schemas();
+    }
+    if (benchmark == "h2o") {
+        return maximus::h2o::schemas();
     }
     throw std::runtime_error(
         "The benchmark argument not recognized. It can only take the values {tpch}");
@@ -142,6 +156,12 @@ std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
     if (benchmark == "tpch") {
         return maximus::tpch::query_plan(query, db);
     }
+    if (benchmark == "clickbench") {
+        return maximus::clickbench::query_plan(query, db);
+    }
+    if (benchmark == "h2o") {
+        return maximus::h2o::query_plan(query, db);
+    }
     throw std::runtime_error(
         "The benchmark argument not recognized. It can only take the values {tpch}");
 }
@@ -152,6 +172,12 @@ std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
                                               const std::string& benchmark) {
     if (benchmark == "tpch") {
         return maximus::tpch::query_plan(query, db, device);
+    }
+    if (benchmark == "clickbench") {
+        return maximus::clickbench::query_plan(query, db, device);
+    }
+    if (benchmark == "h2o") {
+        return maximus::h2o::query_plan(query, db, device);
     }
     throw std::runtime_error(
         "The benchmark argument not recognized. It can only take the values {tpch}");
