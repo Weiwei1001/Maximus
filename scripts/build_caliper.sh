@@ -3,7 +3,6 @@
 # Clone the repository
 git clone https://github.com/LLNL/Caliper.git caliper
 cd caliper
-mkdir build && cd build
 
 # Define compilers and build types
 build_type="Release"
