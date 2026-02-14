@@ -271,12 +271,11 @@ DeviceTablePtr merge_batches(std::shared_ptr<MaximusContext> &ctx,
 
     if (arrow_table_batches.size() > 0) {
         auto maybe_arrow_table =
-            ::arrow::Table::FromRecordBatches(schema->get_schema(), arrow_table_batches);
+            ::arrow::Table::FromRecordBatches(arrow_table_batches);
         if (!maybe_arrow_table.ok()) {
             check_status(maybe_arrow_table.status());
         }
         auto arrow_table = std::move(maybe_arrow_table.ValueOrDie());
-        assert(schema->get_schema()->Equals(*arrow_table->schema()));
         return DeviceTablePtr(std::move(arrow_table));
     }
 

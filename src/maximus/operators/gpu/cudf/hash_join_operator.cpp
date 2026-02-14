@@ -1,6 +1,8 @@
 #include <cudf/concatenate.hpp>
 #include <cudf/copying.hpp>
 #include <cudf/sorting.hpp>
+#include <cudf/utilities/default_stream.hpp>
+#include <rmm/mr/device/per_device_resource.hpp>
 #include <maximus/gpu/cuda_api.hpp>
 #include <maximus/operators/gpu/cudf/hash_join_operator.hpp>
 #include <typeinfo>
@@ -143,7 +145,8 @@ std::shared_ptr<::cudf::table> join_and_gather_left(
         (*join_impl)(left_input.select(left_key_indices),
                      right_input.select(right_key_indices),
                      compare_nulls,
-                     rmm::mr::get_current_device_resource());
+                     ::cudf::get_default_stream(),
+                     rmm::mr::get_current_device_resource_ref());
 
     std::vector<std::unique_ptr<::cudf::column>>
         joined_cols = gather_column(left_input, std::move(*left_join_indices), oob_policy),
@@ -167,7 +170,8 @@ std::shared_ptr<::cudf::table> join_and_gather_right(
         (*join_impl)(right_input.select(right_key_indices),
                      left_input.select(left_key_indices),
                      compare_nulls,
-                     rmm::mr::get_current_device_resource());
+                     ::cudf::get_default_stream(),
+                     rmm::mr::get_current_device_resource_ref());
 
     std::vector<std::unique_ptr<::cudf::column>>
         joined_cols = gather_column(left_input, std::move(*left_join_indices), oob_policy),
@@ -190,7 +194,8 @@ std::shared_ptr<::cudf::table> semi_join_and_gather_left(
     auto const left_join_indices = (*join_impl)(left_input.select(left_key_indices),
                                                 right_input.select(right_key_indices),
                                                 compare_nulls,
-                                                rmm::mr::get_current_device_resource());
+                                                ::cudf::get_default_stream(),
+                                                rmm::mr::get_current_device_resource_ref());
 
     return std::make_shared<::cudf::table>(
         gather_column(left_input, std::move(*left_join_indices), oob_policy));
@@ -207,7 +212,8 @@ std::shared_ptr<::cudf::table> semi_join_and_gather_right(
     auto const right_join_indices = (*join_impl)(right_input.select(right_key_indices),
                                                  left_input.select(left_key_indices),
                                                  compare_nulls,
-                                                 rmm::mr::get_current_device_resource());
+                                                 ::cudf::get_default_stream(),
+                                                 rmm::mr::get_current_device_resource_ref());
 
     return std::make_shared<::cudf::table>(
         gather_column(right_input, std::move(*right_join_indices), oob_policy));

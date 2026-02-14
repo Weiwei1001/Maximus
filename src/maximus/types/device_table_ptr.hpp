@@ -13,6 +13,8 @@
 #include <maximus/gpu/cudf/table_reader.hpp>
 #include <maximus/gpu/cudf/table_writer.hpp>
 #include <maximus/gpu/gtable/gtable.hpp>
+#include <arrow/c/bridge.h>
+#include <arrow/c/abi.h>
 #else
 
 
@@ -303,8 +305,14 @@ public:
             assert(arrow_table);
 
             // auto start = std::chrono::steady_clock::now();
-            std::unique_ptr<::cudf::table> cudf_table = ::cudf::from_arrow(
-                *arrow_table, ctx->h2d_stream, rmm::mr::get_current_device_resource());
+            // Convert arrow::Table to C Data Interface structs for cuDF 24.12+ API
+            auto batch_reader = std::make_shared<arrow::TableBatchReader>(*arrow_table);
+            struct ArrowArrayStream c_stream;
+            auto export_status = arrow::ExportRecordBatchReader(
+                batch_reader, &c_stream);
+            assert(export_status.ok());
+            std::unique_ptr<::cudf::table> cudf_table = ::cudf::from_arrow_stream(
+                &c_stream, ctx->h2d_stream, rmm::mr::get_current_device_resource_ref());
             assert(cudf_table);
             /*
             auto end = std::chrono::steady_clock::now();
@@ -374,7 +382,7 @@ public:
                 auto arrow_table_batch = as_arrow_table_batch();
 
                 auto maybe_arrow_table =
-                    arrow::Table::FromRecordBatches(schema->get_schema(), {arrow_table_batch});
+                    arrow::Table::FromRecordBatches({arrow_table_batch});
 
                 if (!maybe_arrow_table.ok()) {
                     check_status(maybe_arrow_table.status());
@@ -526,10 +534,21 @@ public:
             if (std::is_same_v<T, ArrowTableBatchPtr>) {
                 profiler::open_regions({outer_region, inner_region, types_region});
                 auto column_metadata = gpu::to_cudf_column_metadata(schema->get_schema());
-                auto arrow_table =
-                    cudf::to_arrow(cudf_table->view(), column_metadata, ctx->d2h_stream, pool);
-                auto arrow_batch = to_record_batch(arrow_table, pool);
-                value            = std::move(arrow_batch);
+                // cuDF 24.12+ C Data Interface: get schema and host data separately
+                auto c_schema = cudf::to_arrow_schema(cudf_table->view(), column_metadata);
+                auto c_device_array = cudf::to_arrow_host(cudf_table->view(), ctx->d2h_stream,
+                    rmm::mr::get_current_device_resource_ref());
+                auto maybe_imported_schema = arrow::ImportSchema(c_schema.get());
+                assert(maybe_imported_schema.ok());
+                struct ArrowArray c_array;
+                c_array = c_device_array->array;
+                c_device_array->array.release = nullptr;
+                // Import with cuDF schema, then re-wrap with expected schema (nullable)
+                auto maybe_batch = arrow::ImportRecordBatch(&c_array, maybe_imported_schema.ValueOrDie());
+                assert(maybe_batch.ok());
+                auto batch = maybe_batch.ValueOrDie();
+                // Use expected schema to ensure nullability matches
+                value = arrow::RecordBatch::Make(schema->get_schema(), batch->num_rows(), batch->columns());
                 profiler::close_regions({outer_region, inner_region, types_region});
                 return;
             }
@@ -537,9 +556,24 @@ public:
             if (std::is_same_v<T, ArrowTablePtr>) {
                 profiler::open_regions({outer_region, inner_region, types_region});
                 auto column_metadata = gpu::to_cudf_column_metadata(schema->get_schema());
-                auto arrow_table =
-                    cudf::to_arrow(cudf_table->view(), column_metadata, ctx->d2h_stream, pool);
-                value = std::move(arrow_table);
+                // cuDF 24.12+ C Data Interface: get schema and host data separately
+                auto c_schema = cudf::to_arrow_schema(cudf_table->view(), column_metadata);
+                auto c_device_array = cudf::to_arrow_host(cudf_table->view(), ctx->d2h_stream,
+                    rmm::mr::get_current_device_resource_ref());
+                auto maybe_imported_schema = arrow::ImportSchema(c_schema.get());
+                assert(maybe_imported_schema.ok());
+                struct ArrowArray c_array;
+                c_array = c_device_array->array;
+                c_device_array->array.release = nullptr;
+                auto maybe_batch = arrow::ImportRecordBatch(&c_array, maybe_imported_schema.ValueOrDie());
+                assert(maybe_batch.ok());
+                auto batch = maybe_batch.ValueOrDie();
+                // Use expected schema to ensure nullability matches
+                auto fixed_batch = arrow::RecordBatch::Make(schema->get_schema(), batch->num_rows(), batch->columns());
+                auto maybe_table = arrow::Table::FromRecordBatches(
+                    schema->get_schema(), {fixed_batch});
+                assert(maybe_table.ok());
+                value = maybe_table.ValueOrDie();
                 profiler::close_regions({outer_region, inner_region, types_region});
                 return;
             }

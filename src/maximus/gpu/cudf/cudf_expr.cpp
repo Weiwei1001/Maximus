@@ -1,9 +1,12 @@
 #include <cudf/ast/detail/expression_parser.hpp>
 #include <cudf/interop.hpp>
 #include <cudf/table/table_view.hpp>
+#include <cudf/copying.hpp>
 #include <maximus/gpu/cudf/cudf_expr.hpp>
 #include <maximus/gpu/cudf/cudf_types.hpp>
 #include <maximus/types/types.hpp>
+#include <arrow/c/bridge.h>
+#include <arrow/array.h>
 #include <regex>
 #include <typeinfo>
 
@@ -277,7 +280,16 @@ void arrow_expr_to_cudf(const arrow::compute::Expression &expr,
         assert(scalar && type && "Something is wrong with the expression");
 
         ::cudf::data_type cudf_type                = to_cudf_type(maximus::to_maximus_type(type));
-        std::shared_ptr<::cudf::scalar> dev_scalar = std::move(cudf::from_arrow(*scalar));
+        // Convert arrow::Scalar to cudf::scalar via C Data Interface (cuDF 24.12+)
+        auto maybe_array = arrow::MakeArrayFromScalar(*scalar, 1);
+        assert(maybe_array.ok());
+        auto arr = maybe_array.ValueOrDie();
+        struct ArrowSchema c_schema;
+        struct ArrowArray c_array;
+        auto export_status = arrow::ExportArray(*arr, &c_array, &c_schema);
+        assert(export_status.ok());
+        auto cudf_col = ::cudf::from_arrow_column(&c_schema, &c_array);
+        std::shared_ptr<::cudf::scalar> dev_scalar = std::move(::cudf::get_element(*cudf_col, 0));
 
         c_scalar.push_back(dev_scalar);
 
