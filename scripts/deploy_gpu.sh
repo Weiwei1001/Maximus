@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-MAXIMUS_REPO="${MAXIMUS_REPO:-https://github.com/YOUR_USERNAME/Maximus.git}"
+MAXIMUS_REPO="${MAXIMUS_REPO:-https://github.com/Weiwei1001/Maximus.git}"
 MAXIMUS_HOME="${MAXIMUS_HOME:-$HOME/Maximus}"
 MINIFORGE_HOME="${MINIFORGE_HOME:-$HOME/miniforge3}"
 CONDA_ENV="maximus_gpu"
@@ -91,7 +91,8 @@ echo ""
 # Clone Maximus
 status "Cloning Maximus repository..."
 if [ ! -d "$MAXIMUS_HOME" ]; then
-    git clone "$MAXIMUS_REPO" "$MAXIMUS_HOME"
+    echo "  Cloning $MAXIMUS_REPO..."
+git clone "$MAXIMUS_REPO" "$MAXIMUS_HOME"
 else
     echo "  ✓ Repository already cloned"
 fi

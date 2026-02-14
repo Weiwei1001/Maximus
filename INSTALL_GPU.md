@@ -3,7 +3,7 @@
 ## Quick Start (One-Command Deployment)
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/YOUR_USERNAME/Maximus/main/scripts/deploy_gpu.sh)
+bash <(curl -s https://raw.githubusercontent.com/Weiwei1001/Maximus/main/scripts/deploy_gpu.sh)
 ```
 
 ## Prerequisites
