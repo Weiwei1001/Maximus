@@ -270,6 +270,20 @@ Prerequisites for Sirius:
 
 The setup script handles cloning, dependency installation (libcudf, abseil, libconfig++, libnuma), building, generating benchmark databases, and creating GPU query SQL files.
 
+## Estimated Maximum Scale Factors (RTX 5090, 32GB VRAM)
+
+| Benchmark | Tested SFs | Maximus Success | Sirius Success | Est. Max SF (all queries pass) |
+|:----------|:-----------|:----------------|:---------------|:-------------------------------|
+| **TPC-H** | SF 1, 2, 10, 20 | SF1-2: 22/22, SF10: 21/22, SF20: 17/22 | SF1-10: 22/22, SF20: 21/22 | Maximus: ~SF 10-15, Sirius: ~SF 30-40 |
+| **H2O** | 1gb - 4gb | All: 9/9 | 1gb: 10/10, 2-4gb: 9/10 | Maximus: ~15gb, Sirius: ~10gb |
+| **ClickBench** | SF 1, 2 | All: 39/39 | All: 43/43 | Both: ~SF 3-5 |
+
+**Notes:**
+- The bottleneck is GPU VRAM (32GB). Simple scans/aggregations can handle larger SFs, but complex JOINs and correlated subqueries produce large intermediate results.
+- TPC-H: At SF=20, Maximus fails on q17-q21 (complex correlated subqueries); Sirius only falls back on q01.
+- H2O: Single-table GROUP BY queries are memory-efficient. q10 (GROUP BY all 6 columns) is the first to fail on Sirius.
+- ClickBench: High-cardinality GROUP BY queries (q31, q32) are likely the first to hit memory limits at larger SFs.
+
 ## Known GPU Limitations
 
 The following operations are not supported on the cuDF GPU backend and will cause query failures:
