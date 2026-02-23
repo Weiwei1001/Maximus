@@ -1,5 +1,6 @@
 #include <thrust/device_vector.h>
 
+#include <cudf/column/column_factories.hpp>
 #include <cudf/concatenate.hpp>
 #include <cudf/detail/aggregation/aggregation.hpp>
 #include <cudf/reduction.hpp>
@@ -169,8 +170,36 @@ void GroupByOperator::run_kernel(std::shared_ptr<MaximusContext> &ctx,
                     *agg,
                     type,
                     ::cudf::null_policy::EXCLUDE));
-            } else if (aggr.second == "mean") {
+            } else if (aggr.second == "mean" || aggr.second == "hash_mean") {
                 auto agg = ::cudf::make_mean_aggregation<::cudf::segmented_reduce_aggregation>();
+                ::cudf::data_type type =
+                    ::cudf::detail::target_type(complete_view.column(aggr.first).type(), agg->kind);
+                output_cols.push_back(::cudf::segmented_reduce(
+                    complete_view.column(aggr.first),
+                    ::cudf::device_span<::cudf::size_type const>(dev_segment),
+                    *agg,
+                    type,
+                    ::cudf::null_policy::EXCLUDE));
+            } else if (aggr.second == "hash_count" || aggr.second == "count") {
+                // COUNT(*) as reduction: use cudf::reduce with count aggregation
+                auto agg = ::cudf::make_count_aggregation<::cudf::reduce_aggregation>(
+                    ::cudf::null_policy::INCLUDE);
+                ::cudf::data_type type(::cudf::type_id::INT32);
+                auto scalar_result = ::cudf::reduce(
+                    complete_view.column(aggr.first), *agg, type);
+                auto col = ::cudf::make_column_from_scalar(*scalar_result, 1);
+                output_cols.push_back(std::move(col));
+            } else if (aggr.second == "hash_count_distinct" || aggr.second == "count_distinct") {
+                // COUNT(DISTINCT col) as reduction: use cudf::reduce with nunique
+                auto agg = ::cudf::make_nunique_aggregation<::cudf::reduce_aggregation>(
+                    ::cudf::null_policy::EXCLUDE);
+                ::cudf::data_type type(::cudf::type_id::INT32);
+                auto scalar_result = ::cudf::reduce(
+                    complete_view.column(aggr.first), *agg, type);
+                auto col = ::cudf::make_column_from_scalar(*scalar_result, 1);
+                output_cols.push_back(std::move(col));
+            } else if (aggr.second == "hash_sum") {
+                auto agg = ::cudf::make_sum_aggregation<::cudf::segmented_reduce_aggregation>();
                 ::cudf::data_type type =
                     ::cudf::detail::target_type(complete_view.column(aggr.first).type(), agg->kind);
                 output_cols.push_back(::cudf::segmented_reduce(

@@ -27,5 +27,10 @@ std::shared_ptr<arrow::RecordBatch> generate_batch(
     int seed,
     arrow::MemoryPool* memory_pool = arrow::default_memory_pool());
 
+// Returns a RecordBatch with the same data but schema with all fields nullable.
+// Used so GPU/cuDF export (which often produces non-nullable schema) matches
+// expected schema when combined with other batches (e.g. Table::FromRecordBatches).
+std::shared_ptr<arrow::RecordBatch> record_batch_with_nullable_schema(
+    const std::shared_ptr<arrow::RecordBatch>& batch);
 
 }  // namespace maximus

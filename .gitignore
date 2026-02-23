@@ -50,3 +50,9 @@ build-debug-gcc
 build-release-gcc
 
 .gitlab-ci-local*
+
+# Large test data (CSV datasets)
+tests/tpch/csv-*/
+tests/clickbench/
+tests/h2o/
+tests/tpch/results.csv

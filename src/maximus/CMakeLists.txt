@@ -142,6 +142,15 @@ endif()
 # message("MAXIMUS_EXTERNAL_LIBS: ${MAXIMUS_EXTERNAL_LIBS}")
 
 target_include_directories(maximus PUBLIC $<BUILD_INTERFACE:${maximus_SOURCE_DIR}/src> ${MAXIMUS_EXTERNAL_INCLUDE_DIRS})
+if (MAXIMUS_WITH_CUDA)
+    set(_rmm_inc "${RMM_INCLUDE_DIR}")
+    if(NOT _rmm_inc)
+        set(_rmm_inc "/usr/local/lib/python3.12/dist-packages/librmm/include")
+    endif()
+    if(_rmm_inc)
+        target_include_directories(maximus PUBLIC "${_rmm_inc}")
+    endif()
+endif()
 
 target_compile_features(maximus PUBLIC cxx_std_17)
 

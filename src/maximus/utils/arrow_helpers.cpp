@@ -38,6 +38,25 @@ std::shared_ptr<arrow::RecordBatch> arrow_clone(
         input_batch->schema(), input_batch->num_rows(), std::move(cloned_arrays));
 }
 
+std::shared_ptr<arrow::RecordBatch> record_batch_with_nullable_schema(
+    const std::shared_ptr<arrow::RecordBatch> &batch) {
+    if (!batch || batch->num_columns() == 0) {
+        return batch;
+    }
+    arrow::FieldVector new_fields;
+    new_fields.reserve(batch->num_columns());
+    for (int i = 0; i < batch->num_columns(); ++i) {
+        const auto &f = batch->schema()->field(i);
+        new_fields.push_back(arrow::field(f->name(), f->type(), true));
+    }
+    auto new_schema = arrow::schema(std::move(new_fields));
+    std::vector<std::shared_ptr<arrow::Array>> columns(batch->num_columns());
+    for (int i = 0; i < batch->num_columns(); ++i) {
+        columns[i] = batch->column(i);
+    }
+    return arrow::RecordBatch::Make(new_schema, batch->num_rows(), std::move(columns));
+}
+
 std::shared_ptr<arrow::Table> arrow_clone(const std::shared_ptr<arrow::Table> &source_table,
                                           arrow::MemoryPool *memory_pool) {
     std::vector<std::shared_ptr<arrow::ChunkedArray>> cloned_columns;

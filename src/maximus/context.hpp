@@ -10,7 +10,7 @@
 #ifdef MAXIMUS_WITH_CUDA
 #include <cudf/detail/utilities/stream_pool.hpp>
 #include <rmm/cuda_stream_view.hpp>
-#include <rmm/mr/device/pool_memory_resource.hpp>
+#include <rmm/mr/pool_memory_resource.hpp>
 #endif
 
 // Forward declaration

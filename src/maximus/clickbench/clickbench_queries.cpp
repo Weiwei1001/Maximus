@@ -161,9 +161,8 @@ std::shared_ptr<QueryPlan> q0(std::shared_ptr<Database>& db, DeviceType device) 
      * CREATING A GROUP BY NODE
      * ==============================
      */
-    auto count_opts                              = count_all();
     std::vector<std::shared_ptr<Aggregate>> aggs = {
-        aggregate("count", count_opts, "UserID", "count")};
+        aggregate("hash_count", "UserID", "count")};
     auto group_by_node = group_by(source_node, {}, aggs, device);
     return query_plan(table_sink(group_by_node));
 }
@@ -183,15 +182,14 @@ std::shared_ptr<QueryPlan> q1(std::shared_ptr<Database>& db, DeviceType device) 
      * CREATING A FILTER
      * ==============================
      */
-    auto engine_id_filter = arrow_expr(cp::field_ref("AdvEngineID"), "!=", int32_literal(0));
+    auto engine_id_filter = arrow_expr(cp::field_ref("AdvEngineID"), "!=", int16_literal(0));
     auto filter_node      = filter(source_node, expr(engine_id_filter), device);
     /* ==============================
      * CREATING A GROUP BY NODE
      * ==============================
      */
-    auto count_opts                              = count_all();
     std::vector<std::shared_ptr<Aggregate>> aggs = {
-        aggregate("count", count_opts, "AdvEngineID", "count")};
+        aggregate("hash_count", "AdvEngineID", "count")};
     auto group_by_node = group_by(filter_node, {}, aggs, device);
     return query_plan(table_sink(group_by_node));
 }
@@ -210,12 +208,10 @@ std::shared_ptr<QueryPlan> q2(std::shared_ptr<Database>& db, DeviceType device) 
      * CREATING A GROUP BY NODE
      * ==============================
      */
-    auto count_opts                              = count_all();
-    auto sum_opts                                = sum_defaults();
     std::vector<std::shared_ptr<Aggregate>> aggs = {
-        aggregate("sum", count_opts, "AdvEngineID", "AdvEngineID_sum"),
-        aggregate("count", count_opts, "AdvEngineID", "count"),
-        aggregate("mean", sum_opts, "ResolutionWidth", "ResolutionWidth_mean")};
+        aggregate("hash_sum", "AdvEngineID", "AdvEngineID_sum"),
+        aggregate("hash_count", "AdvEngineID", "count"),
+        aggregate("hash_mean", "ResolutionWidth", "ResolutionWidth_mean")};
     auto group_by_node = group_by(source_node, {}, aggs, device);
     return query_plan(table_sink(group_by_node));
 }
@@ -256,7 +252,7 @@ std::shared_ptr<QueryPlan> q4(std::shared_ptr<Database>& db, DeviceType device) 
      * ==============================
      */
     std::vector<std::shared_ptr<Aggregate>> aggs = {
-        aggregate("count_distinct", "UserID", "UserID_distinct_count")};
+        aggregate("hash_count_distinct", "UserID", "UserID_distinct_count")};
     auto group_by_node = group_by(source_node, {}, aggs, device);
     return query_plan(table_sink(group_by_node));
 }
@@ -276,7 +272,7 @@ std::shared_ptr<QueryPlan> q5(std::shared_ptr<Database>& db, DeviceType device) 
      * ==============================
      */
     std::vector<std::shared_ptr<Aggregate>> aggs = {
-        aggregate("count_distinct", "SearchPhrase", "SearchPhrase_distinct_count")};
+        aggregate("hash_count_distinct", "SearchPhrase", "SearchPhrase_distinct_count")};
     auto group_by_node = group_by(source_node, {}, aggs, device);
     return query_plan(table_sink(group_by_node));
 }
@@ -316,15 +312,14 @@ std::shared_ptr<QueryPlan> q7(std::shared_ptr<Database>& db, DeviceType device) 
      * CREATING A FILTER
      * ==============================
      */
-    auto engine_id_filter = arrow_expr(cp::field_ref("AdvEngineID"), "!=", int32_literal(0));
+    auto engine_id_filter = arrow_expr(cp::field_ref("AdvEngineID"), "!=", int16_literal(0));
     auto filter_node      = filter(source_node, expr(engine_id_filter), device);
     /* ==============================
      * CREATING A GROUP BY NODE
      * ==============================
      */
-    auto count_opts                              = count_all();
     std::vector<std::shared_ptr<Aggregate>> aggs = {
-        aggregate("hash_count", count_opts, "UserID", "count"),
+        aggregate("hash_count", "UserID", "count"),
     };
     auto group_by_node = group_by(filter_node, {"AdvEngineID"}, aggs, device);
     /* ==============================
@@ -703,7 +698,7 @@ std::shared_ptr<QueryPlan> q20(std::shared_ptr<Database>& db, DeviceType device)
      * CREATING A GROUP BY NODE
      * ==============================
      */
-    std::vector<std::shared_ptr<Aggregate>> aggs = {aggregate("count", "URL", "count")};
+    std::vector<std::shared_ptr<Aggregate>> aggs = {aggregate("hash_count", "URL", "count")};
     auto group_by_node = group_by(filter_node, {}, aggs, device);
     return query_plan(table_sink(group_by_node));
 }
@@ -960,7 +955,7 @@ std::shared_ptr<QueryPlan> q29(std::shared_ptr<Database>& db, DeviceType device)
     std::vector<std::string> column_names;
     for (int i = 0; i < 90; i++) {
         additions.push_back(
-            expr(arrow_expr(cp::field_ref("ResolutionWidth"), "+", int32_literal(i))));
+            expr(arrow_expr(cp::field_ref("ResolutionWidth"), "+", int16_literal(static_cast<int16_t>(i)))));
         column_names.push_back("col_" + std::to_string(i));
     }
     auto all_projected = project(limit_node, additions, column_names, device);
@@ -971,7 +966,7 @@ std::shared_ptr<QueryPlan> q29(std::shared_ptr<Database>& db, DeviceType device)
     std::vector<std::shared_ptr<Aggregate>> aggs;
     for (int i = 0; i < 90; i++) {
         auto new_column_name = "sum_" + std::to_string(i);
-        aggs.push_back(aggregate("sum", column_names[i], new_column_name));
+        aggs.push_back(aggregate("hash_sum", column_names[i], new_column_name));
     }
     auto group_by_node = group_by(all_projected, {}, aggs, device);
     return query_plan(table_sink(group_by_node));
@@ -1171,10 +1166,10 @@ std::shared_ptr<QueryPlan> q36(std::shared_ptr<Database>& db, DeviceType device)
      */
     auto filter_expression =
         arrow_all({arrow_expr(cp::field_ref("CounterID"), "==", int32_literal(62)),
-                   arrow_expr(cp::field_ref("EventDate"), ">=", date_literal("2013-07-01")),
-                   arrow_expr(cp::field_ref("EventDate"), "<=", date_literal("2013-07-31")),
-                   arrow_expr(cp::field_ref("DontCountHits"), "==", int32_literal(0)),
-                   arrow_expr(cp::field_ref("IsRefresh"), "==", int32_literal(0)),
+                   arrow_expr(cp::field_ref("EventDate"), ">=", timestamp_nano_literal("2013-07-01")),
+                   arrow_expr(cp::field_ref("EventDate"), "<=", timestamp_nano_literal("2013-07-31")),
+                   arrow_expr(cp::field_ref("DontCountHits"), "==", int16_literal(0)),
+                   arrow_expr(cp::field_ref("IsRefresh"), "==", int16_literal(0)),
                    arrow_expr(cp::field_ref("URL"), "!=", string_literal(""))});
     auto filter_node = filter(source_node, expr(filter_expression), device);
     /* ==============================
@@ -1214,10 +1209,10 @@ std::shared_ptr<QueryPlan> q37(std::shared_ptr<Database>& db, DeviceType device)
      */
     auto filter_expression =
         arrow_all({arrow_expr(cp::field_ref("CounterID"), "==", int32_literal(62)),
-                   arrow_expr(cp::field_ref("EventDate"), ">=", date_literal("2013-07-01")),
-                   arrow_expr(cp::field_ref("EventDate"), "<=", date_literal("2013-07-31")),
-                   arrow_expr(cp::field_ref("DontCountHits"), "==", int32_literal(0)),
-                   arrow_expr(cp::field_ref("IsRefresh"), "==", int32_literal(0)),
+                   arrow_expr(cp::field_ref("EventDate"), ">=", timestamp_nano_literal("2013-07-01")),
+                   arrow_expr(cp::field_ref("EventDate"), "<=", timestamp_nano_literal("2013-07-31")),
+                   arrow_expr(cp::field_ref("DontCountHits"), "==", int16_literal(0)),
+                   arrow_expr(cp::field_ref("IsRefresh"), "==", int16_literal(0)),
                    arrow_expr(cp::field_ref("Title"), "!=", string_literal(""))});
     auto filter_node = filter(source_node, expr(filter_expression), device);
     /* ==============================
@@ -1257,11 +1252,11 @@ std::shared_ptr<QueryPlan> q38(std::shared_ptr<Database>& db, DeviceType device)
      */
     auto filter_expression =
         arrow_all({arrow_expr(cp::field_ref("CounterID"), "==", int32_literal(62)),
-                   arrow_expr(cp::field_ref("EventDate"), ">=", date_literal("2013-07-01")),
-                   arrow_expr(cp::field_ref("EventDate"), "<=", date_literal("2013-07-31")),
-                   arrow_expr(cp::field_ref("IsRefresh"), "==", int32_literal(0)),
-                   arrow_expr(cp::field_ref("IsLink"), "!=", int32_literal(0)),
-                   arrow_expr(cp::field_ref("IsDownload"), "==", int32_literal(0))});
+                   arrow_expr(cp::field_ref("EventDate"), ">=", timestamp_nano_literal("2013-07-01")),
+                   arrow_expr(cp::field_ref("EventDate"), "<=", timestamp_nano_literal("2013-07-31")),
+                   arrow_expr(cp::field_ref("IsRefresh"), "==", int16_literal(0)),
+                   arrow_expr(cp::field_ref("IsLink"), "!=", int16_literal(0)),
+                   arrow_expr(cp::field_ref("IsDownload"), "==", int16_literal(0))});
     auto filter_node = filter(source_node, expr(filter_expression), device);
     /* ==============================
      * CREATING A GROUP BY NODE
@@ -1308,9 +1303,9 @@ std::shared_ptr<QueryPlan> q39(std::shared_ptr<Database>& db, DeviceType device)
      */
     auto filter_expression = arrow_all({
         arrow_expr(cp::field_ref("CounterID"), "==", int32_literal(62)),
-        arrow_expr(cp::field_ref("EventDate"), ">=", date_literal("2013-07-01")),
-        arrow_expr(cp::field_ref("EventDate"), "<=", date_literal("2013-07-31")),
-        arrow_expr(cp::field_ref("IsRefresh"), "==", int32_literal(0)),
+        arrow_expr(cp::field_ref("EventDate"), ">=", timestamp_nano_literal("2013-07-01")),
+        arrow_expr(cp::field_ref("EventDate"), "<=", timestamp_nano_literal("2013-07-31")),
+        arrow_expr(cp::field_ref("IsRefresh"), "==", int16_literal(0)),
     });
     auto filter_node       = filter(source_node, expr(filter_expression), device);
     /* ==============================
@@ -1357,12 +1352,12 @@ std::shared_ptr<QueryPlan> q40(std::shared_ptr<Database>& db, DeviceType device)
      */
     auto filter_expression = arrow_all(
         {arrow_expr(cp::field_ref("CounterID"), "==", int32_literal(62)),
-         arrow_expr(cp::field_ref("EventDate"), ">=", date_literal("2013-07-01")),
-         arrow_expr(cp::field_ref("EventDate"), "<=", date_literal("2013-07-31")),
-         arrow_expr(cp::field_ref("IsRefresh"), "==", int32_literal(0)),
+         arrow_expr(cp::field_ref("EventDate"), ">=", timestamp_nano_literal("2013-07-01")),
+         arrow_expr(cp::field_ref("EventDate"), "<=", timestamp_nano_literal("2013-07-31")),
+         arrow_expr(cp::field_ref("IsRefresh"), "==", int16_literal(0)),
          arrow_any({
-             arrow_expr(cp::field_ref("TraficSourceID"), "==", int32_literal(6)),
-             arrow_expr(cp::field_ref("TraficSourceID"), "==", int32_literal(-1)),
+             arrow_expr(cp::field_ref("TraficSourceID"), "==", int16_literal(6)),
+             arrow_expr(cp::field_ref("TraficSourceID"), "==", int16_literal(-1)),
          }),
          arrow_expr(cp::field_ref("RefererHash"), "==", int64_literal(3594120000172545465))});
     auto filter_node = filter(source_node, expr(filter_expression), device);
@@ -1414,10 +1409,10 @@ std::shared_ptr<QueryPlan> q41(std::shared_ptr<Database>& db, DeviceType device)
      */
     auto filter_expression =
         arrow_all({arrow_expr(cp::field_ref("CounterID"), "==", int32_literal(62)),
-                   arrow_expr(cp::field_ref("EventDate"), ">=", date_literal("2013-07-01")),
-                   arrow_expr(cp::field_ref("EventDate"), "<=", date_literal("2013-07-31")),
-                   arrow_expr(cp::field_ref("IsRefresh"), "==", int32_literal(0)),
-                   arrow_expr(cp::field_ref("DontCountHits"), "==", int32_literal(0)),
+                   arrow_expr(cp::field_ref("EventDate"), ">=", timestamp_nano_literal("2013-07-01")),
+                   arrow_expr(cp::field_ref("EventDate"), "<=", timestamp_nano_literal("2013-07-31")),
+                   arrow_expr(cp::field_ref("IsRefresh"), "==", int16_literal(0)),
+                   arrow_expr(cp::field_ref("DontCountHits"), "==", int16_literal(0)),
                    arrow_expr(cp::field_ref("URLHash"), "==", int64_literal(2868770270353813622))});
     auto filter_node = filter(source_node, expr(filter_expression), device);
     /* ==============================
@@ -1460,10 +1455,10 @@ std::shared_ptr<QueryPlan> q42(std::shared_ptr<Database>& db, DeviceType device)
      */
     auto filter_expression = arrow_all({
         arrow_expr(cp::field_ref("CounterID"), "==", int32_literal(62)),
-        arrow_expr(cp::field_ref("EventDate"), ">=", date_literal("2013-07-14")),
-        arrow_expr(cp::field_ref("EventDate"), "<=", date_literal("2013-07-15")),
-        arrow_expr(cp::field_ref("IsRefresh"), "==", int32_literal(0)),
-        arrow_expr(cp::field_ref("DontCountHits"), "==", int32_literal(0)),
+        arrow_expr(cp::field_ref("EventDate"), ">=", timestamp_nano_literal("2013-07-14")),
+        arrow_expr(cp::field_ref("EventDate"), "<=", timestamp_nano_literal("2013-07-15")),
+        arrow_expr(cp::field_ref("IsRefresh"), "==", int16_literal(0)),
+        arrow_expr(cp::field_ref("DontCountHits"), "==", int16_literal(0)),
     });
     auto filter_node       = filter(source_node, expr(filter_expression), device);
 

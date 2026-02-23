@@ -249,11 +249,12 @@ void ProjectOperator::run_kernel(std::shared_ptr<MaximusContext> &ctx,
                     assert(ext_expr.args.size() == 1);
                     assert(new_columns.size() + num_cols == ext_expr.result_col);
                     new_columns.push_back(::cudf::cast(
-                        ::cudf::datetime::extract_year(
+                        ::cudf::datetime::extract_datetime_component(
                             cudf_view.column(
                                 std::static_pointer_cast<::cudf::ast::column_reference>(
                                     ext_expr.args.front())
-                                    ->get_column_index()))
+                                    ->get_column_index()),
+                            ::cudf::datetime::datetime_component::YEAR)
                             ->view(),
                         ::cudf::data_type(::cudf::type_id::INT64)));
                     break;

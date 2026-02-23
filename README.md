@@ -13,7 +13,11 @@
 - [Features](#features)
 - [Dependencies](#dependencies)
 - [Installation](#installation)
+- [GPU Setup with pip cuDF](#gpu-setup-with-pip-cudf)
 - [Benchmarking](#benchmarking)
+- [Benchmark Scripts](#benchmark-scripts)
+- [Sirius Comparison](#sirius-comparison)
+- [Known GPU Limitations](#known-gpu-limitations)
 - [Testing](#testing)
 
 ## Overview
@@ -85,6 +89,26 @@ CMAKE OPTION | POSSIBLE VALUES | DESCRIPTION
 `MAXIMUS_WITH_GPU` | ON, **OFF** | Whether to build the GPU backend.
 `MAXIMUS_WITH_PROFILING` | ON, **OFF** | Whether to enable profiling.
 `MAXIMUS_WITH_SANITIZERS` | ON, **OFF** | Enable the sanitizers for all the targets.
+
+## GPU Setup with pip cuDF
+
+For GPU support using pip-installable cuDF (instead of building from source), use the provided configure script:
+
+```bash
+# Install cuDF and dependencies via pip
+pip install cudf-cu12 libcudf-cu12
+
+# Configure and build with GPU support
+bash scripts/configure_with_gpu_pip_cudf.sh
+cd build && make -j$(nproc)
+```
+
+The script automatically detects pip-installed cuDF libraries and sets the correct CMake paths. See [scripts/build_cudf.md](./scripts/build_cudf.md) for more details.
+
+**Note:** At runtime, you may need to set `LD_LIBRARY_PATH` to include the pip-installed NVIDIA libraries:
+```bash
+export LD_LIBRARY_PATH=/usr/local/lib/python3.12/dist-packages/nvidia/libnvcomp/lib64:/usr/local/lib/python3.12/dist-packages/libkvikio/lib64:$LD_LIBRARY_PATH
+```
 
 ## Benchmarking
 
@@ -171,6 +195,89 @@ Execution stats (min, max, avg):
 --->Results saved to ./results.csv
 cpu,maximus,q1,2,
 ```
+
+### Benchmark Suites
+
+Maximus supports three benchmark suites:
+
+| Suite | Queries | Scale Factors | Notes |
+|:------|:--------|:--------------|:------|
+| **TPC-H** | q1 - q22 (22 queries) | SF 1, 2, 10, 20 | All 22 queries supported on GPU |
+| **H2O** | q1 - q10 (9 queries) | 1gb, 2gb, 3gb, 4gb | q8 not implemented |
+| **ClickBench** | q0 - q42 (39 queries) | SF 1, 2 | q18, q27, q28, q42 unsupported on GPU |
+
+## Benchmark Scripts
+
+Automated benchmark runners are provided in `benchmarks/scripts/`:
+
+| Script | Description |
+|:-------|:------------|
+| `run_maximus_benchmark.py` | Maximus GPU benchmark runner (3 reps, min time, data preloaded to GPU) |
+| `run_sirius_benchmark.py` | Sirius GPU benchmark runner (3 passes, 10 queries/batch, 3rd pass timing) |
+| `compare_results.py` | Per-query comparison table with ratio and winner |
+| `setup_sirius.sh` | Download, build, and setup Sirius (DuckDB GPU extension) |
+| `generate_sirius_sql.py` | Generate Sirius-format GPU query SQL files |
+
+### Running Maximus Benchmarks
+
+```bash
+# Run all benchmarks (TPC-H, H2O, ClickBench)
+python benchmarks/scripts/run_maximus_benchmark.py
+
+# Run specific benchmarks
+python benchmarks/scripts/run_maximus_benchmark.py tpch clickbench
+
+# Custom repetitions and output directory
+python benchmarks/scripts/run_maximus_benchmark.py --n-reps 5 --results-dir ./results tpch
+```
+
+### Running Sirius Benchmarks
+
+```bash
+# Setup Sirius (one-time)
+bash benchmarks/scripts/setup_sirius.sh
+
+# Run all benchmarks
+python benchmarks/scripts/run_sirius_benchmark.py
+
+# Run specific benchmarks with custom settings
+python benchmarks/scripts/run_sirius_benchmark.py tpch --n-passes 3 --batch-size 10
+```
+
+### Comparing Results
+
+```bash
+python benchmarks/scripts/compare_results.py \
+    --sirius benchmark_results/sirius_benchmark.csv \
+    --maximus benchmark_results/maximus_benchmark.csv
+```
+
+## Sirius Comparison
+
+[Sirius](https://github.com/sirius-db/sirius) is a GPU extension for DuckDB. The benchmark scripts allow head-to-head comparison between Maximus and Sirius across all three benchmark suites.
+
+To set up Sirius for benchmarking:
+
+```bash
+bash benchmarks/scripts/setup_sirius.sh [--install-dir /path/to/install]
+```
+
+Prerequisites for Sirius:
+- CUDA >= 12.x with `nvcc` in PATH
+- CMake >= 3.30.4 (install with `pip install cmake` if needed)
+- ninja-build
+- Python 3 with `duckdb` package
+
+The setup script handles cloning, dependency installation (libcudf, abseil, libconfig++, libnuma), building, generating benchmark databases, and creating GPU query SQL files.
+
+## Known GPU Limitations
+
+The following operations are not supported on the cuDF GPU backend and will cause query failures:
+- `minute()` function (used in ClickBench q18, q42)
+- `utf8_length()` / `STRLEN()` on GPU (used in ClickBench q27, q28)
+- `REGEXP_REPLACE()` on GPU (used in ClickBench q28)
+
+These queries must be run on the CPU backend or excluded from GPU benchmarks.
 
 ## Testing
 

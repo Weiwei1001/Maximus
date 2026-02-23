@@ -25,7 +25,10 @@ export Arrow_DIR=$HOME/libs/lib64/cmake
 
 export CMAKE_PREFIX_PATH=$HOME/arrow_install:$HOME/cudf_install:$HOME/taskflow_install:$HOME/caliper_install
 
-cmake -DMAXIMUS_WITH_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DMAXIMUS_WITH_GPU=ON -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH ..
+# nvcc does not support NATIVE; use a concrete arch (e.g. 70=Volta, 80=Ampere)
+export CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES:-70}
+
+cmake -DMAXIMUS_WITH_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DMAXIMUS_WITH_GPU=ON -DCMAKE_CUDA_ARCHITECTURES=$CMAKE_CUDA_ARCHITECTURES -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH ..
 
 # compile
 make -j 8

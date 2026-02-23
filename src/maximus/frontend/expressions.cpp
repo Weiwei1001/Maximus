@@ -3,6 +3,15 @@
 
 namespace maximus {
 
+cp::Expression int16_literal(int16_t value) {
+    auto maybe_scalar = arrow::MakeScalar(arrow::int16(), value);
+    if (!maybe_scalar.ok()) {
+        check_status(maybe_scalar.status());
+    }
+    auto scalar = maybe_scalar.ValueOrDie();
+    return cp::literal(std::move(scalar));
+}
+
 cp::Expression int32_literal(int32_t value) {
     auto maybe_scalar = arrow::MakeScalar(arrow::int32(), value);
     if (!maybe_scalar.ok()) {
@@ -61,6 +70,41 @@ cp::Expression date_literal(const std::string &dateStr) {
     daysSinceEpoch += day - 1;  // Subtract 1 since days are 0-indexed
 
     return cp::literal(arrow::Date32Scalar(daysSinceEpoch));
+}
+
+cp::Expression timestamp_nano_literal(const std::string &dateStr) {
+    // Split the date string into year, month, and day
+    std::istringstream iss(dateStr);
+    std::string token;
+    std::vector<std::string> tokens;
+    while (std::getline(iss, token, '-')) {
+        tokens.push_back(token);
+    }
+
+    if (tokens.size() != 3) {
+        throw std::runtime_error("Invalid date string format: " + dateStr);
+    }
+
+    int year  = std::stoi(tokens[0]);
+    int month = std::stoi(tokens[1]);
+    int day   = std::stoi(tokens[2]);
+
+    // Calculate the number of days since January 1, 1970 (same logic as date_literal)
+    int daysSinceEpoch = (year - 1970) * 365 + (year - 1969) / 4;
+    static const int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    for (int i = 1; i < month; ++i) {
+        daysSinceEpoch += daysInMonth[i];
+    }
+    if (month > 2 && (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))) {
+        daysSinceEpoch += 1;
+    }
+    daysSinceEpoch += day - 1;
+
+    // Convert days to nanoseconds since epoch
+    int64_t nanos = static_cast<int64_t>(daysSinceEpoch) * 86400LL * 1000000000LL;
+    auto scalar = std::make_shared<arrow::TimestampScalar>(
+        nanos, arrow::timestamp(arrow::TimeUnit::NANO));
+    return cp::literal(std::move(scalar));
 }
 
 cp::Expression string_literal(const std::string &valueStr) {

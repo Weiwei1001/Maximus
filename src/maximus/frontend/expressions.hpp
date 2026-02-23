@@ -10,9 +10,12 @@
 namespace maximus {
 namespace cp = ::arrow::compute;
 
+cp::Expression int16_literal(int16_t value);
 cp::Expression int32_literal(int32_t value);
 cp::Expression int64_literal(int64_t value);
 cp::Expression float64_literal(double value);
+
+cp::Expression timestamp_nano_literal(const std::string& dateStr);
 
 cp::Expression date_literal(const std::string& dateStr);
 

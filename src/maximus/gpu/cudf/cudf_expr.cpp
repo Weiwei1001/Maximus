@@ -1,4 +1,8 @@
+#include <arrow/array/util.h>
+#include <arrow/c/bridge.h>
+#include <arrow/c/helpers.h>
 #include <cudf/ast/detail/expression_parser.hpp>
+#include <cudf/copying.hpp>
 #include <cudf/interop.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/copying.hpp>
@@ -279,18 +283,23 @@ void arrow_expr_to_cudf(const arrow::compute::Expression &expr,
 
         assert(scalar && type && "Something is wrong with the expression");
 
-        ::cudf::data_type cudf_type                = to_cudf_type(maximus::to_maximus_type(type));
-        // Convert arrow::Scalar to cudf::scalar via C Data Interface (cuDF 24.12+)
-        auto maybe_array = arrow::MakeArrayFromScalar(*scalar, 1);
-        assert(maybe_array.ok());
-        auto arr = maybe_array.ValueOrDie();
-        struct ArrowSchema c_schema;
+        ::cudf::data_type cudf_type = to_cudf_type(maximus::to_maximus_type(type));
+        // libcudf 26.x has no from_arrow(arrow::Scalar): convert via Arrow C interface
+        auto maybe_arr = arrow::MakeArrayFromScalar(*scalar, 1);
+        if (!maybe_arr.ok())
+            std::__throw_runtime_error("MakeArrayFromScalar failed");
+        std::shared_ptr<arrow::Array> arr = std::move(maybe_arr).ValueUnsafe();
         struct ArrowArray c_array;
-        auto export_status = arrow::ExportArray(*arr, &c_array, &c_schema);
-        assert(export_status.ok());
-        auto cudf_col = ::cudf::from_arrow_column(&c_schema, &c_array);
-        std::shared_ptr<::cudf::scalar> dev_scalar = std::move(::cudf::get_element(*cudf_col, 0));
-
+        struct ArrowSchema c_schema;
+        if (!arrow::ExportArray(*arr, &c_array, &c_schema).ok())
+            std::__throw_runtime_error("ExportArray failed");
+        auto col = cudf::from_arrow_column(
+            &c_schema, &c_array, cudf::get_default_stream(), cudf::get_current_device_resource_ref());
+        ArrowArrayRelease(&c_array);
+        ArrowSchemaRelease(&c_schema);
+        std::unique_ptr<::cudf::scalar> elem = cudf::get_element(
+            col->view(), 0, cudf::get_default_stream(), cudf::get_current_device_resource_ref());
+        std::shared_ptr<::cudf::scalar> dev_scalar(elem.release());
         c_scalar.push_back(dev_scalar);
 
         if (cudf_type.id() == ::cudf::type_id::STRING) {

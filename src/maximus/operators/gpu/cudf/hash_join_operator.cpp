@@ -1,5 +1,7 @@
 #include <cudf/concatenate.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/join/filtered_join.hpp>
+#include <cudf/join/join.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/utilities/default_stream.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
@@ -146,7 +148,7 @@ std::shared_ptr<::cudf::table> join_and_gather_left(
                      right_input.select(right_key_indices),
                      compare_nulls,
                      ::cudf::get_default_stream(),
-                     rmm::mr::get_current_device_resource_ref());
+                     ::cudf::get_current_device_resource_ref());
 
     std::vector<std::unique_ptr<::cudf::column>>
         joined_cols = gather_column(left_input, std::move(*left_join_indices), oob_policy),
@@ -171,7 +173,7 @@ std::shared_ptr<::cudf::table> join_and_gather_right(
                      left_input.select(left_key_indices),
                      compare_nulls,
                      ::cudf::get_default_stream(),
-                     rmm::mr::get_current_device_resource_ref());
+                     ::cudf::get_current_device_resource_ref());
 
     std::vector<std::unique_ptr<::cudf::column>>
         joined_cols = gather_column(left_input, std::move(*left_join_indices), oob_policy),
@@ -183,40 +185,41 @@ std::shared_ptr<::cudf::table> join_and_gather_right(
     return std::make_shared<::cudf::table>(std::move(joined_cols));
 }
 
-template<auto join_impl,
-         ::cudf::out_of_bounds_policy oob_policy = ::cudf::out_of_bounds_policy::DONT_CHECK>
-std::shared_ptr<::cudf::table> semi_join_and_gather_left(
-    ::cudf::table_view const &left_input,
-    ::cudf::table_view const &right_input,
-    std::vector<::cudf::size_type> const &left_key_indices,
-    std::vector<::cudf::size_type> const &right_key_indices,
-    ::cudf::null_equality compare_nulls) {
-    auto const left_join_indices = (*join_impl)(left_input.select(left_key_indices),
-                                                right_input.select(right_key_indices),
-                                                compare_nulls,
-                                                ::cudf::get_default_stream(),
-                                                rmm::mr::get_current_device_resource_ref());
-
+// libcudf 26.x: use filtered_join for semi/anti (no standalone left_semi_join/left_anti_join)
+static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
+    ::cudf::table_view const& left_input,
+    ::cudf::table_view const& right_input,
+    std::vector<::cudf::size_type> const& left_key_indices,
+    std::vector<::cudf::size_type> const& right_key_indices,
+    ::cudf::null_equality compare_nulls,
+    bool anti) {
+    auto stream = ::cudf::get_default_stream();
+    auto mr     = ::cudf::get_current_device_resource_ref();
+    ::cudf::filtered_join fj(
+        right_input.select(right_key_indices), compare_nulls, ::cudf::set_as_build_table::RIGHT, stream);
+    std::unique_ptr<rmm::device_uvector<::cudf::size_type>> left_join_indices =
+        anti ? fj.anti_join(left_input.select(left_key_indices), stream, mr)
+            : fj.semi_join(left_input.select(left_key_indices), stream, mr);
     return std::make_shared<::cudf::table>(
-        gather_column(left_input, std::move(*left_join_indices), oob_policy));
+        gather_column(left_input, std::move(*left_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
 
-template<auto join_impl,
-         ::cudf::out_of_bounds_policy oob_policy = ::cudf::out_of_bounds_policy::DONT_CHECK>
-std::shared_ptr<::cudf::table> semi_join_and_gather_right(
-    ::cudf::table_view const &left_input,
-    ::cudf::table_view const &right_input,
-    std::vector<::cudf::size_type> const &left_key_indices,
-    std::vector<::cudf::size_type> const &right_key_indices,
-    ::cudf::null_equality compare_nulls) {
-    auto const right_join_indices = (*join_impl)(right_input.select(right_key_indices),
-                                                 left_input.select(left_key_indices),
-                                                 compare_nulls,
-                                                 ::cudf::get_default_stream(),
-                                                 rmm::mr::get_current_device_resource_ref());
-
+static std::shared_ptr<::cudf::table> semi_join_and_gather_right_impl(
+    ::cudf::table_view const& left_input,
+    ::cudf::table_view const& right_input,
+    std::vector<::cudf::size_type> const& left_key_indices,
+    std::vector<::cudf::size_type> const& right_key_indices,
+    ::cudf::null_equality compare_nulls,
+    bool anti) {
+    auto stream = ::cudf::get_default_stream();
+    auto mr     = ::cudf::get_current_device_resource_ref();
+    ::cudf::filtered_join fj(
+        left_input.select(left_key_indices), compare_nulls, ::cudf::set_as_build_table::LEFT, stream);
+    std::unique_ptr<rmm::device_uvector<::cudf::size_type>> right_join_indices =
+        anti ? fj.anti_join(right_input.select(right_key_indices), stream, mr)
+            : fj.semi_join(right_input.select(right_key_indices), stream, mr);
     return std::make_shared<::cudf::table>(
-        gather_column(right_input, std::move(*right_join_indices), oob_policy));
+        gather_column(right_input, std::move(*right_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
 
 void HashJoinOperator::on_no_more_input(int port) {
@@ -241,36 +244,24 @@ void HashJoinOperator::run_kernel(std::shared_ptr<MaximusContext> &ctx,
     std::shared_ptr<::cudf::table> result;
     switch (join_type) {
         case JoinType::LEFT_SEMI:
-            result = std::move(
-                semi_join_and_gather_left<&::cudf::left_semi_join>(build_complete_view,
-                                                                   probe_complete_view,
-                                                                   build_key_indices,
-                                                                   probe_key_indices,
-                                                                   ::cudf::null_equality::EQUAL));
+            result = semi_join_and_gather_left_impl(build_complete_view, probe_complete_view,
+                                                    build_key_indices, probe_key_indices,
+                                                    ::cudf::null_equality::EQUAL, false);
             break;
         case JoinType::RIGHT_SEMI:
-            result = std::move(
-                semi_join_and_gather_right<&::cudf::left_semi_join>(build_complete_view,
-                                                                    probe_complete_view,
-                                                                    build_key_indices,
-                                                                    probe_key_indices,
-                                                                    ::cudf::null_equality::EQUAL));
+            result = semi_join_and_gather_right_impl(build_complete_view, probe_complete_view,
+                                                     build_key_indices, probe_key_indices,
+                                                     ::cudf::null_equality::EQUAL, false);
             break;
         case JoinType::LEFT_ANTI:
-            result = std::move(
-                semi_join_and_gather_left<&::cudf::left_anti_join>(build_complete_view,
-                                                                   probe_complete_view,
-                                                                   build_key_indices,
-                                                                   probe_key_indices,
-                                                                   ::cudf::null_equality::EQUAL));
+            result = semi_join_and_gather_left_impl(build_complete_view, probe_complete_view,
+                                                    build_key_indices, probe_key_indices,
+                                                    ::cudf::null_equality::EQUAL, true);
             break;
         case JoinType::RIGHT_ANTI:
-            result = std::move(
-                semi_join_and_gather_right<&::cudf::left_anti_join>(build_complete_view,
-                                                                    probe_complete_view,
-                                                                    build_key_indices,
-                                                                    probe_key_indices,
-                                                                    ::cudf::null_equality::EQUAL));
+            result = semi_join_and_gather_right_impl(build_complete_view, probe_complete_view,
+                                                     build_key_indices, probe_key_indices,
+                                                     ::cudf::null_equality::EQUAL, true);
             break;
         case JoinType::INNER:
             result =
