@@ -151,24 +151,36 @@ echo "[4/6] Generating benchmark databases..."
 
 cd "$INSTALL_DIR"
 
-# TPC-H databases
-echo "  Generating TPC-H databases..."
+# TPC-H databases (import from Maximus CSV to ensure identical data)
+echo "  Generating TPC-H databases from Maximus CSV data..."
 mkdir -p tpch_duckdb
-python3 - <<'PYEOF'
-import duckdb, os, sys
-out_dir = os.path.join(os.environ.get("INSTALL_DIR", "/workspace"), "tpch_duckdb")
-for sf in [1, 2, 10, 20]:
-    db_path = os.path.join(out_dir, f"tpch_sf{sf}.duckdb")
-    if os.path.exists(db_path):
-        print(f"  tpch_sf{sf}.duckdb already exists, skipping")
+TPCH_TABLES="lineitem orders customer part partsupp supplier nation region"
+for sf in 1 2 10 20; do
+    DB="tpch_duckdb/tpch_sf${sf}.duckdb"
+    if [ -f "$DB" ]; then
+        echo "    $DB already exists, skipping"
         continue
-    print(f"  Generating tpch_sf{sf}.duckdb...")
-    conn = duckdb.connect(db_path)
-    conn.execute("INSTALL tpch; LOAD tpch;")
-    conn.execute(f"CALL dbgen(sf={sf})")
-    conn.close()
-    print(f"  Done: tpch_sf{sf}.duckdb")
-PYEOF
+    fi
+    CSV_DIR="$INSTALL_DIR/Maximus/tests/tpch/csv-${sf}"
+    if [ -d "$CSV_DIR" ]; then
+        echo "    Creating $DB from CSV (SF=${sf})..."
+        python3 -c "
+import duckdb, os
+conn = duckdb.connect('$DB')
+csv_dir = '$CSV_DIR'
+for table in '$TPCH_TABLES'.split():
+    csv_path = os.path.join(csv_dir, table + '.csv')
+    if os.path.exists(csv_path):
+        conn.execute(f\"CREATE TABLE {table} AS SELECT * FROM read_csv_auto('{csv_path}')\")
+        rows = conn.execute(f'SELECT count(*) FROM {table}').fetchone()[0]
+        print(f'      {table}: {rows} rows')
+conn.close()
+print('    Done: $DB')
+"
+    else
+        echo "    CSV data not found at $CSV_DIR, skipping"
+    fi
+done
 
 # H2O databases
 echo "  Generating H2O databases..."
