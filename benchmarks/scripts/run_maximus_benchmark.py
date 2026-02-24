@@ -106,7 +106,7 @@ def run_maxbench(benchmark, data_path, queries, n_reps=3, timeout_s=300):
         "-d", "gpu", "-r", str(n_reps),
         "--n_reps_storage", "1",
         "--path", str(data_path),
-        "-s", "cpu", "--engines", "maximus",
+        "-s", "gpu", "--engines", "maximus",
     ]
     t0 = time.perf_counter()
     try:
