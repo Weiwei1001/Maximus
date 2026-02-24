@@ -152,23 +152,28 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
     print(f"{'=' * 70}")
 
     # ── Phase 1: Calibration ──────────────────────────────────────────────
-    # Use -s cpu with n_reps_storage=1: data loaded to CPU once, first query rep
-    # transfers to GPU, subsequent reps reuse GPU-cached data (pure GPU compute).
-    # This avoids OOM from CSV parsing on GPU while giving the same steady-state
-    # behavior as -s gpu for reps 2+.
-    print(f"\n--- Phase 1: Calibration ({CALIBRATION_REPS} reps, -s cpu) ---")
+    # Use -s gpu for accurate pure-GPU timing. With -s cpu, each rep includes
+    # CPU->GPU transfer (data is NOT cached between reps), which inflates
+    # latency and lowers steady-state power readings.
+    # If -s gpu OOMs (e.g. SF=20 ClickBench needs ~2x data size for CSV
+    # parsing), the query is skipped.
+    print(f"\n--- Phase 1: Calibration ({CALIBRATION_REPS} reps, -s gpu) ---")
     calibration = {}
     for q in queries:
         print(f"  {q}...", end=" ", flush=True)
         output, rc = run_maxbench(benchmark, q, CALIBRATION_REPS, data_path,
-                                  storage="cpu")
-        times = parse_timing(output, q) if rc >= 0 else []
-        if times:
-            calibration[q] = {"min_ms": min(times), "storage": "cpu"}
-            print(f"{min(times)}ms")
+                                  storage="gpu")
+        if rc < 0 or "out_of_memory" in output.lower():
+            calibration[q] = {"min_ms": 0, "storage": "oom"}
+            print("OOM (skip)")
         else:
-            calibration[q] = {"min_ms": 0, "storage": "fail"}
-            print("FAIL")
+            times = parse_timing(output, q)
+            if times:
+                calibration[q] = {"min_ms": min(times), "storage": "gpu"}
+                print(f"{min(times)}ms")
+            else:
+                calibration[q] = {"min_ms": 0, "storage": "fail"}
+                print("FAIL")
 
     # ── Phase 2: Calculate n_reps ─────────────────────────────────────────
     print(f"\n--- Phase 2: Calculate n_reps ---")
@@ -190,12 +195,12 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
 
     for q in queries:
         cal = calibration[q]
-        if cal["storage"] == "fail":
-            print(f"  {q}: SKIP (calibration failed)")
+        if cal["storage"] in ("fail", "oom"):
+            print(f"  {q}: SKIP ({cal['storage']})")
             continue
 
         n_reps = cal["n_reps"]
-        print(f"  {q} ({n_reps} reps, -s cpu)...", end=" ", flush=True)
+        print(f"  {q} ({n_reps} reps, -s gpu)...", end=" ", flush=True)
 
         # Start GPU sampling
         samples = []
@@ -206,7 +211,7 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
 
         start_time = time.time()
         output, rc = run_maxbench(benchmark, q, n_reps, data_path,
-                                  storage="cpu", timeout=600)
+                                  storage="gpu", timeout=600)
         elapsed = time.time() - start_time
 
         stop_event.set()
@@ -250,7 +255,7 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
 
         summaries.append({
             "run_id": run_id, "benchmark": benchmark, "sf": sf, "query": q,
-            "storage": "cpu", "n_reps": n_reps,
+            "storage": "gpu", "n_reps": n_reps,
             "min_ms": min_ms, "avg_ms": f"{avg_ms:.1f}",
             "elapsed_s": f"{elapsed:.2f}",
             "num_samples": len(samples),
