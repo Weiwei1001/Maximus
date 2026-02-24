@@ -14,8 +14,11 @@
 - [Dependencies](#dependencies)
 - [Installation](#installation)
 - [GPU Setup with pip cuDF](#gpu-setup-with-pip-cudf)
+- [RMM GPU Memory Pool](#rmm-gpu-memory-pool)
 - [Benchmarking](#benchmarking)
 - [Benchmark Scripts](#benchmark-scripts)
+- [GPU Metrics Measurement](#gpu-metrics-measurement)
+- [Benchmark Data](#benchmark-data)
 - [Sirius Comparison](#sirius-comparison)
 - [Known GPU Limitations](#known-gpu-limitations)
 - [Testing](#testing)
@@ -109,6 +112,39 @@ The script automatically detects pip-installed cuDF libraries and sets the corre
 ```bash
 export LD_LIBRARY_PATH=/usr/local/lib/python3.12/dist-packages/nvidia/libnvcomp/lib64:/usr/local/lib/python3.12/dist-packages/libkvikio/lib64:$LD_LIBRARY_PATH
 ```
+
+## RMM GPU Memory Pool
+
+Maximus uses [RMM (RAPIDS Memory Manager)](https://github.com/rapidsai/rmm) for GPU memory allocation. The pool is configured in `src/maximus/context.hpp`:
+
+```cpp
+rmm::mr::pool_memory_resource<rmm::mr::cuda_memory_resource> pool_mr{
+    &cuda_mr, rmm::percent_of_free_device_memory(20)};
+```
+
+| Parameter | Value | Description |
+|:----------|:------|:------------|
+| Initial size | 20% of free VRAM | ~6.4 GiB on a 32GB GPU with no other processes |
+| Maximum size | Unlimited | Pool grows dynamically via upstream `cudaMalloc` |
+| Pinned host memory | 4 GiB (default) | Configurable via `MAXIMUS_MAX_PINNED_POOL_SIZE` env var |
+
+**Storage device flag (`-s`):**
+- `-s cpu`: Tables stored in CPU memory, transferred to GPU per query. Safe for any dataset size.
+- `-s gpu`: Tables pre-loaded to GPU VRAM. Faster queries (no transfer overhead), but limited by VRAM.
+
+**VRAM capacity examples (RTX 5090, 32GB):**
+
+| Dataset | CSV Size | Fits with `-s gpu`? |
+|:--------|:---------|:--------------------|
+| ClickBench SF=10 | ~7 GiB | Yes (~7 GiB on GPU) |
+| ClickBench SF=20 | ~14 GiB | Yes on clean GPU (~14 GiB + pool overhead) |
+| TPC-H SF=20 | ~15 GiB (multi-table) | Depends on query (JOINs need intermediate space) |
+
+**Troubleshooting OOM errors:**
+- `"maximum pool size exceeded"` means `cudaMalloc` failed upstream, not a pool config limit.
+- Check `nvidia-smi` to verify no other processes are using GPU memory.
+- Try `-s cpu` as a fallback (slower but avoids VRAM pressure).
+- The pinned pool size can be increased: `export MAXIMUS_MAX_PINNED_POOL_SIZE=8589934592` (8 GiB).
 
 ## Benchmarking
 
@@ -204,7 +240,7 @@ Maximus supports three benchmark suites:
 |:------|:--------|:--------------|:------|
 | **TPC-H** | q1 - q22 (22 queries) | SF 1, 2, 10, 20 | All 22 queries supported on GPU |
 | **H2O** | q1 - q10 (9 queries) | 1gb, 2gb, 3gb, 4gb | q8 not implemented |
-| **ClickBench** | q0 - q42 (39 queries) | SF 1, 2 | q18, q27, q28, q42 unsupported on GPU |
+| **ClickBench** | q0 - q42 (39 queries) | SF 1, 2, 10, 20 | q18, q27, q28, q42 unsupported on GPU |
 
 ## Benchmark Scripts
 
@@ -212,7 +248,8 @@ Automated benchmark runners are provided in `benchmarks/scripts/`:
 
 | Script | Description |
 |:-------|:------------|
-| `run_maximus_benchmark.py` | Maximus GPU benchmark runner (3 reps, min time, data preloaded to GPU) |
+| `run_maximus_benchmark.py` | Maximus GPU timing benchmark (3 reps, min time, data via `-s cpu`) |
+| `run_maximus_metrics.py` | Maximus GPU steady-state metrics (power, energy, GPU util via nvidia-smi) |
 | `run_sirius_benchmark.py` | Sirius GPU benchmark runner (3 passes, 10 queries/batch, 3rd pass timing) |
 | `compare_results.py` | Per-query comparison table with ratio and winner |
 | `setup_sirius.sh` | Download, build, and setup Sirius (DuckDB GPU extension) |
@@ -244,6 +281,21 @@ python benchmarks/scripts/run_sirius_benchmark.py
 python benchmarks/scripts/run_sirius_benchmark.py tpch --n-passes 3 --batch-size 10
 ```
 
+### Running GPU Metrics
+
+The metrics script measures steady-state GPU power consumption and energy per query:
+
+```bash
+# Measure ClickBench SF=10 metrics (default)
+python benchmarks/scripts/run_maximus_metrics.py clickbench --sf 10
+
+# Measure all configured SFs for a benchmark
+python benchmarks/scripts/run_maximus_metrics.py tpch
+
+# Custom target time (default: 10s sustained execution per query)
+python benchmarks/scripts/run_maximus_metrics.py --target-time 15 clickbench
+```
+
 ### Comparing Results
 
 ```bash
@@ -251,6 +303,73 @@ python benchmarks/scripts/compare_results.py \
     --sirius benchmark_results/sirius_benchmark.csv \
     --maximus benchmark_results/maximus_benchmark.csv
 ```
+
+## GPU Metrics Measurement
+
+The `run_maximus_metrics.py` script measures steady-state GPU power and energy consumption with the following methodology:
+
+**Phase 1 — Calibration:** Each query is run 3 times with `-s gpu` (data on GPU) to measure base latency.
+
+**Phase 2 — Calculate repetitions:** For each query, `n_reps = ceil(10s / query_latency)` so that total execution exceeds 10 seconds. This ensures the GPU is under sustained load long enough for accurate power sampling.
+
+**Phase 3 — Metrics collection:** Each query runs `n_reps` times while `nvidia-smi` samples GPU telemetry at 50ms intervals. The first and last 10% of samples are trimmed to isolate steady-state behavior.
+
+**Metrics collected per query:**
+
+| Metric | Unit | Description |
+|:-------|:-----|:------------|
+| `min_ms` / `avg_ms` | ms | Query execution time (min and average across reps) |
+| `avg_power_w` | Watts | Average GPU power draw during steady state |
+| `max_power_w` | Watts | Peak GPU power draw |
+| `energy_j` | Joules | Total energy = avg_power * elapsed_time |
+| `avg_gpu_util` | % | Average GPU compute utilization |
+| `max_mem_mb` | MiB | Peak GPU memory usage |
+
+**Why `-s gpu` matters for metrics:** With `-s cpu`, each query iteration includes a CPU-to-GPU data transfer, which dominates execution time for fast queries and results in near-idle GPU utilization readings. With `-s gpu`, data is pre-loaded to GPU VRAM, so all `n_reps` iterations are pure GPU compute — giving accurate steady-state power readings (typically 200-400W under load vs ~50W idle).
+
+**Example output (ClickBench SF=10, RTX 5090):**
+```
+q2 (667 reps, -s gpu)... 15ms, 28.2s, 255W, 97%util, 31468MB, 7173J [OK]
+q3 (770 reps, -s gpu)... 13ms, 30.6s, 266W, 97%util, 31468MB, 8129J [OK]
+q4 (5000 reps, -s gpu)... 2ms, 116.4s, 375W, 95%util, 32045MB, 43648J [OK]
+```
+
+## Benchmark Data
+
+Benchmark results are stored in `benchmark_results/` (packaged as `sirius_benchmark_package.tar.gz`, 1.3 MB).
+
+### Sirius Timing Data
+
+| File | Rows | Size | Description |
+|:-----|-----:|-----:|:------------|
+| `sirius_timing_per_query.csv` | 312 | 14 KB | All Sirius query timing (TPC-H + H2O + ClickBench) |
+| `tpch_timing.csv` | 100 | 4.1 KB | TPC-H: SF 1/2/10/20, 25 queries each |
+| `h2o_timing.csv` | 40 | 1.7 KB | H2O: 1gb/2gb/3gb/4gb, 10 queries each |
+| `clickbench_timing.csv` | 172 | 7.8 KB | ClickBench: SF 10/20/50/100, 43 queries each |
+
+### Sirius GPU Metrics (nvidia-smi samples)
+
+| File | Samples | Size | Description |
+|:-----|--------:|-----:|:------------|
+| `tpch_metrics_samples.csv` | 21,880 | 1.2 MB | TPC-H GPU telemetry (power, util%, mem, PCIe) |
+| `h2o_metrics_samples.csv` | 14,057 | 728 KB | H2O GPU telemetry |
+| `clickbench_metrics_samples.csv` | 45,614 | 2.4 MB | ClickBench GPU telemetry |
+| `tpch_metrics_samples_summary.csv` | 100 | 4.1 KB | TPC-H per-query summary |
+| `h2o_metrics_samples_summary.csv` | 40 | 1.7 KB | H2O per-query summary |
+| `clickbench_metrics_samples_summary.csv` | 172 | 6.9 KB | ClickBench per-query summary |
+
+### Maximus Timing Data
+
+| File | Rows | Size | Description |
+|:-----|-----:|-----:|:------------|
+| `maximus_adaptive.csv` | 202 | 44 KB | All Maximus results (TPC-H SF 1/2/10/20, H2O 1-4gb, ClickBench SF 1/2) |
+| `maximus_tpch_sf1_corrected.csv` | 22 | 1.2 KB | TPC-H SF=1 corrected re-run |
+
+### Data Totals
+
+- **Sirius**: 312 query timing records + 81,551 GPU metric samples across 12 benchmark/SF combinations
+- **Maximus**: 224 query timing records across 10 benchmark/SF combinations
+- **Total data points**: 82,087 rows, ~4.5 MB uncompressed
 
 ## Sirius Comparison
 
@@ -276,7 +395,7 @@ The setup script handles cloning, dependency installation (libcudf, abseil, libc
 |:----------|:-----------|:----------------|:---------------|:-------------------------------|
 | **TPC-H** | SF 1, 2, 10, 20 | SF1-2: 22/22, SF10: 21/22, SF20: 17/22 | SF1-10: 22/22, SF20: 21/22 | Maximus: ~SF 10-15, Sirius: ~SF 30-40 |
 | **H2O** | 1gb - 4gb | All: 9/9 | 1gb: 10/10, 2-4gb: 9/10 | Maximus: ~15gb, Sirius: ~10gb |
-| **ClickBench** | SF 1, 2 | All: 39/39 | All: 43/43 | Both: ~SF 3-5 |
+| **ClickBench** | SF 1, 2, 10, 20 | SF1-10: 39/39, SF20: 39/39 (-s cpu) | SF10-100: 43/43 | Maximus: ~SF 20+ (-s gpu), Sirius: ~SF 100+ |
 
 **Notes:**
 - The bottleneck is GPU VRAM (32GB). Simple scans/aggregations can handle larger SFs, but complex JOINs and correlated subqueries produce large intermediate results.
