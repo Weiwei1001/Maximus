@@ -50,7 +50,7 @@ cmake --version  # verify >= 3.30.4
 
 ```bash
 cd /workspace
-git clone https://github.com/Weiwei1001/Maximus.git
+git clone --recurse-submodules https://github.com/Weiwei1001/gpu_db.git
 cd Maximus
 ```
 

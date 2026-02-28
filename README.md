@@ -15,8 +15,8 @@ This repository contains:
 
 ```bash
 # Clone the repository (with Sirius submodule)
-git clone --recurse-submodules https://github.com/Weiwei1001/Maximus.git
-cd Maximus
+git clone --recurse-submodules https://github.com/Weiwei1001/gpu_db.git
+cd gpu_db
 
 # One-click setup (Maximus + Sirius + data generation)
 ./setup.sh

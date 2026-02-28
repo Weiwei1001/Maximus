@@ -9,7 +9,7 @@
 ### Quick Start (One Command)
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Weiwei1001/Maximus/main/scripts/deploy_gpu.sh)
+bash <(curl -s https://raw.githubusercontent.com/Weiwei1001/gpu_db/main/scripts/deploy_gpu.sh)
 ```
 
 After deployment:
@@ -141,7 +141,7 @@ For issues or questions:
 ### 快速开始（一键命令）
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Weiwei1001/Maximus/main/scripts/deploy_gpu.sh)
+bash <(curl -s https://raw.githubusercontent.com/Weiwei1001/gpu_db/main/scripts/deploy_gpu.sh)
 ```
 
 部署完成后：
