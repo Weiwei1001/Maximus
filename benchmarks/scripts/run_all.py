@@ -65,7 +65,7 @@ MAXIMUS_BENCHMARKS = {
     "clickbench": {
         "data_base": MAXIMUS_DIR / "tests" / "clickbench",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2],
+        "scale_factors": [10, 20, 50, 100],
         "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
     },
 }
@@ -87,7 +87,7 @@ SIRIUS_BENCHMARKS = {
         "db_dir": SIRIUS_DATA_DIR / "click_duckdb",
         "db_pattern": "clickbench_{sf}.duckdb",
         "query_dir": SIRIUS_DATA_DIR / "click_sql" / "queries" / "1",
-        "scale_factors": [1, 2],
+        "scale_factors": [10, 20, 50, 100],
     },
 }
 

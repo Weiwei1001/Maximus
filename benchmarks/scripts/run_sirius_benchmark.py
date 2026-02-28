@@ -59,7 +59,7 @@ BENCHMARKS = {
         "db_dir": SIRIUS_DATA_DIR / "click_duckdb",
         "db_pattern": "clickbench_{sf}.duckdb",
         "query_dir": SIRIUS_DATA_DIR / "click_sql" / "queries" / "1",
-        "scale_factors": [1, 2],
+        "scale_factors": [10, 20, 50, 100],
     },
 }
 

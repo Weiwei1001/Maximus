@@ -63,7 +63,7 @@ BENCHMARKS = {
     "clickbench": {
         "data_base": MAXIMUS_DIR / "tests" / "clickbench",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2, 10, 20],
+        "scale_factors": [10, 20, 50, 100],
         # 39 working GPU queries (q18,q27,q28,q42 unsupported on cuDF GPU)
         "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
     },

@@ -90,7 +90,7 @@ if [ ! -f "$PARQUET_PATH" ]; then
 fi
 
 echo "Generating ClickBench CSV data..."
-python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DIR" --format csv --scales 1 2 10 20 --parquet-path "$PARQUET_PATH"
+python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DIR" --format csv --scales 10 20 50 100 --parquet-path "$PARQUET_PATH"
 echo "Generating ClickBench DuckDB databases..."
 python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DB_DIR" --format duckdb --scales 10 20 50 100 --parquet-path "$PARQUET_PATH"
 

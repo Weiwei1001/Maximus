@@ -150,8 +150,7 @@ Summary CSV columns per query: `avg_power_w`, `max_power_w`, `max_mem_mb`, `avg_
 | TPC-H | 2 | 25/25 OK | 22/22 OK |
 | TPC-H | 10 | 25/25 OK | 20/22 (q21-22 OOM) |
 | H2O | 1-4gb | 40/40 (3 fallback) | 36/36 OK |
-| ClickBench | 1-2 | — | 78/78 OK |
-| ClickBench | 10-100 | 168/172 (12 fallback) | — |
+| ClickBench | 10, 20, 50, 100 | 168/172 (12 fallback) | In progress |
 
 ## Project Structure
 
