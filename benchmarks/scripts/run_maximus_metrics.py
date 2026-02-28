@@ -8,10 +8,13 @@ The methodology:
   2. Calibration: 3 reps per query to measure base latency
   3. n_reps calculated so that n_reps * query_latency >= TARGET_TIME_S (default 10s)
   4. nvidia-smi sampled at 50ms intervals during sustained execution
-  5. First/last 10% of samples trimmed for steady-state analysis
+  5. Steady-state detected via GPU utilization threshold:
+     - Compute avg_util across all samples
+     - t_start = first sample where gpu_util >= avg_util
+     - t_end   = last sample where gpu_util >= avg_util
+     - P_steady = mean(power[t_start : t_end])
 
-This gives accurate steady-state power and energy readings because the GPU
-is under sustained compute load for 10+ seconds per query.
+This isolates the compute phase regardless of idle/loading duration.
 
 Usage:
     python run_maximus_metrics.py [--sf 10] [--target-time 10] [--results-dir ./results]
@@ -233,12 +236,26 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             s["query"] = q
         all_samples.extend(samples)
 
-        # Compute steady-state metrics (trim first/last 10%)
-        if len(samples) > 10:
-            trim = max(1, len(samples) // 10)
-            steady = samples[trim:-trim]
+        # Compute steady-state metrics via GPU utilization threshold
+        if samples:
+            all_util = [s["gpu_util_pct"] for s in samples]
+            avg_util_all = sum(all_util) / len(all_util)
+
+            # Find compute region: first/last sample where util >= avg
+            start_idx = 0
+            for i, s in enumerate(samples):
+                if s["gpu_util_pct"] >= avg_util_all:
+                    start_idx = i
+                    break
+            end_idx = len(samples) - 1
+            for i in range(len(samples) - 1, -1, -1):
+                if samples[i]["gpu_util_pct"] >= avg_util_all:
+                    end_idx = i
+                    break
+
+            steady = samples[start_idx:end_idx + 1] if end_idx >= start_idx else samples
         else:
-            steady = samples
+            steady = []
 
         if steady:
             avg_power = sum(s["power_w"] for s in steady) / len(steady)
@@ -251,7 +268,7 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
 
         min_ms = min(times) if times else 0
         avg_ms = sum(times) / len(times) if times else 0
-        energy_j = avg_power * elapsed  # Joules = Watts * seconds
+        energy_j = avg_power * (min_ms / 1000) if min_ms > 0 else 0  # per-query energy
 
         summaries.append({
             "run_id": run_id, "benchmark": benchmark, "sf": sf, "query": q,

@@ -65,9 +65,7 @@ Step 5: Compute avg power within compute region → derive energy
 
 #### Steady-state detection (utilization-based)
 
-A typical power trace has three phases: idle (~70W, GPU loading data), compute (200-400W, queries executing), and cooldown. Simply trimming 10% from each end fails when the idle phase is long — it still includes mostly idle samples.
-
-Instead, we use **GPU utilization as the boundary signal**:
+A typical power trace has three phases: idle (~70W, GPU loading data), compute (200-400W, queries executing), and cooldown. We use **GPU utilization as the boundary signal** to isolate the compute phase:
 
 ```
 1. Compute avg_util across ALL samples
@@ -92,7 +90,7 @@ where `P_steady` is the utilization-bounded average power, and `t_query` is the 
 
 - **455 samples** over 16.3s. Avg GPU utilization across all samples = 27.3%
 - **Utilization threshold** detects compute region at [9.0s, 13.8s] (green shading)
-- **P_steady = 362.5W** (avg within compute region), vs naive trim-10% = 181.1W (includes idle)
+- **P_steady = 362.5W** (avg power within compute region)
 - **Energy per query** = 362.5W x 70.7ms = 25.6 J
 - Bottom panel shows GPU util: the green/red dots mark t_start and t_end where util crosses the threshold
 
