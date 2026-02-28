@@ -30,8 +30,13 @@ from pathlib import Path
 
 # ── Defaults (adjust to your environment) ───────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_SIRIUS_DIR = Path("/workspace/sirius")
-DEFAULT_RESULTS_DIR = SCRIPT_DIR.parent.parent / "benchmark_results"
+MAXIMUS_DIR = SCRIPT_DIR.parent.parent          # benchmarks/scripts -> Maximus root
+WORKSPACE_DIR = MAXIMUS_DIR.parent               # parent of Maximus
+DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", WORKSPACE_DIR / "sirius"))
+DEFAULT_RESULTS_DIR = MAXIMUS_DIR / "results"
+
+# Sirius data directories (configurable via env vars or defaults)
+SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", WORKSPACE_DIR))
 
 BUFFER_INIT = 'call gpu_buffer_init("20 GB", "10 GB");'
 N_PASSES = 3
@@ -40,21 +45,21 @@ QUERY_TIMEOUT_S = 60  # per-query timeout; >60s = FALLBACK
 
 BENCHMARKS = {
     "tpch": {
-        "db_dir": Path("/workspace/tpch_duckdb"),
+        "db_dir": SIRIUS_DATA_DIR / "tpch_duckdb",
         "db_pattern": "tpch_sf{sf}.duckdb",
-        "query_dir": Path("/workspace/tpch_sql/queries/1"),
+        "query_dir": SIRIUS_DATA_DIR / "tpch_sql" / "queries" / "1",
         "scale_factors": [1, 2, 10, 20],
     },
     "h2o": {
-        "db_dir": Path("/workspace/h2o_duckdb"),
+        "db_dir": SIRIUS_DATA_DIR / "h2o_duckdb",
         "db_pattern": "h2o_{sf}.duckdb",
-        "query_dir": Path("/workspace/h2o_sql/queries/1"),
+        "query_dir": SIRIUS_DATA_DIR / "h2o_sql" / "queries" / "1",
         "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
     },
     "clickbench": {
-        "db_dir": Path("/workspace/click_duckdb"),
+        "db_dir": SIRIUS_DATA_DIR / "click_duckdb",
         "db_pattern": "clickbench_{sf}.duckdb",
-        "query_dir": Path("/workspace/click_sql/queries/1"),
+        "query_dir": SIRIUS_DATA_DIR / "click_sql" / "queries" / "1",
         "scale_factors": [1, 2],
     },
 }

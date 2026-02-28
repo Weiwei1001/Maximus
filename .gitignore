@@ -56,3 +56,32 @@ tests/tpch/csv-*/
 tests/clickbench/
 tests/h2o/
 tests/tpch/results.csv
+
+# Generated DuckDB databases
+tests/tpch_duckdb/
+tests/h2o_duckdb/
+tests/click_duckdb/
+*.duckdb
+
+# Generated SQL query files
+tests/tpch_sql/
+tests/h2o_sql/
+tests/click_sql/
+
+# ClickBench parquet source
+clickbench.parquet
+
+# Raw GPU metrics sample data (large files; summaries are kept)
+results/*_metrics_samples.csv
+results/maximus_*_metrics_samples_*.csv
+results/maximus_*_samples_*.csv
+
+# Generated environment file
+setup_env.sh
+
+# Setup log
+setup.log
+
+# Python
+*.pyc
+__pycache__/

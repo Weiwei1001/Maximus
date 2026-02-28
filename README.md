@@ -1,431 +1,447 @@
-<!---
-[![pipeline status](https://gitlab.inf.ethz.ch/PUB-SYSTEMS/eth-dataprocessing/Maximus/badges/main/pipeline.svg)](https://gitlab.inf.ethz.ch/PUB-SYSTEMS/eth-dataprocessing/Maximus/-/commits/main)
---->
+# Maximus: GPU-Accelerated SQL Benchmark Suite
 
-<div>
-<centering>
-<p align="center"><img src="./assets/maximus-logo.svg" width="70%"></p>
-</centering>
-</div>
-
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Dependencies](#dependencies)
-- [Installation](#installation)
-- [GPU Setup with pip cuDF](#gpu-setup-with-pip-cudf)
-- [RMM GPU Memory Pool](#rmm-gpu-memory-pool)
-- [Benchmarking](#benchmarking)
-- [Benchmark Scripts](#benchmark-scripts)
-- [GPU Metrics Measurement](#gpu-metrics-measurement)
-- [Benchmark Data](#benchmark-data)
-- [Sirius Comparison](#sirius-comparison)
-- [Known GPU Limitations](#known-gpu-limitations)
-- [Testing](#testing)
+A comprehensive GPU SQL benchmarking platform comparing **Maximus** (standalone GPU query engine) and **Sirius** (DuckDB GPU extension), developed in the Systems Group at ETH Zurich.
 
 ## Overview
 
-Maximus is a modular, accelerated query engine for data analytics (OLAP) on Heterogeneous Systems, developed in the Systems Group at ETH Zurich (Swiss Federal Institute of Technology).
-Through the concept of operator-level integration, Maximus can use operators from third-party engines and achieve even better performance with these operators than when they are used within their native engines.
-In the current version, Maximus integrates operators from Apache Acero (CPU) and cuDF (GPU), but its modular design and flexibility allow it to easily integrate operators from other engines, as well.
-Maximus supports all TPC-H queries on both the CPU and the GPU and can achieve performance comparable to that of the best systems available but with a far higher degree of completeness and flexibility.
+This repository contains:
 
-## Features
+- **Maximus Engine** — A modular, accelerated query engine integrating Apache Acero (CPU) and cuDF (GPU) operators through operator-level integration. Push-based execution with columnar Arrow storage.
+- **Sirius Integration** — Setup, build, and benchmark scripts for the DuckDB GPU extension that offloads queries to GPU via `gpu_processing()` calls.
+- **Three Benchmark Suites** — TPC-H (OLAP), H2O groupby (aggregation), ClickBench (web analytics).
+- **One-Click Deployment** — `./setup.sh` handles everything from dependencies to smoke testing on a new machine.
 
-Maximus has the following features:
-- modular and flexible design
-- operator-level integration:
-  - integrates CPU operators from Apache Acero
-  - integrates GPU operators from cuDF
-- push-based query execution
-- uses columnar storage (arrow format)
-- accelerators support (GPUs)
+## Quick Start
 
-## Dependencies
-
-The installation requires the following dependencies:
-- C/C++ compiler (tested with clang and gcc)
-- Apache Arrow, which can be installed with [this script](./scripts/build_arrow.sh). If you had issues in installing arrow see [here](./Installation_issues.md)
-- Taskflow, which can be installed with [this script](./scripts/build_taskflow.sh).
-- cuDF (optional, only used in a GPU version), which can be installed by following [these instructions](./scripts/build_cudf.md).
-- Caliper Profiler (optional, only used when profiling enabled), which can be installed using [this script](./scripts/build_caliper.sh).
-
-## Installation
-
-To build and install Maximus, do the following steps:
 ```bash
-###############
-# get Maximus
-###############
-git clone https://gitlab.inf.ethz.ch/PUB-SYSTEMS/eth-dataprocessing/Maximus maximus && cd maximus
+# Clone the repository
+git clone https://github.com/Weiwei1001/Maximus.git
+cd Maximus
 
-##############################
-# build and install Maximus
-##############################
-mkdir build && cd build
+# One-click setup (Maximus + Sirius + data generation)
+./setup.sh
 
-# set up the compiler you want to use, e.g. with:
-export CC=`which cc`
-export CXX=`which CC`
+# Or Maximus only
+./setup.sh --maximus-only
 
-# run cmake with optional parameters
-cmake -DCMAKE_BUILD_TYPE=Release -DMAXIMUS_WITH_TESTS=ON -DCMAKE_PREFIX_PATH=<path where dependencies installed> ..
+# Source the runtime environment
+source setup_env.sh
 
-# compile
-make -j 8
-
-# install
-make install
+# Run benchmarks
+python benchmarks/scripts/run_all.py                    # Both engines
+python benchmarks/scripts/run_all.py --engine maximus   # Maximus only
+python benchmarks/scripts/run_all.py --engine sirius    # Sirius only
 ```
 
-The overview of available CMake options is given in the table below. The default values are given in **bold**. These options can be passed in the `cmake` command with the prefix `-D`, as in `cmake -DCMAKE_BUILD_TYPE=Release`.
+## Benchmark Results (RTX 5090, 32GB VRAM)
 
-CMAKE OPTION | POSSIBLE VALUES | DESCRIPTION
-| :------------------- | :------------------- |:------------------- |
-`CMAKE_BUILD_TYPE` | **Release**, Debug | Whether to build in the release or debug mode.
-`CMAKE_INSTALL_PREFIX` | any path, by default `./` | The path where to install Maximus.
-`CMAKE_PREFIX_PATH` | any path, defined by CMake | The path(s) where to look for dependencies
-`BUILD_SHARED_LIBS` | **ON**, OFF | Whether to build Maximus as a shared library (ON) or as a static library (OFF).
-`MAXIMUS_WITH_TESTS` | **ON**, OFF | Whether to build the tests as well.
-`MAXIMUS_WITH_EXAMPLES` | ON, **OFF** | Whether to build the examples as well.
-`MAXIMUS_WITH_BENCHMARKS` | ON, **OFF** | Whether to build the benchmarks as well.
-`MAXIMUS_WITH_GPU` | ON, **OFF** | Whether to build the GPU backend.
-`MAXIMUS_WITH_PROFILING` | ON, **OFF** | Whether to enable profiling.
-`MAXIMUS_WITH_SANITIZERS` | ON, **OFF** | Enable the sanitizers for all the targets.
+### TPC-H Performance (ms per query)
 
-## GPU Setup with pip cuDF
+| Query | Sirius SF1 | Maximus SF1 | Sirius SF2 | Maximus SF2 | Sirius SF10 | Maximus SF10 |
+|-------|-----------|------------|-----------|------------|------------|-------------|
+| q1 | 17.69 | 18 | 19.15 | 36 | 70.65 | 148 |
+| q2 | 36.41 | 5 | 31.56 | 7 | 35.73 | 26 |
+| q3 | 9.67 | 13 | 10.88 | 25 | 22.81 | 100 |
+| q4 | 9.44 | 9 | 7.79 | 16 | 22.35 | 65 |
+| q5 | 17.99 | 15 | 16.10 | 40 | 27.27 | 194 |
+| q6 | 6.78 | 10 | 5.41 | 19 | 15.48 | — |
+| q7 | 23.05 | 16 | 20.74 | 29 | 33.60 | — |
+| q8 | 24.27 | 17 | 23.07 | 48 | 39.57 | — |
+| q9 | 35.90 | 21 | 20.66 | 60 | 42.96 | — |
+| q10 | 22.35 | 14 | 17.95 | 28 | 37.29 | — |
+| q12 | 11.26 | 58 | 10.73 | 114 | 26.35 | — |
+| q13 | 11.20 | 21 | 10.17 | 40 | 30.71 | — |
+| q14 | 8.22 | 49 | 9.25 | 99 | 17.02 | — |
+| q15 | 8.64 | 48 | 9.13 | 95 | 17.36 | — |
+| q16 | 27.30 | 30 | 26.50 | 37 | 45.95 | — |
+| q17 | 17.16 | 52 | 25.84 | 156 | 29.73 | — |
+| q18 | 29.24 | 61 | 14.64 | 177 | 39.33 | — |
+| q19 | 21.79 | 58 | 14.61 | 170 | 39.95 | — |
+| q20 | 18.10 | 59 | 18.20 | 114 | 29.88 | — |
+| q21 | 43.12 | 93 | 26.48 | 185 | 62.63 | — |
+| q22 | 8.47 | 17 | 9.79 | 26 | 12.99 | — |
 
-For GPU support using pip-installable cuDF (instead of building from source), use the provided configure script:
+**Key observations:**
+- Sirius shows better overhead amortization (100 reps with shared init vs Maximus 50 reps)
+- Maximus excels at metadata-heavy queries (q2) but is slower on scan-heavy queries (q12, q14)
+- Both engines complete all 22 TPC-H queries at SF1 and SF2
+
+### H2O Groupby Performance (ms per query, Sirius)
+
+| Query | 1gb | 2gb | 3gb | 4gb |
+|-------|-----|-----|-----|-----|
+| q1 | 129 | 892 | 1,035 | 409 |
+| q2 | 764 | 323 | 1,228 | 520 |
+| q3 | 414 | 713 | 2,616 | 1,171 |
+| q4 | 1,066 | 240 | 1,203 | 500 |
+| q5 | 171 | 239 | 332 | 526 |
+| q6 | 270 | 242 | 363 | 449 |
+| q7 | 343 | 540 | 1,706 | 969 |
+| q9 | 852 | 303 | 1,447 | 723 |
+| q10 | 1,916 | 4,515 (FB) | 10,438 (FB) | 12,286 (FB) |
+
+*FB = FALLBACK (fell back to CPU execution)*
+
+### Completion Status
+
+| Benchmark | Scale Factor | Sirius Timing | Sirius Metrics | Maximus Timing | Maximus Metrics |
+|-----------|-------------|---------------|----------------|----------------|-----------------|
+| TPC-H | SF 1 | 25/25 OK | Done | 22/22 OK | Done |
+| TPC-H | SF 2 | 25/25 OK | Done | 22/22 OK | Done |
+| TPC-H | SF 10 | 25/25 OK | Done | 20/22 (q21-22 crash) | Done |
+| TPC-H | SF 20 | 24/25 OK, 1 FB | Done | In progress | — |
+| H2O | 1-4gb | 40/40 (3 FB) | Done | 36/36 OK | Done |
+| ClickBench | SF 1-2 | — | — | 78/78 OK | Done |
+| ClickBench | SF 10-100 | 168/172 (12 FB) | Done | — | — |
+
+### Key Findings
+
+- **GPU Power**: P1 idle ~67W, compute ~250-350W, P8 deep idle ~13W
+- **VRAM Usage**: TPC-H SF10 ~3-5GB, ClickBench SF100 ~7-14GB
+- **RMM Pool**: Maximus uses 20% of free VRAM (~6.4 GiB on RTX 5090)
+- **Memory Allocation**: 10MB-10GB allocation has negligible effect on idle power (~67-70W)
+- **Energy Measurement**: pynvml vs Zeus within 1% for compute-heavy queries
+
+## Architecture
+
+### Maximus
+
+```
+SQL Query → Parser → Logical Plan → Physical Plan → Execution Engine
+                                                          ↓
+                                          ┌───────────────┴───────────────┐
+                                          │ Apache Acero (CPU)            │
+                                          │ cuDF operators (GPU)          │
+                                          │ Push-based execution          │
+                                          │ Arrow columnar storage        │
+                                          │ RMM GPU memory pool           │
+                                          └───────────────────────────────┘
+```
+
+- **Operator-level integration**: Each operator can independently run on CPU (Acero) or GPU (cuDF)
+- **Storage modes**: `-s cpu` (transfer data per query) vs `-s gpu` (pre-load to VRAM)
+- **Memory**: RMM pool with 20% initial, unlimited max, 4 GiB pinned host
+
+### Sirius
+
+```
+DuckDB CLI → gpu_buffer_init(VRAM, host) → gpu_processing("SQL") → Results
+                     ↓                              ↓
+              GPU buffer allocation          Query offloading to GPU
+              (cascading memory)            via cuDF backend
+```
+
+- **DuckDB extension**: Transparent GPU acceleration for standard SQL
+- **Three-pass methodology**: Warm up GPU, stabilize, then measure
+- **Batch processing**: 10 queries per batch to manage GPU memory
+
+## Manual Installation
+
+### Prerequisites
+
+| Requirement | Version |
+|------------|---------|
+| Ubuntu | 22.04 or 24.04 |
+| NVIDIA GPU | >= 24GB VRAM (32GB recommended) |
+| CUDA Toolkit | >= 12.0 |
+| CMake | >= 3.17 (Maximus), >= 3.30.4 (Sirius) |
+| GCC/G++ | >= 11 |
+| RAM | >= 128GB |
+| Disk | >= 300GB |
+
+### Build Maximus Only
 
 ```bash
-# Install cuDF and dependencies via pip
+# 1. Build dependencies
+bash scripts/build_arrow.sh       # Apache Arrow 17.0.0
+bash scripts/build_taskflow.sh    # Taskflow
+
+# 2. Install cuDF
 pip install cudf-cu12 libcudf-cu12
+# OR: conda install -c rapidsai -c conda-forge libcudf=24.12 cuda-version=12
 
-# Configure and build with GPU support
-bash scripts/configure_with_gpu_pip_cudf.sh
-cd build && make -j$(nproc)
+# 3. Build Maximus
+mkdir build && cd build
+bash ../scripts/configure_with_gpu_pip_cudf.sh -DMAXIMUS_WITH_BENCHMARKS=ON ..
+make -j$(nproc)
 ```
 
-The script automatically detects pip-installed cuDF libraries and sets the correct CMake paths. See [scripts/build_cudf.md](./scripts/build_cudf.md) for more details.
-
-**Note:** At runtime, you may need to set `LD_LIBRARY_PATH` to include the pip-installed NVIDIA libraries:
-```bash
-export LD_LIBRARY_PATH=/usr/local/lib/python3.12/dist-packages/nvidia/libnvcomp/lib64:/usr/local/lib/python3.12/dist-packages/libkvikio/lib64:$LD_LIBRARY_PATH
-```
-
-## RMM GPU Memory Pool
-
-Maximus uses [RMM (RAPIDS Memory Manager)](https://github.com/rapidsai/rmm) for GPU memory allocation. The pool is configured in `src/maximus/context.hpp`:
-
-```cpp
-rmm::mr::pool_memory_resource<rmm::mr::cuda_memory_resource> pool_mr{
-    &cuda_mr, rmm::percent_of_free_device_memory(20)};
-```
-
-| Parameter | Value | Description |
-|:----------|:------|:------------|
-| Initial size | 20% of free VRAM | ~6.4 GiB on a 32GB GPU with no other processes |
-| Maximum size | Unlimited | Pool grows dynamically via upstream `cudaMalloc` |
-| Pinned host memory | 4 GiB (default) | Configurable via `MAXIMUS_MAX_PINNED_POOL_SIZE` env var |
-
-**Storage device flag (`-s`):**
-- `-s cpu`: Tables stored in CPU memory, transferred to GPU per query. Safe for any dataset size.
-- `-s gpu`: Tables pre-loaded to GPU VRAM. Faster queries (no transfer overhead), but limited by VRAM.
-
-**VRAM capacity examples (RTX 5090, 32GB):**
-
-| Dataset | CSV Size | Fits with `-s gpu`? |
-|:--------|:---------|:--------------------|
-| ClickBench SF=10 | ~7 GiB | Yes (~7 GiB on GPU) |
-| ClickBench SF=20 | ~14 GiB | Yes on clean GPU (~14 GiB + pool overhead) |
-| TPC-H SF=20 | ~15 GiB (multi-table) | Depends on query (JOINs need intermediate space) |
-
-**Troubleshooting OOM errors:**
-- `"maximum pool size exceeded"` means `cudaMalloc` failed upstream, not a pool config limit.
-- Check `nvidia-smi` to verify no other processes are using GPU memory.
-- Try `-s cpu` as a fallback (slower but avoids VRAM pressure).
-- The pinned pool size can be increased: `export MAXIMUS_MAX_PINNED_POOL_SIZE=8589934592` (8 GiB).
-
-## Benchmarking
-
-Running the full TPC-H benchmark is possible by running the `maxbench` executable. Within the `build` folder, it can be run e.g. with:
-```bash
-./benchmarks/maxbench --benchmark=tpch --queries=q1,q2,q3 --device=cpu --storage_device=cpu --engines=maximus --n_reps=5 --path=<path to CSV files>
-```
-Possible values for each of these options are:
-- `benchmark`: the benchmarking suite to you, can be one of `tpch`, `clickbench` or `h2o`.
-- `queries`: any comma-separated list of queries. For example, for the tpch benchmark, any subset of `q1, q2, ... , q22` is valid.
-- `device`: `cpu`, `gpu`. This describes where the query will be executed.
-- `storage_device`: `cpu`, `cpu-pinned`, `gpu`. This describes where the tables are initially stored. The cpu-pinned memory requires the GPU-backend.
-- `engines`: `maximus`, `acero`. This specifies which engine to use.
-- `path`: any path where the tables are located.
-- `csv_batch_size`: a positive integer, or in a form of a power e.g. `2^20`. specifying the batch size of the tables that are initially stored on the CPU.
-
-Running this e.g. for a query q1, will yield the following output:
-```bash
-===================================
-          LOADING TABLES
-===================================
-Loading tables to:                   cpu
-Loading times over repetitions [ms]: 25,
-===================================
-    MAXBENCH TPCH BENCHMARK:    
-===================================
----> benchmark:                TPCH
----> queries:                  q1
----> Tables path:              /../maximus/tests/tpch/csv-0.01
----> Engines:                  maximus
----> Number of reps:           1
----> Device:                   cpu
----> Storage Device:           cpu
----> Num. outer threads:       1
----> Num. inner threads:       8
----> Operators Fusion:         OFF
----> CSV Batch Size (string):  2^30
----> CSV Batch (number):       1073741824
----> Tables initially pinned:  NO
----> Tables as single chunk:   NO
-===================================
-            QUERY q1
-===================================
----> TPC-H query: q1
----> Query Plan:
-NATIVE::QUERY PLAN ROOT
-    └── NATIVE::TABLE SINK
-        └── ACERO::ORDER BY
-            └── ACERO::GROUP BY
-                └── ACERO::PROJECT
-                    └── ACERO::FILTER
-                        └── NATIVE::TABLE SOURCE
-
-Query Plan after scheduling:
-NATIVE::QUERY PLAN ROOT
-    └── NATIVE::TABLE SINK
-        └── ACERO::ORDER BY
-            └── ACERO::GROUP BY
-                └── ACERO::PROJECT
-                    └── ACERO::FILTER
-                        └── NATIVE::TABLE SOURCE
-
-===================================
-              RESULTS
-===================================
-maximus RESULTS (top 10 rows):
-l_returnflag(utf8),l_linestatus(utf8),sum_qty(double),sum_base_price(double),sum_disc_price(double),sum_charge(double),avg_qty(double),avg_price(double),avg_disc(double),count_order(int64)
-A,F,380456.000000,532348211.649999,505822441.486100,526165934.000840,25.575155,35785.709307,0.050081,14876
-N,F,8971.000000,12384801.370000,11798257.208000,12282485.056933,25.778736,35588.509684,0.047759,348
-N,O,742847.000000,1041580998.800000,989812549.690601,1029499565.063830,25.455658,35692.584429,0.049931,29182
-R,F,381449.000000,534594445.350000,507996454.406700,528524219.358904,25.597168,35874.006533,0.049828,14902
-
-
-===================================
-              TIMINGS
-===================================
-Execution times [ms]:
-- MAXIMUS TIMINGS [ms]: 	2
-Execution stats (min, max, avg):
-- MAXIMUS STATS: MIN = 2 ms; 	MAX = 2 ms; 	AVG = 2 ms
-===================================
-        SUMMARIZED TIMINGS
-===================================
---->Results saved to ./results.csv
-cpu,maximus,q1,2,
-```
-
-### Benchmark Suites
-
-Maximus supports three benchmark suites:
-
-| Suite | Queries | Scale Factors | Notes |
-|:------|:--------|:--------------|:------|
-| **TPC-H** | q1 - q22 (22 queries) | SF 1, 2, 10, 20 | All 22 queries supported on GPU |
-| **H2O** | q1 - q10 (9 queries) | 1gb, 2gb, 3gb, 4gb | q8 not implemented |
-| **ClickBench** | q0 - q42 (39 queries) | SF 1, 2, 10, 20 | q18, q27, q28, q42 unsupported on GPU |
-
-## Benchmark Scripts
-
-Automated benchmark runners are provided in `benchmarks/scripts/`:
-
-| Script | Description |
-|:-------|:------------|
-| `run_maximus_benchmark.py` | Maximus GPU timing benchmark (3 reps, min time, data via `-s cpu`) |
-| `run_maximus_metrics.py` | Maximus GPU steady-state metrics (power, energy, GPU util via nvidia-smi) |
-| `run_sirius_benchmark.py` | Sirius GPU benchmark runner (3 passes, 10 queries/batch, 3rd pass timing) |
-| `compare_results.py` | Per-query comparison table with ratio and winner |
-| `setup_sirius.sh` | Download, build, and setup Sirius (DuckDB GPU extension) |
-| `generate_sirius_sql.py` | Generate Sirius-format GPU query SQL files |
-
-### Running Maximus Benchmarks
+### Install Sirius
 
 ```bash
-# Run all benchmarks (TPC-H, H2O, ClickBench)
-python benchmarks/scripts/run_maximus_benchmark.py
+# One-command Sirius installation
+bash scripts/install_sirius.sh [install_directory]
 
-# Run specific benchmarks
-python benchmarks/scripts/run_maximus_benchmark.py tpch clickbench
-
-# Custom repetitions and output directory
-python benchmarks/scripts/run_maximus_benchmark.py --n-reps 5 --results-dir ./results tpch
+# This handles:
+# - System dependencies
+# - CMake upgrade to >= 3.30.4
+# - Miniconda + libcudf 26.04 (conda)
+# - Clone + patch + build Sirius
 ```
 
-### Running Sirius Benchmarks
+## Data Generation
 
 ```bash
-# Setup Sirius (one-time)
-bash benchmarks/scripts/setup_sirius.sh
+# Generate all benchmark data (TPC-H, H2O, ClickBench)
+bash benchmarks/data/generate_all.sh
 
-# Run all benchmarks
-python benchmarks/scripts/run_sirius_benchmark.py
-
-# Run specific benchmarks with custom settings
-python benchmarks/scripts/run_sirius_benchmark.py tpch --n-passes 3 --batch-size 10
+# Or generate individually:
+python benchmarks/data/generate_tpch.py -o tests/tpch_duckdb -sf 1 2 10 20
+python benchmarks/data/generate_h2o.py --output-dir tests/h2o --format both 1gb 2gb 3gb 4gb
+python benchmarks/data/generate_clickbench.py --output-dir tests/clickbench --format both --scales 1 2 10 20
 ```
 
-### Running GPU Metrics
+### Data Requirements
 
-The metrics script measures steady-state GPU power consumption and energy per query:
+| Benchmark | Scale Factor | Approx Size | RAM Needed |
+|-----------|-------------|-------------|------------|
+| TPC-H | SF 1 | ~1 GB | ~8 GB |
+| TPC-H | SF 10 | ~10 GB | ~64 GB |
+| TPC-H | SF 20 | ~20 GB | ~145 GB |
+| H2O | 1gb | ~1 GB | ~8 GB |
+| H2O | 4gb | ~4 GB | ~32 GB |
+| ClickBench | Full | ~14 GB (parquet) | ~32 GB |
+
+## Running Benchmarks
+
+### Combined Runner (Recommended)
 
 ```bash
-# Measure ClickBench SF=10 metrics (default)
-python benchmarks/scripts/run_maximus_metrics.py clickbench --sf 10
+source setup_env.sh
 
-# Measure all configured SFs for a benchmark
-python benchmarks/scripts/run_maximus_metrics.py tpch
+# Run both engines on all benchmarks
+python benchmarks/scripts/run_all.py
 
-# Custom target time (default: 10s sustained execution per query)
-python benchmarks/scripts/run_maximus_metrics.py --target-time 15 clickbench
+# Maximus only, specific benchmarks
+python benchmarks/scripts/run_all.py --engine maximus --benchmarks tpch h2o
+
+# Sirius only
+python benchmarks/scripts/run_all.py --engine sirius --benchmarks tpch
 ```
 
-### Comparing Results
+### Individual Runners
 
 ```bash
+# Maximus timing benchmark
+python benchmarks/scripts/run_maximus_benchmark.py tpch h2o clickbench
+
+# Maximus GPU metrics
+python benchmarks/scripts/run_maximus_metrics.py tpch --scale-factors 1 2
+
+# Sirius timing benchmark
+python benchmarks/scripts/run_sirius_benchmark.py tpch h2o
+
+# Direct maxbench usage
+./build/benchmarks/maxbench --benchmark tpch -q q1,q2,q3 -d gpu -r 3 \
+    --path tests/tpch/csv-1 -s gpu --engines maximus
+```
+
+### GPU Metrics Collection
+
+GPU metrics are collected using `nvidia-smi` sampling at ~50ms intervals during benchmark execution. Metrics include:
+- Power draw (W)
+- GPU utilization (%)
+- Memory utilization (%)
+- GPU memory used (MB)
+- PCIe throughput (MB/s)
+
+```bash
+python benchmarks/scripts/run_maximus_metrics.py tpch --scale-factors 1 2 10
+```
+
+## Analysis and Visualization
+
+```bash
+# Compare Sirius vs Maximus results
 python benchmarks/scripts/compare_results.py \
-    --sirius benchmark_results/sirius_benchmark.csv \
-    --maximus benchmark_results/maximus_benchmark.csv
+    --sirius results/sirius_benchmark.csv \
+    --maximus results/maximus_benchmark.csv
+
+# Generate visualization plots (10 charts)
+python benchmarks/scripts/plot_metrics.py --results-dir results/
+
+# Plots generated:
+#   tpch_timing_by_sf.png       - TPC-H timing grouped by scale factor
+#   h2o_timing_by_sf.png        - H2O timing grouped by scale factor
+#   clickbench_timing_by_sf.png - ClickBench timing grouped by scale factor
+#   tpch_gpu_memory.png         - GPU memory usage per TPC-H query
+#   h2o_gpu_memory.png          - GPU memory usage per H2O query
+#   clickbench_gpu_memory.png   - GPU memory usage per ClickBench query
+#   gpu_power_by_benchmark.png  - Power consumption box plots
+#   tpch_time_vs_memory.png     - Execution time vs GPU memory scatter
+#   timing_overview_heatmap.png - Full timing heatmap across all benchmarks
+#   tpch_scaling.png            - Query scaling with data size
 ```
 
-## GPU Metrics Measurement
+## GPU Configuration
 
-The `run_maximus_metrics.py` script measures steady-state GPU power and energy consumption with the following methodology:
+### RMM Memory Pool (Maximus)
 
-**Phase 1 — Calibration:** Each query is run 3 times with `-s gpu` (data on GPU) to measure base latency.
+Maximus uses RAPIDS Memory Manager (RMM) for GPU memory allocation:
+- **Initial pool**: 20% of free VRAM (~6.4 GiB on RTX 5090 with 32GB)
+- **Maximum pool**: Unlimited (grows on demand)
+- **Pinned host memory**: 4 GiB
 
-**Phase 2 — Calculate repetitions:** For each query, `n_reps = ceil(10s / query_latency)` so that total execution exceeds 10 seconds. This ensures the GPU is under sustained load long enough for accurate power sampling.
+### Storage Modes (Maximus)
 
-**Phase 3 — Metrics collection:** Each query runs `n_reps` times while `nvidia-smi` samples GPU telemetry at 50ms intervals. The first and last 10% of samples are trimmed to isolate steady-state behavior.
+| Flag | Mode | Description |
+|------|------|-------------|
+| `-s cpu` | CPU storage | Transfer data from host to GPU per query (includes PCIe overhead) |
+| `-s gpu` | GPU storage | Pre-load all data to VRAM (pure GPU compute time) |
 
-**Metrics collected per query:**
+### GPU Buffer (Sirius)
 
-| Metric | Unit | Description |
-|:-------|:-----|:------------|
-| `min_ms` / `avg_ms` | ms | Query execution time (min and average across reps) |
-| `avg_power_w` | Watts | Average GPU power draw during steady state |
-| `max_power_w` | Watts | Peak GPU power draw |
-| `energy_j` | Joules | Total energy = avg_power * elapsed_time |
-| `avg_gpu_util` | % | Average GPU compute utilization |
-| `max_mem_mb` | MiB | Peak GPU memory usage |
+```sql
+-- Initialize GPU buffer: gpu_buffer_init(VRAM_size, host_size)
+call gpu_buffer_init("20 GB", "10 GB");
 
-**Why `-s gpu` matters for metrics:** With `-s cpu`, each query iteration includes a CPU-to-GPU data transfer, which dominates execution time for fast queries and results in near-idle GPU utilization readings. With `-s gpu`, data is pre-loaded to GPU VRAM, so all `n_reps` iterations are pure GPU compute — giving accurate steady-state power readings (typically 200-400W under load vs ~50W idle).
-
-**Example output (ClickBench SF=10, RTX 5090):**
-```
-q2 (667 reps, -s gpu)... 15ms, 28.2s, 255W, 97%util, 31468MB, 7173J [OK]
-q3 (770 reps, -s gpu)... 13ms, 30.6s, 266W, 97%util, 31468MB, 8129J [OK]
-q4 (5000 reps, -s gpu)... 2ms, 116.4s, 375W, 95%util, 32045MB, 43648J [OK]
+-- Execute query on GPU
+call gpu_processing("SELECT ... FROM ...");
 ```
 
-## Benchmark Data
+### Estimated Maximum Scale Factors (RTX 5090, 32GB VRAM)
 
-Benchmark results are stored in `benchmark_results/` (packaged as `sirius_benchmark_package.tar.gz`, 1.3 MB).
+| Benchmark | Maximus (GPU storage) | Sirius |
+|-----------|----------------------|--------|
+| TPC-H | SF 10-15 | SF 30-40 |
+| H2O | 10-15 GB | 10-15 GB |
+| ClickBench | SF 3-5 | SF 50-100 |
 
-### Sirius Timing Data
+### Known GPU Limitations
 
-| File | Rows | Size | Description |
-|:-----|-----:|-----:|:------------|
-| `sirius_timing_per_query.csv` | 312 | 14 KB | All Sirius query timing (TPC-H + H2O + ClickBench) |
-| `tpch_timing.csv` | 100 | 4.1 KB | TPC-H: SF 1/2/10/20, 25 queries each |
-| `h2o_timing.csv` | 40 | 1.7 KB | H2O: 1gb/2gb/3gb/4gb, 10 queries each |
-| `clickbench_timing.csv` | 172 | 7.8 KB | ClickBench: SF 10/20/50/100, 43 queries each |
+- `minute()` — not supported on cuDF GPU backend (ClickBench q18, q42)
+- `utf8_length()` / `STRLEN()` — not supported (ClickBench q27)
+- `REGEXP_REPLACE()` — not supported (ClickBench q28)
+- H2O q8 — not implemented in Maximus
+- TPC-H q21-q22 at SF10 — crash on Maximus (GPU OOM)
 
-### Sirius GPU Metrics (nvidia-smi samples)
+## Project Structure
 
-| File | Samples | Size | Description |
-|:-----|--------:|-----:|:------------|
-| `tpch_metrics_samples.csv` | 21,880 | 1.2 MB | TPC-H GPU telemetry (power, util%, mem, PCIe) |
-| `h2o_metrics_samples.csv` | 14,057 | 728 KB | H2O GPU telemetry |
-| `clickbench_metrics_samples.csv` | 45,614 | 2.4 MB | ClickBench GPU telemetry |
-| `tpch_metrics_samples_summary.csv` | 100 | 4.1 KB | TPC-H per-query summary |
-| `h2o_metrics_samples_summary.csv` | 40 | 1.7 KB | H2O per-query summary |
-| `clickbench_metrics_samples_summary.csv` | 172 | 6.9 KB | ClickBench per-query summary |
-
-### Maximus Timing Data
-
-| File | Rows | Size | Description |
-|:-----|-----:|-----:|:------------|
-| `maximus_adaptive.csv` | 202 | 44 KB | All Maximus results (TPC-H SF 1/2/10/20, H2O 1-4gb, ClickBench SF 1/2) |
-| `maximus_tpch_sf1_corrected.csv` | 22 | 1.2 KB | TPC-H SF=1 corrected re-run |
-
-### Data Totals
-
-- **Sirius**: 312 query timing records + 81,551 GPU metric samples across 12 benchmark/SF combinations
-- **Maximus**: 224 query timing records across 10 benchmark/SF combinations
-- **Total data points**: 82,087 rows, ~4.5 MB uncompressed
-
-## Sirius Comparison
-
-[Sirius](https://github.com/sirius-db/sirius) is a GPU extension for DuckDB. The benchmark scripts allow head-to-head comparison between Maximus and Sirius across all three benchmark suites.
-
-To set up Sirius for benchmarking:
-
-```bash
-bash benchmarks/scripts/setup_sirius.sh [--install-dir /path/to/install]
 ```
-
-Prerequisites for Sirius:
-- CUDA >= 12.x with `nvcc` in PATH
-- CMake >= 3.30.4 (install with `pip install cmake` if needed)
-- ninja-build
-- Python 3 with `duckdb` package
-
-The setup script handles cloning, dependency installation (libcudf, abseil, libconfig++, libnuma), building, generating benchmark databases, and creating GPU query SQL files.
-
-## Estimated Maximum Scale Factors (RTX 5090, 32GB VRAM)
-
-| Benchmark | Tested SFs | Maximus Success | Sirius Success | Est. Max SF (all queries pass) |
-|:----------|:-----------|:----------------|:---------------|:-------------------------------|
-| **TPC-H** | SF 1, 2, 10, 20 | SF1-2: 22/22, SF10: 21/22, SF20: 17/22 | SF1-10: 22/22, SF20: 21/22 | Maximus: ~SF 10-15, Sirius: ~SF 30-40 |
-| **H2O** | 1gb - 4gb | All: 9/9 | 1gb: 10/10, 2-4gb: 9/10 | Maximus: ~15gb, Sirius: ~10gb |
-| **ClickBench** | SF 1, 2, 10, 20 | SF1-10: 39/39, SF20: 39/39 (-s cpu) | SF10-100: 43/43 | Maximus: ~SF 20+ (-s gpu), Sirius: ~SF 100+ |
-
-**Notes:**
-- The bottleneck is GPU VRAM (32GB). Simple scans/aggregations can handle larger SFs, but complex JOINs and correlated subqueries produce large intermediate results.
-- TPC-H: At SF=20, Maximus fails on q17-q21 (complex correlated subqueries); Sirius only falls back on q01.
-- H2O: Single-table GROUP BY queries are memory-efficient. q10 (GROUP BY all 6 columns) is the first to fail on Sirius.
-- ClickBench: High-cardinality GROUP BY queries (q31, q32) are likely the first to hit memory limits at larger SFs.
-
-## Known GPU Limitations
-
-The following operations are not supported on the cuDF GPU backend and will cause query failures:
-- `minute()` function (used in ClickBench q18, q42)
-- `utf8_length()` / `STRLEN()` on GPU (used in ClickBench q27, q28)
-- `REGEXP_REPLACE()` on GPU (used in ClickBench q28)
-
-These queries must be run on the CPU backend or excluded from GPU benchmarks.
+Maximus/
+├── README.md                           # This file
+├── setup.sh                            # One-click deployment script
+├── setup_env.sh                        # Runtime environment (generated)
+├── CMakeLists.txt                      # Build system
+├── .gitignore
+│
+├── src/maximus/                        # Maximus engine source code
+│   ├── context.hpp/.cpp                #   Execution context + RMM config
+│   ├── database.hpp/.cpp               #   Table management
+│   ├── operators/                      #   Query operators (Acero + cuDF)
+│   ├── types/                          #   Data type system
+│   ├── gpu/                            #   GPU-specific code
+│   ├── exec/                           #   Execution engine
+│   └── io/, frontend/, utils/
+│
+├── scripts/
+│   ├── install_sirius.sh               # Sirius full installation
+│   ├── deploy_gpu.sh                   # Maximus GPU deployment
+│   ├── build_arrow.sh                  # Build Apache Arrow 17.0.0
+│   ├── build_taskflow.sh               # Build Taskflow
+│   ├── configure_with_gpu_pip_cudf.sh  # CMake config for pip cuDF
+│   └── test_gpu.sh                     # GPU testing script
+│
+├── benchmarks/
+│   ├── maxbench.cpp                    # Benchmark binary source
+│   ├── scripts/
+│   │   ├── run_all.py                  # Master runner (both engines)
+│   │   ├── run_maximus_benchmark.py    # Maximus timing benchmark
+│   │   ├── run_maximus_metrics.py      # Maximus GPU metrics
+│   │   ├── run_sirius_benchmark.py     # Sirius timing benchmark
+│   │   ├── compare_results.py          # Cross-engine comparison
+│   │   ├── plot_metrics.py             # Visualization (10 charts)
+│   │   ├── generate_sirius_sql.py      # SQL generation for Sirius
+│   │   └── setup_sirius.sh            # Sirius benchmark setup
+│   └── data/
+│       ├── generate_tpch.py            # TPC-H data generation
+│       ├── generate_h2o.py             # H2O data generation
+│       ├── generate_clickbench.py      # ClickBench data generation
+│       └── generate_all.sh            # Generate all data
+│
+├── results/                            # Benchmark results
+│   ├── README.md                       # Results documentation
+│   ├── *.csv                           # Timing and metrics data
+│   └── plots/                          # Visualization PNGs
+│
+├── tests/                              # Unit tests
+│   ├── tpch/, h2o/, clickbench/        # Test data (generated, not in git)
+│   └── *.cpp                           # C++ test files
+│
+├── docs/
+│   ├── BENCHMARKS.md                   # Benchmark methodology details
+│   ├── INSTALL_GPU.md                  # GPU installation guide
+│   ├── NEW_MACHINE.md                  # New machine setup guide
+│   └── GPU_NOTES.md                    # GPU configuration notes
+│
+└── third_party/                        # Third-party dependencies
+    ├── cxxopts/                        # Command-line parsing
+    └── sqlparser/                      # SQL parser
+```
 
 ## Testing
 
-To run the unit tests, run the following inside the build folder:
 ```bash
-make test
-```
-This will run all the tests and report for each of them if it failed or not. However, each of these tests might include multiple smaller tests. To get the overview of all the tests, run:
-```bash
-ctest --verbose make check
+# Run all unit tests
+cd build && ctest --verbose
+
+# Run specific test suites
+./build/tests/test_acero        # CPU operator tests
+./build/tests/test_cuda         # GPU operator tests
+./build/tests/test_sql          # SQL parsing tests
+./build/tests/test_tpch         # TPC-H query tests
+./build/tests/test_tpch_gpu     # TPC-H GPU tests
 ```
 
-If some of the tests have failed, the output can be seen by running `vim ./Testing/Temporary/LastTest.log` inside the `build` folder.
+## Troubleshooting
 
-Alternatively, a specific test can be run, e.g. by:
+### cuDF not found during build
+
 ```bash
-./tests/test.tpch
+# If using pip:
+pip install cudf-cu12 libcudf-cu12
+bash scripts/configure_with_gpu_pip_cudf.sh ..
+
+# If using conda:
+conda install -c rapidsai -c conda-forge libcudf=24.12 cuda-version=12
 ```
+
+### GPU Out of Memory
+
+- Reduce scale factor
+- Use `-s cpu` instead of `-s gpu` (adds PCIe transfer overhead but uses less VRAM)
+- Maximus RMM pool: adjust in `src/maximus/context.cpp`
+- Sirius: reduce `gpu_buffer_init` sizes
+
+### Sirius build fails
+
+Common issues:
+1. **CMake too old**: Need >= 3.30.4. The `install_sirius.sh` script handles this.
+2. **libconfig++ not found**: Install with `sudo apt install libconfig++-dev`
+3. **cuDF version mismatch**: Sirius needs cuDF 26.04 via conda (not pip)
+
+### LD_LIBRARY_PATH errors
+
+```bash
+source setup_env.sh
+# Or manually:
+export LD_LIBRARY_PATH="$HOME/arrow_install/lib:$LD_LIBRARY_PATH"
+```
+
+### Segfault on large scale factors
+
+- TPC-H SF20 requires ~145GB RAM
+- Ensure sufficient system memory
+- Monitor with `nvidia-smi` during benchmark runs
+
+## License
+
+Apache License 2.0 — See individual source files for details.
+
+## Acknowledgments
+
+- [Apache Arrow](https://arrow.apache.org/) 17.0.0 — Columnar data format
+- [NVIDIA cuDF](https://github.com/rapidsai/cudf) — GPU DataFrames
+- [Taskflow](https://github.com/taskflow/taskflow) — Task-parallel programming
+- [DuckDB](https://duckdb.org/) — In-process SQL OLAP database
+- [Sirius](https://github.com/sirius-db/sirius) — DuckDB GPU extension
