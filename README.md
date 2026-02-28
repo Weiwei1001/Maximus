@@ -53,41 +53,48 @@ python benchmarks/scripts/run_sirius_benchmark.py tpch h2o
 
 ### 2. Energy & Power
 
-GPU power is sampled via `nvidia-smi` at **50ms intervals** from a background thread during query execution. The methodology ensures **steady-state** measurement:
+GPU power is sampled via `nvidia-smi` at **50ms intervals** from a background thread during query execution:
 
 ```
 Step 1: Calibrate — run 3 reps to measure base latency (e.g. 15ms/query)
 Step 2: Calculate n_reps so total runtime >= 10s (e.g. ceil(10000/15) = 667 reps)
 Step 3: Run n_reps while sampling nvidia-smi every 50ms
-Step 4: Trim first/last 10% of samples → steady-state window
-Step 5: Compute metrics from steady-state samples
+Step 4: Detect steady-state compute region via GPU utilization
+Step 5: Compute avg power within compute region → derive energy
 ```
 
-**Average power** is the mean of all power samples within the steady-state window (after trimming):
+#### Steady-state detection (utilization-based)
+
+A typical power trace has three phases: idle (~70W, GPU loading data), compute (200-400W, queries executing), and cooldown. Simply trimming 10% from each end fails when the idle phase is long — it still includes mostly idle samples.
+
+Instead, we use **GPU utilization as the boundary signal**:
 
 ```
-P_avg = (1/N) * sum(P_i)    where P_i are the trimmed power samples
+1. Compute avg_util across ALL samples
+2. t_start = first sample where gpu_util >= avg_util
+3. t_end   = last  sample where gpu_util >= avg_util
+4. P_steady = mean(power[t_start : t_end])    ← compute-region average
 ```
 
-**Energy** is computed as:
+This isolates the actual compute phase regardless of how long the idle/loading phase lasts.
+
+#### Energy per query
 
 ```
-E = P_avg * T_total          (Joules = Watts * seconds)
+E_query = P_steady × t_query
 ```
 
-where `T_total` is the wall-clock time of the entire run (all n_reps), and `P_avg` is from the steady-state window. This approximation is valid because the 10% trim removes the ramp-up/ramp-down transients, and the sustained compute phase dominates the total runtime.
+where `P_steady` is the utilization-bounded average power, and `t_query` is the per-query latency from timing measurements (not the total multi-rep runtime).
 
-#### Example: TPC-H Q1, SF=10
-
-The plot below shows instantaneous GPU power (red) and utilization (blue) over time. The dashed line is the steady-state average power. Gray regions are the trimmed 10% on each side.
+#### Example: TPC-H Q1, SF=10 (Sirius)
 
 ![TPC-H Q1 SF=10 Power/Time](results/plots/tpch_q1_sf10_power_time.png)
 
-Key observations from this query:
-- **Idle phase** (0–8s): GPU buffer initialization, ~70W idle power
-- **Compute phase** (8–14s): Power spikes to 350–380W, GPU utilization hits 90%+
-- **Steady-state avg**: 181W across the full window (including idle), Energy = 181W x 16.3s = 2949J
-- The 10% trim (gray) removes startup and cooldown artifacts
+- **455 samples** over 16.3s. Avg GPU utilization across all samples = 27.3%
+- **Utilization threshold** detects compute region at [9.0s, 13.8s] (green shading)
+- **P_steady = 362.5W** (avg within compute region), vs naive trim-10% = 181.1W (includes idle)
+- **Energy per query** = 362.5W x 70.7ms = 25.6 J
+- Bottom panel shows GPU util: the green/red dots mark t_start and t_end where util crosses the threshold
 
 ```bash
 # Run energy/power measurement
