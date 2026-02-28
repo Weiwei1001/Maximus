@@ -54,6 +54,16 @@ log "  Machine: $(hostname)"
 log "=============================================="
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Step 0: Initialize git submodules (Sirius is a submodule)
+# ─────────────────────────────────────────────────────────────────────────────
+if [ -f "$MAXIMUS_DIR/.gitmodules" ]; then
+    log "Step 0: Initializing git submodules..."
+    cd "$MAXIMUS_DIR"
+    git submodule update --init --recursive
+    log "  Sirius submodule: $MAXIMUS_DIR/sirius"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Step 1: Check prerequisites
 # ─────────────────────────────────────────────────────────────────────────────
 log "Step 1: Checking prerequisites..."
@@ -247,7 +257,7 @@ fi
 # Maximus
 export MAXIMUS_DIR="$SCRIPT_DIR"
 export MAXBENCH="$SCRIPT_DIR/build/benchmarks/maxbench"
-export SIRIUS_BIN="$WORKSPACE/sirius/build/release/duckdb"
+export SIRIUS_BIN="$SCRIPT_DIR/sirius/build/release/duckdb"
 export RESULTS_DIR="$SCRIPT_DIR/results"
 
 echo "Environment configured."
@@ -263,7 +273,7 @@ source "$MAXIMUS_DIR/setup_env.sh"
 # ─────────────────────────────────────────────────────────────────────────────
 if [ "$INSTALL_SIRIUS" = true ]; then
     log "Step 9: Installing Sirius (DuckDB GPU extension)..."
-    SIRIUS_DIR="$WORKSPACE/sirius"
+    SIRIUS_DIR="$MAXIMUS_DIR/sirius"
     bash "$MAXIMUS_DIR/scripts/install_sirius.sh" "$SIRIUS_DIR"
     if [ -x "$SIRIUS_DIR/build/release/duckdb" ]; then
         log "  Sirius built successfully: $SIRIUS_DIR/build/release/duckdb"
@@ -303,7 +313,7 @@ if [ -x "$MAXBENCH" ]; then
 fi
 
 if [ "$INSTALL_SIRIUS" = true ]; then
-    SIRIUS_BIN="$WORKSPACE/sirius/build/release/duckdb"
+    SIRIUS_BIN="$MAXIMUS_DIR/sirius/build/release/duckdb"
     TPCH_DB="$MAXIMUS_DIR/tests/tpch_duckdb/tpch_sf1.duckdb"
     if [ -x "$SIRIUS_BIN" ] && [ -f "$TPCH_DB" ]; then
         log "  Running Sirius TPC-H Q1 (SF=1)..."

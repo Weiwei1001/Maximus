@@ -31,12 +31,11 @@ from pathlib import Path
 # ── Defaults (adjust to your environment) ───────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent          # benchmarks/scripts -> Maximus root
-WORKSPACE_DIR = MAXIMUS_DIR.parent               # parent of Maximus
-DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", WORKSPACE_DIR / "sirius"))
+DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", MAXIMUS_DIR / "sirius"))
 DEFAULT_RESULTS_DIR = MAXIMUS_DIR / "results"
 
 # Sirius data directories (configurable via env vars or defaults)
-SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", WORKSPACE_DIR))
+SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", MAXIMUS_DIR / "tests"))
 
 BUFFER_INIT = 'call gpu_buffer_init("20 GB", "10 GB");'
 N_PASSES = 3

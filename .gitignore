@@ -76,6 +76,9 @@ results/*_metrics_samples.csv
 results/maximus_*_metrics_samples_*.csv
 results/maximus_*_samples_*.csv
 
+# Sirius build artifacts (submodule)
+sirius/build/
+
 # Generated environment file
 setup_env.sh
 

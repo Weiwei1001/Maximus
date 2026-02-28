@@ -14,8 +14,8 @@ This repository contains:
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/Weiwei1001/Maximus.git
+# Clone the repository (with Sirius submodule)
+git clone --recurse-submodules https://github.com/Weiwei1001/Maximus.git
 cd Maximus
 
 # One-click setup (Maximus + Sirius + data generation)
@@ -324,6 +324,12 @@ Maximus/
 ├── setup_env.sh                        # Runtime environment (generated)
 ├── CMakeLists.txt                      # Build system
 ├── .gitignore
+│
+├── sirius/                             # Sirius DuckDB GPU extension (git submodule)
+│   ├── src/                            #   GPU acceleration source code
+│   ├── duckdb/                         #   DuckDB submodule
+│   ├── CMakeLists.txt
+│   └── Makefile
 │
 ├── src/maximus/                        # Maximus engine source code
 │   ├── context.hpp/.cpp                #   Execution context + RMM config

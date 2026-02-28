@@ -9,8 +9,17 @@
 
 set -e
 
+# Detect repo root: if called from Maximus/scripts/, use Maximus/sirius/ as default
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../CMakeLists.txt" && -d "$SCRIPT_DIR/../src/maximus" ]]; then
+  MAXIMUS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+  DEFAULT_SIRIUS_DIR="$MAXIMUS_DIR/sirius"
+else
+  DEFAULT_SIRIUS_DIR="$(pwd)/sirius"
+fi
+
 # 可配置变量
-SIRIUS_DIR="${1:-$(pwd)/sirius}"
+SIRIUS_DIR="${1:-$DEFAULT_SIRIUS_DIR}"
 MINICONDA_DIR="${MINICONDA_DIR:-$(pwd)/miniconda3}"
 SIRIUS_REPO_URL="${SIRIUS_REPO_URL:-https://github.com/sirius-db/sirius.git}"
 MINICONDA_URL="${MINICONDA_URL:-https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh}"

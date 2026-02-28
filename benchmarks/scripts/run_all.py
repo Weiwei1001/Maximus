@@ -25,7 +25,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent  # benchmarks/scripts -> Maximus root
 MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
-SIRIUS_BIN = Path(os.environ.get("SIRIUS_BIN", MAXIMUS_DIR.parent / "sirius" / "build" / "release" / "duckdb"))
+SIRIUS_BIN = Path(os.environ.get("SIRIUS_BIN", MAXIMUS_DIR / "sirius" / "build" / "release" / "duckdb"))
 RESULTS_DIR = Path(os.environ.get("RESULTS_DIR", MAXIMUS_DIR / "results"))
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
