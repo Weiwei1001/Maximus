@@ -90,6 +90,9 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 log "Step 2: Installing system dependencies..."
 
+# Remove broken apt sources (e.g. heavyai returning 403)
+sudo rm -f /etc/apt/sources.list.d/heavyai*.list 2>/dev/null || true
+
 sudo apt-get update -qq
 sudo apt-get install -y --no-install-recommends \
     build-essential g++ ninja-build \
@@ -98,6 +101,18 @@ sudo apt-get install -y --no-install-recommends \
     libssl-dev libconfig++-dev libnuma-dev \
     ca-certificates wget curl pkg-config \
     python3 python3-pip python3-venv
+
+# Ensure GCC >= 11 for C++20 support (required by Taskflow)
+GCC_MAJOR=$(gcc -dumpversion 2>/dev/null | cut -d. -f1)
+if [ "${GCC_MAJOR:-0}" -lt 11 ]; then
+    log "  Upgrading GCC to 11 for C++20 support..."
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test 2>/dev/null || true
+    sudo apt-get update -qq
+    sudo apt-get install -y gcc-11 g++-11
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110 \
+        --slave /usr/bin/g++ g++ /usr/bin/g++-11
+    log "  GCC upgraded to $(gcc --version | head -1)"
+fi
 
 # Upgrade CMake if needed (>= 3.17 for Maximus, >= 3.30.4 for Sirius)
 if [ "${CMAKE_NEEDED:-false}" = true ] || [ "${INSTALL_SIRIUS}" = true ]; then
@@ -174,6 +189,139 @@ else
     cd "$WORKSPACE"
     bash "$MAXIMUS_DIR/scripts/build_taskflow.sh"
 fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 6.5: Patch source files for cuDF 24.12 API compatibility
+# ─────────────────────────────────────────────────────────────────────────────
+log "Step 6.5: Applying cuDF 24.12 compatibility patches..."
+
+# Fix 1: RMM header path (rmm/mr/ -> rmm/mr/device/)
+sed -i 's|#include <rmm/mr/pool_memory_resource\.hpp>|#include <rmm/mr/device/pool_memory_resource.hpp>|' \
+    "$MAXIMUS_DIR/src/maximus/context.hpp"
+
+# Fix 2: allocate_sync/deallocate_sync removed in RMM 24.12 -> use async
+sed -i 's|pool()\.allocate_sync(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment))|pool().allocate_async(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment), cudf::get_default_stream())|' \
+    "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"
+sed -i 's|pool()\.deallocate_sync(p, static_cast<std::size_t>(size), static_cast<std::size_t>(alignment))|pool().deallocate_async(p, static_cast<std::size_t>(size), static_cast<std::size_t>(alignment), cudf::get_default_stream())|' \
+    "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"
+# Add cudf stream include if not present
+if ! grep -q "cudf/utilities/default_stream.hpp" "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"; then
+    sed -i '/#include.*arrow\/memory_pool.h/a #include <cudf/utilities/default_stream.hpp>' \
+        "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"
+fi
+
+# Fix 3: cudf/join/join.hpp -> cudf/join.hpp (header reorganized in cuDF 24.12)
+sed -i 's|#include <cudf/join/join\.hpp>|#include <cudf/join.hpp>|' \
+    "$MAXIMUS_DIR/src/maximus/operators/gpu/cudf/hash_join_operator.hpp" \
+    "$MAXIMUS_DIR/src/maximus/operators/gpu/cudf/hash_join_operator.cpp" \
+    "$MAXIMUS_DIR/tests/cuda.cpp"
+
+# Fix 4: Remove cudf/join/filtered_join.hpp include (class removed in 24.12)
+sed -i '/#include <cudf\/join\/filtered_join\.hpp>/d' \
+    "$MAXIMUS_DIR/src/maximus/operators/gpu/cudf/hash_join_operator.cpp"
+
+# Fix 5 & 6: Complex multi-line patches (use Python for reliability)
+python3 - "$MAXIMUS_DIR" << 'PYEOF'
+import re, sys, os
+
+MAXIMUS_DIR = sys.argv[1]
+
+# --- Fix 5: Rewrite semi_join functions in hash_join_operator.cpp ---
+hjf = os.path.join(MAXIMUS_DIR, "src/maximus/operators/gpu/cudf/hash_join_operator.cpp")
+
+with open(hjf, "r") as f:
+    src = f.read()
+
+# Replace semi_join_and_gather_left_impl (filtered_join -> standalone)
+old_left = re.compile(
+    r'// libcudf 26\.x: use filtered_join for semi/anti.*?'
+    r'static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl\(.*?\n\}',
+    re.DOTALL)
+new_left = """// cuDF 24.12: use standalone left_semi_join / left_anti_join
+static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
+    ::cudf::table_view const& left_input,
+    ::cudf::table_view const& right_input,
+    std::vector<::cudf::size_type> const& left_key_indices,
+    std::vector<::cudf::size_type> const& right_key_indices,
+    ::cudf::null_equality compare_nulls,
+    bool anti) {
+    auto left_keys  = left_input.select(left_key_indices);
+    auto right_keys = right_input.select(right_key_indices);
+    std::unique_ptr<rmm::device_uvector<::cudf::size_type>> left_join_indices =
+        anti ? ::cudf::left_anti_join(left_keys, right_keys, compare_nulls)
+             : ::cudf::left_semi_join(left_keys, right_keys, compare_nulls);
+    return std::make_shared<::cudf::table>(
+        gather_column(left_input, std::move(*left_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
+}"""
+src = old_left.sub(new_left, src, count=1)
+
+# Replace semi_join_and_gather_right_impl
+old_right = re.compile(
+    r'static std::shared_ptr<::cudf::table> semi_join_and_gather_right_impl\('
+    r'.*?\n\}',
+    re.DOTALL)
+new_right = """static std::shared_ptr<::cudf::table> semi_join_and_gather_right_impl(
+    ::cudf::table_view const& left_input,
+    ::cudf::table_view const& right_input,
+    std::vector<::cudf::size_type> const& left_key_indices,
+    std::vector<::cudf::size_type> const& right_key_indices,
+    ::cudf::null_equality compare_nulls,
+    bool anti) {
+    auto left_keys  = left_input.select(left_key_indices);
+    auto right_keys = right_input.select(right_key_indices);
+    std::unique_ptr<rmm::device_uvector<::cudf::size_type>> right_join_indices =
+        anti ? ::cudf::left_anti_join(right_keys, left_keys, compare_nulls)
+             : ::cudf::left_semi_join(right_keys, left_keys, compare_nulls);
+    return std::make_shared<::cudf::table>(
+        gather_column(right_input, std::move(*right_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
+}"""
+src = old_right.sub(new_right, src, count=1)
+
+with open(hjf, "w") as f:
+    f.write(src)
+print("  Patched hash_join_operator.cpp")
+
+# --- Fix 6: Replace COUNT(*) reduction in group_by_operator.cpp ---
+gbf = os.path.join(MAXIMUS_DIR, "src/maximus/operators/gpu/cudf/group_by_operator.cpp")
+with open(gbf, "r") as f:
+    src = f.read()
+
+# Add scalar_factories include if missing
+if "scalar_factories.hpp" not in src:
+    src = src.replace(
+        '#include <cudf/column/column_factories.hpp>',
+        '#include <cudf/column/column_factories.hpp>\n#include <cudf/scalar/scalar_factories.hpp>')
+
+# Replace the count aggregation block (from "hash_count" branch to its output_cols push)
+old_count = re.compile(
+    r'(\} else if \(aggr\.second == "hash_count" \|\| aggr\.second == "count"\) \{)\s*\n'
+    r'.*?'
+    r'(output_cols\.push_back\(std::move\(col\)\);)',
+    re.DOTALL)
+new_count = r"""\1
+                // COUNT(*) as reduction: count all rows including nulls
+                auto scalar = ::cudf::make_fixed_width_scalar<int32_t>(static_cast<int32_t>(complete_view.num_rows()));
+                auto col = ::cudf::make_column_from_scalar(*scalar, 1);
+                \2"""
+src = old_count.sub(new_count, src, count=1)
+
+with open(gbf, "w") as f:
+    f.write(src)
+print("  Patched group_by_operator.cpp")
+PYEOF
+
+# Fix conda fmt/spdlog header version conflicts (base conda has fmt v9, env has v11)
+MINICONDA_DIR="${WORKSPACE}/miniconda3"
+if [ -d "${MINICONDA_DIR}/include/fmt" ] && [ ! -d "${MINICONDA_DIR}/include/fmt.bak" ]; then
+    log "  Moving conflicting fmt v9 headers from base conda..."
+    mv "${MINICONDA_DIR}/include/fmt" "${MINICONDA_DIR}/include/fmt.bak"
+fi
+if [ -d "${MINICONDA_DIR}/include/spdlog" ] && [ ! -d "${MINICONDA_DIR}/include/spdlog.bak" ]; then
+    log "  Moving conflicting spdlog v1.11 headers from base conda..."
+    mv "${MINICONDA_DIR}/include/spdlog" "${MINICONDA_DIR}/include/spdlog.bak"
+fi
+
+log "  Patches applied."
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 7: Build Maximus

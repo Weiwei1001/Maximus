@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cudf/join/join.hpp>
+#include <cudf/join.hpp>
 #include <maximus/operators/abstract_hash_join_operator.hpp>
 #include <maximus/operators/gpu/gpu_operator.hpp>
 

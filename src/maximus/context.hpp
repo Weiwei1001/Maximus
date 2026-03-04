@@ -10,7 +10,7 @@
 #ifdef MAXIMUS_WITH_CUDA
 #include <cudf/detail/utilities/stream_pool.hpp>
 #include <rmm/cuda_stream_view.hpp>
-#include <rmm/mr/pool_memory_resource.hpp>
+#include <rmm/mr/device/pool_memory_resource.hpp>
 #endif
 
 // Forward declaration
@@ -77,14 +77,14 @@ public:
     rmm::mr::cuda_memory_resource cuda_mr;
 
     // RMM GPU memory pool configuration:
-    // - Initial size: 20% of free device memory at startup (e.g. ~6.4 GiB on 32GB GPU)
-    // - Maximum size: unlimited (grows dynamically via upstream cudaMalloc)
-    // - The pool grows on demand; "maximum pool size exceeded" errors mean cudaMalloc
-    //   failed, typically because the GPU is already occupied by other processes.
-    // - SF=10 ClickBench (~7 GiB) fits with -s gpu on a 32GB GPU.
-    //   SF=20 (~14 GiB) should also fit on a clean 32GB GPU.
+    // - Initial size: 50% of free device memory
+    // - Maximum size: 90% of free device memory (leaves headroom for CUDA runtime)
+    // - The pool grows on demand up to the maximum; "maximum pool size exceeded"
+    //   errors mean the dataset + query intermediates exceed available GPU memory.
     rmm::mr::pool_memory_resource<rmm::mr::cuda_memory_resource> pool_mr{
-        &cuda_mr, rmm::percent_of_free_device_memory(20)};
+        &cuda_mr,
+        rmm::percent_of_free_device_memory(50),   // initial
+        rmm::percent_of_free_device_memory(90)};  // maximum
 
     void wait_h2d_copy() const;
     void wait_d2h_copy() const;

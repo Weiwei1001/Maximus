@@ -1,7 +1,6 @@
 #include <cudf/concatenate.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/join/filtered_join.hpp>
-#include <cudf/join/join.hpp>
+#include <cudf/join.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/utilities/default_stream.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
@@ -185,7 +184,7 @@ std::shared_ptr<::cudf::table> join_and_gather_right(
     return std::make_shared<::cudf::table>(std::move(joined_cols));
 }
 
-// libcudf 26.x: use filtered_join for semi/anti (no standalone left_semi_join/left_anti_join)
+// cuDF 24.12: use standalone left_semi_join / left_anti_join
 static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
     ::cudf::table_view const& left_input,
     ::cudf::table_view const& right_input,
@@ -193,13 +192,11 @@ static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
     std::vector<::cudf::size_type> const& right_key_indices,
     ::cudf::null_equality compare_nulls,
     bool anti) {
-    auto stream = ::cudf::get_default_stream();
-    auto mr     = ::cudf::get_current_device_resource_ref();
-    ::cudf::filtered_join fj(
-        right_input.select(right_key_indices), compare_nulls, ::cudf::set_as_build_table::RIGHT, stream);
+    auto left_keys  = left_input.select(left_key_indices);
+    auto right_keys = right_input.select(right_key_indices);
     std::unique_ptr<rmm::device_uvector<::cudf::size_type>> left_join_indices =
-        anti ? fj.anti_join(left_input.select(left_key_indices), stream, mr)
-            : fj.semi_join(left_input.select(left_key_indices), stream, mr);
+        anti ? ::cudf::left_anti_join(left_keys, right_keys, compare_nulls)
+             : ::cudf::left_semi_join(left_keys, right_keys, compare_nulls);
     return std::make_shared<::cudf::table>(
         gather_column(left_input, std::move(*left_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
@@ -211,13 +208,11 @@ static std::shared_ptr<::cudf::table> semi_join_and_gather_right_impl(
     std::vector<::cudf::size_type> const& right_key_indices,
     ::cudf::null_equality compare_nulls,
     bool anti) {
-    auto stream = ::cudf::get_default_stream();
-    auto mr     = ::cudf::get_current_device_resource_ref();
-    ::cudf::filtered_join fj(
-        left_input.select(left_key_indices), compare_nulls, ::cudf::set_as_build_table::LEFT, stream);
+    auto left_keys  = left_input.select(left_key_indices);
+    auto right_keys = right_input.select(right_key_indices);
     std::unique_ptr<rmm::device_uvector<::cudf::size_type>> right_join_indices =
-        anti ? fj.anti_join(right_input.select(right_key_indices), stream, mr)
-            : fj.semi_join(right_input.select(right_key_indices), stream, mr);
+        anti ? ::cudf::left_anti_join(right_keys, left_keys, compare_nulls)
+             : ::cudf::left_semi_join(right_keys, left_keys, compare_nulls);
     return std::make_shared<::cudf::table>(
         gather_column(right_input, std::move(*right_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
