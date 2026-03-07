@@ -2,7 +2,7 @@
 
 #include <cudf/copying.hpp>
 #include <cudf/interop.hpp>
-#include <cudf/join/join.hpp>
+#include <cudf/join.hpp>
 #include <cudf/stream_compaction.hpp>
 #include <fstream>
 #include <maximus/context.hpp>

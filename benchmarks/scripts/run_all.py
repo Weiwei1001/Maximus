@@ -132,7 +132,7 @@ def parse_maxbench_output(output: str) -> dict:
     return result
 
 
-def run_maxbench(benchmark, data_path, queries, n_reps=3, timeout_s=300):
+def run_maxbench(benchmark, data_path, queries, n_reps=3, timeout_s=300, storage="gpu"):
     cmd = [
         str(MAXBENCH),
         "--benchmark", benchmark,
@@ -140,7 +140,7 @@ def run_maxbench(benchmark, data_path, queries, n_reps=3, timeout_s=300):
         "-d", "gpu", "-r", str(n_reps),
         "--n_reps_storage", "1",
         "--path", str(data_path),
-        "-s", "gpu", "--engines", "maximus",
+        "-s", storage, "--engines", "maximus",
     ]
     t0 = time.perf_counter()
     try:
@@ -177,13 +177,31 @@ def run_maximus_benchmarks(selected_benchmarks=None):
             print(f"{'=' * 60}")
             sys.stdout.flush()
 
+            # Storage device selection:
+            # - Default to GPU (loads all tables to GPU before querying)
+            # - For large datasets that OOM on GPU, fall back to CPU storage
+            storage = "gpu"
+
             timeout = max(300, 120 * len(queries))
             output, wall, rc = run_maxbench(bench_name, data_path, queries,
-                                            n_reps=3, timeout_s=timeout)
+                                            n_reps=3, timeout_s=timeout,
+                                            storage=storage)
             parsed = parse_maxbench_output(output)
 
+            # On OOM with GPU storage, retry with CPU storage
+            if rc != 0 and "out_of_memory" in output:
+                print(f"  GPU OOM detected, retrying with CPU storage...")
+                storage = "cpu"
+                output, wall, rc = run_maxbench(bench_name, data_path, queries,
+                                                n_reps=3, timeout_s=timeout,
+                                                storage=storage)
+                parsed = parse_maxbench_output(output)
+
+            # If process was killed (e.g. system OOM), skip retries
+            if rc == -9 or rc == 137:  # SIGKILL / 128+9
+                print(f"  Process killed (system OOM?), skipping retries")
             # Retry missing queries
-            if rc != 0 or len(parsed["query_times"]) < len(queries) // 2:
+            elif rc != 0 or len(parsed["query_times"]) < len(queries) // 2:
                 print(f"  Full batch incomplete ({len(parsed['query_times'])}/{len(queries)}), retrying...")
                 for i in range(0, len(queries), 4):
                     batch = queries[i:i + 4]
@@ -191,12 +209,14 @@ def run_maximus_benchmarks(selected_benchmarks=None):
                     if not missing:
                         continue
                     o2, _, _ = run_maxbench(bench_name, data_path, missing,
-                                           n_reps=3, timeout_s=120 * len(missing))
+                                           n_reps=3, timeout_s=120 * len(missing),
+                                           storage=storage)
                     parsed["query_times"].update(parse_maxbench_output(o2)["query_times"])
                     for q in missing:
                         if q not in parsed["query_times"]:
                             o3, _, _ = run_maxbench(bench_name, data_path, [q],
-                                                    n_reps=3, timeout_s=120)
+                                                    n_reps=3, timeout_s=120,
+                                                    storage=storage)
                             parsed["query_times"].update(
                                 parse_maxbench_output(o3)["query_times"])
 

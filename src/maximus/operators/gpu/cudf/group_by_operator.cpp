@@ -1,6 +1,7 @@
 #include <thrust/device_vector.h>
 
 #include <cudf/column/column_factories.hpp>
+#include <cudf/scalar/scalar_factories.hpp>
 #include <cudf/concatenate.hpp>
 #include <cudf/detail/aggregation/aggregation.hpp>
 #include <cudf/reduction.hpp>
@@ -181,13 +182,9 @@ void GroupByOperator::run_kernel(std::shared_ptr<MaximusContext> &ctx,
                     type,
                     ::cudf::null_policy::EXCLUDE));
             } else if (aggr.second == "hash_count" || aggr.second == "count") {
-                // COUNT(*) as reduction: use cudf::reduce with count aggregation
-                auto agg = ::cudf::make_count_aggregation<::cudf::reduce_aggregation>(
-                    ::cudf::null_policy::INCLUDE);
-                ::cudf::data_type type(::cudf::type_id::INT32);
-                auto scalar_result = ::cudf::reduce(
-                    complete_view.column(aggr.first), *agg, type);
-                auto col = ::cudf::make_column_from_scalar(*scalar_result, 1);
+                // COUNT(*) as reduction: count all rows including nulls
+                auto scalar = ::cudf::make_fixed_width_scalar<int32_t>(static_cast<int32_t>(complete_view.num_rows()));
+                auto col = ::cudf::make_column_from_scalar(*scalar, 1);
                 output_cols.push_back(std::move(col));
             } else if (aggr.second == "hash_count_distinct" || aggr.second == "count_distinct") {
                 // COUNT(DISTINCT col) as reduction: use cudf::reduce with nunique

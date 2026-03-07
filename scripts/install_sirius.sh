@@ -125,7 +125,7 @@ echo "[install_sirius] LIBCUDF_ENV_PREFIX=${LIBCUDF_ENV_PREFIX}"
 # -----------------------------------------------------------------------------
 # 5. 克隆或更新 Sirius
 # -----------------------------------------------------------------------------
-if [[ ! -d "${SIRIUS_DIR}/.git" ]]; then
+if [[ ! -d "${SIRIUS_DIR}/.git" && ! -f "${SIRIUS_DIR}/.git" ]]; then
   echo "[install_sirius] Step 5: Cloning Sirius to ${SIRIUS_DIR}..."
   git clone --recurse-submodules "${SIRIUS_REPO_URL}" "${SIRIUS_DIR}"
 else
