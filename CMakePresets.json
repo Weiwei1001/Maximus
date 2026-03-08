@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "gpu",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MAXIMUS_WITH_TESTS": "ON",
+        "MAXIMUS_WITH_GPU": "ON",
+        "MAXIMUS_WITH_BENCHMARKS": "ON",
+        "CMAKE_CUDA_ARCHITECTURES": "80",
+        "CMAKE_CUDA_COMPILER": "/usr/local/cuda-12.6/bin/nvcc",
+        "CMAKE_PREFIX_PATH": "/root/arrow_install;/root/taskflow_install;/usr/local/lib/python3.10/dist-packages/libcudf/lib64;/usr/local/lib/python3.10/dist-packages/librmm/lib64;/usr/local/lib/python3.10/dist-packages/nvidia/libnvcomp/lib64;/usr/local/lib/python3.10/dist-packages/rapids_logger/lib64;/usr/local/lib/python3.10/dist-packages/nvidia/cuda_cccl/lib",
+        "RMM_INCLUDE_DIR": "/usr/local/lib/python3.10/dist-packages/librmm/include"
+      }
+    }
+  ]
+}
