@@ -1,6 +1,6 @@
-# Maximus: GPU-Accelerated SQL Benchmark Suite
+# gpu_db: GPU-Accelerated SQL Query Engine
 
-Comparing **Maximus** (standalone GPU query engine, Acero + cuDF) and **Sirius** (DuckDB GPU extension) across TPC-H, H2O, and ClickBench.
+Comparing **Maximus** (standalone GPU query engine, Apache Arrow Acero + cuDF) and **Sirius** (DuckDB GPU extension) across TPC-H, H2O, and ClickBench.
 
 ## Quick Start
 
@@ -10,170 +10,225 @@ cd gpu_db
 ./setup.sh            # one-click: deps + build + data
 source setup_env.sh
 
-# Run benchmarks
-python benchmarks/scripts/run_all.py                    # both engines
-python benchmarks/scripts/run_all.py --engine maximus   # Maximus only
-python benchmarks/scripts/run_all.py --engine sirius    # Sirius only
+# Run standard benchmarks
+python3 scripts/benchmarks/run_timing.py \
+    --maximus-dir /workspace/gpu_db --data-dir /workspace/gpu_db/tests \
+    --output-dir /workspace/gpu_db/results --n-reps 3 --storage-device gpu
+
+# Run all 120 microbench queries (one command)
+bash scripts/benchmarks/run_all_microbench.sh --n-reps 5
+```
+
+## Build
+
+### Prerequisites
+
+- CUDA 12.6+ (`apt install cuda-nvcc-12-6`)
+- Apache Arrow 17.0.0 (build from source, install to `/root/arrow_install`)
+- Taskflow (build from source, install to `/root/taskflow_install`)
+- cuDF 24.12.0 + librmm 24.12.1 (`pip install libcudf-cu12==24.12.0 librmm-cu12==24.12.1`)
+- NVIDIA A100 80GB (or equivalent)
+
+### CRITICAL: CCCL Version Must Match cuDF
+
+cuDF 24.12 was built with **CCCL 2.5.0**. Using a newer CCCL (e.g., 2.8.2 from `nvidia-cuda-cccl` pip) causes ABI mismatch in `cuda::mr::async_resource_ref`, resulting in segfault in `PinnedMemoryPool::do_allocate`.
+
+**Fix**: Use the CCCL bundled with cuDF:
+```
+CCCL_DIR="/usr/local/lib/python3.10/dist-packages/libcudf/include/libcudf/lib/rapids/cmake/cccl"
+```
+
+### CMake Configuration
+
+```bash
+cd /workspace/gpu_db/build
+
+PB="/usr/local/lib/python3.10/dist-packages"
+export rmm_DIR="${PB}/librmm/lib64/cmake/rmm"
+export nvcomp_DIR="${PB}/nvidia/libnvcomp/lib64/cmake/nvcomp"
+export rapids_logger_DIR="${PB}/rapids_logger/lib64/cmake/rapids_logger"
+export nvtx3_DIR="${PB}/librmm/lib64/cmake/nvtx3"
+export cuco_DIR="${PB}/libcudf/lib64/cmake/cuco"
+export CCCL_DIR="${PB}/libcudf/include/libcudf/lib/rapids/cmake/cccl"
+export fmt_DIR="${PB}/librmm/lib64/cmake/fmt"
+export spdlog_DIR="${PB}/librmm/lib64/cmake/spdlog"
+
+cmake -C initial_cache.cmake ..
+cmake --build . -j$(nproc)
+```
+
+The `initial_cache.cmake` sets: `CMAKE_BUILD_TYPE=Release`, `MAXIMUS_WITH_GPU=ON`, `MAXIMUS_WITH_BENCHMARKS=ON`, `CMAKE_CUDA_ARCHITECTURES=80`.
+
+**Why Export + Cache?** cmake's `find_dependency()` inside `cudf-config.cmake` doesn't see cache variables set by `-C`. The exported env vars ensure transitive dependencies (rmm, nvcomp, etc.) are found.
+
+### Running
+
+```bash
+export LD_LIBRARY_PATH="/root/arrow_install/lib:/usr/local/lib/python3.10/dist-packages/nvidia/libnvcomp/lib64:/usr/local/lib/python3.10/dist-packages/libkvikio/lib64:/usr/local/lib/python3.10/dist-packages/libcudf/lib64:/usr/local/lib/python3.10/dist-packages/librmm/lib64"
+
+# Single query
+./build/benchmarks/maxbench --benchmark=tpch --queries=q6 --device=gpu \
+    --storage_device=gpu --engines=maximus --n_reps=3 --path=tests/tpch/sf1
+
+# Run tests
+cd build && ctest
 ```
 
 ## Measurement Methodology
 
-### 1. Timing
+### Timing
 
-Both engines measure **pure GPU compute time** — data is pre-loaded to VRAM before timing starts.
-
-**Maximus** uses the `maxbench` C++ binary. Each query is bracketed by CUDA stream barriers (`context->barrier()`) and timed with `std::chrono::high_resolution_clock`:
+**Maximus** uses the `maxbench` C++ binary. Each query is bracketed by CUDA stream barriers and timed with `std::chrono::high_resolution_clock`:
 
 ```
 barrier()  →  start_time  →  execute()  →  barrier()  →  end_time
 ```
 
-The pre/post barriers ensure all GPU kernels have completed, so the wall-clock interval captures true GPU execution time (not just kernel launch latency). Data is loaded once with `-s gpu` (GPU storage mode) and stays in VRAM across all repetitions — the timings exclude any PCIe transfer.
+Data is pre-loaded with `--storage_device=gpu` and stays in VRAM across repetitions — timings exclude PCIe transfer.
 
-**Sirius** uses DuckDB's built-in `.timer on`, which prints `Run Time (s): real X.XXX` after each query. GPU buffers are pre-allocated via `gpu_buffer_init("20 GB", "10 GB")` before the timed region.
+### Energy & Power
 
-**Repetitions and reporting:**
-
-| | Maximus | Sirius |
-|---|---|---|
-| Reps per query | 50 (default) | 3 passes, 100 reps each |
-| Reported metric | **min** across reps | **last pass** timing |
-| Batch size | All queries in one process | 10 queries per batch |
-| Why | Min filters out OS/scheduling noise | 3rd pass avoids cold-start; batching avoids GPU memory leaks |
-
-```bash
-# Timing benchmark
-python benchmarks/scripts/run_maximus_benchmark.py tpch h2o clickbench
-python benchmarks/scripts/run_sirius_benchmark.py tpch h2o
-
-# Direct maxbench usage
-./build/benchmarks/maxbench --benchmark tpch -q q1,q2,q3 -d gpu -r 50 \
-    --path tests/tpch/csv-1 -s gpu --engines maximus
-```
-
-### 2. Energy & Power
-
-GPU power is sampled via `nvidia-smi` at **50ms intervals** from a background thread during query execution:
-
-```
-Step 1: Calibrate — run 3 reps to measure base latency (e.g. 15ms/query)
-Step 2: Calculate n_reps so total runtime >= 10s (e.g. ceil(10000/15) = 667 reps)
-Step 3: Run n_reps while sampling nvidia-smi every 50ms
-Step 4: Detect steady-state compute region via GPU utilization
-Step 5: Compute avg power within compute region → derive energy
-```
-
-#### Steady-state detection (utilization-based)
-
-A typical power trace has three phases: idle (~70W, GPU loading data), compute (200-400W, queries executing), and cooldown. We use **GPU utilization as the boundary signal** to isolate the compute phase:
-
-```
-1. Compute avg_util across ALL samples
-2. t_start = first sample where gpu_util >= avg_util
-3. t_end   = last  sample where gpu_util >= avg_util
-4. P_steady = mean(power[t_start : t_end])    ← compute-region average
-```
-
-This isolates the actual compute phase regardless of how long the idle/loading phase lasts.
-
-#### Energy per query
+GPU power is sampled via `nvidia-smi` at **50ms intervals** during query execution. Steady-state compute region is detected via GPU utilization threshold, and per-query energy is computed as:
 
 ```
 E_query = P_steady × t_query
 ```
 
-where `P_steady` is the utilization-bounded average power, and `t_query` is the per-query latency from timing measurements (not the total multi-rep runtime).
+## Benchmark Suites
 
-#### Example: TPC-H Q1, SF=10 (Sirius)
+### Standard Benchmarks (74 queries)
 
-![TPC-H Q1 SF=10 Power/Time](results/plots/tpch_q1_sf10_power_time.png)
+| Suite | Queries | Scale Factors | Pass Rate |
+|-------|---------|---------------|-----------|
+| TPC-H | 22 (q1-q22) | sf1, sf10, sf20 | 61/66 (92.4%) |
+| H2O | 9 (q1-q7, q9, q10) | sf1, sf2, sf3, sf4 | 33/36 (91.7%) |
+| ClickBench | 43 (q0-q42) | sf1, sf10, sf20 | 117/129 (90.7%) |
+| **Total** | **74** | | **211/231 (91.3%)** |
 
-- **455 samples** over 16.3s. Avg GPU utilization across all samples = 27.3%
-- **Utilization threshold** detects compute region at [9.0s, 13.8s] (green shading)
-- **P_steady = 362.5W** (avg power within compute region)
-- **Energy per query** = 362.5W x 70.7ms = 25.6 J
-- Bottom panel shows GPU util: the green/red dots mark t_start and t_end where util crosses the threshold
+**Failures:**
+- TPC-H sf20: q17, q18, q19, q21 — GPU OOM on complex multi-way joins
+- H2O sf4: q3, q7, q10 — GPU OOM on high-memory group-by queries
+- ClickBench: q18, q27, q28, q42 — unsupported functions (minute, utf8_length, not implemented)
+
+### Microbenchmarks (120 queries)
+
+Fine-grained, workload-typed queries for detailed performance characterization.
+
+| Suite | Queries | Workloads |
+|-------|---------|-----------|
+| H2O | 35 | w1(scan/agg), w2(filter), w3(low-card groupby), w4(high-card groupby), w6(sort) |
+| TPC-H | 55 | w1-w4, w5a(2-3 table joins), w5b(5-6 table joins), w6(sort/limit) |
+| ClickBench | 30 | w1-w4, w6 (includes 5 cross-benchmark queries) |
+| **Total** | **120** | All passed on GPU at default scale factors |
 
 ```bash
-# Run energy/power measurement
-python benchmarks/scripts/run_maximus_metrics.py tpch --scale-factors 1 2 10
+# One-command: build + run all 120 microbench with timing & GPU metrics
+bash scripts/benchmarks/run_all_microbench.sh --n-reps 5
 
-# Output: *_metrics_summary.csv (per-query avg power, energy, GPU util)
-#         *_metrics_samples.csv (raw 50ms samples: time, power, util, mem)
+# Skip build
+bash scripts/benchmarks/run_all_microbench.sh --skip-build --n-reps 3
+
+# Individual query
+./build/benchmarks/maxbench --benchmark=microbench_h2o --queries=w1_001 \
+    --device=gpu --storage_device=gpu --engines=maximus --n_reps=5 \
+    --path=tests/h2o/sf1
+
+# DuckDB baseline
+python3 scripts/benchmarks/run_microbench_duckdb.py \
+    --data-dir tests --output-dir results --n-reps 5
 ```
 
-### 3. Collected Metrics
+### TPC-H Results (ms, GPU storage, min of 3 reps)
 
-Each nvidia-smi sample captures:
+| Query | sf1 | sf10 | sf20 | Query | sf1 | sf10 | sf20 |
+|-------|-----|------|------|-------|-----|------|------|
+| q1 | 5 | 39 | 428 | q12 | 3 | 19 | 1243 |
+| q2 | 4 | 6 | 55 | q13 | 21 | 201 | 639 |
+| q3 | 2 | 17 | 267 | q14 | 3 | 12 | 891 |
+| q4 | 2 | 14 | 171 | q15 | 3 | 11 | 862 |
+| q5 | 4 | 32 | 504 | q16 | 13 | 54 | 375 |
+| q6 | 1 | 7 | 192 | q17 | 5 | 19 | OOM |
+| q7 | 3 | 18 | 313 | q18 | 2 | 16 | OOM |
+| q8 | 3 | 22 | 1482 | q19 | 23 | 226 | OOM |
+| q9 | 6 | 45 | 3485 | q20 | 6 | 21 | 1152 |
+| q10 | 3 | 13 | 260 | q21 | 53 | 473 | OOM |
+| q11 | 3 | 20 | 276 | q22 | 3 | 7 | 427 |
 
-| Metric | Unit | Source |
-|--------|------|--------|
-| `power_w` | Watts | `power.draw` |
-| `gpu_util_pct` | % | `utilization.gpu` |
-| `mem_used_mb` | MB | `memory.used` |
-| `pcie_tx/rx_mbs` | MB/s | `pcie.link.gen.current` |
+### GPU Memory Limits (A100 80GB)
 
-Summary CSV columns per query: `avg_power_w`, `max_power_w`, `max_mem_mb`, `avg_gpu_util`, `energy_j`, `elapsed_s`, `n_reps`.
-
-## Benchmark Results
-
-### TPC-H (ms per query, GPU storage)
-
-| Query | Sirius SF1 | Maximus SF1 | Sirius SF2 | Maximus SF2 | Sirius SF10 | Maximus SF10 |
-|-------|-----------|------------|-----------|------------|------------|-------------|
-| q1 | 17.69 | 18 | 19.15 | 36 | 70.65 | 148 |
-| q2 | 36.41 | 5 | 31.56 | 7 | 35.73 | 26 |
-| q3 | 9.67 | 13 | 10.88 | 25 | 22.81 | 100 |
-| q4 | 9.44 | 9 | 7.79 | 16 | 22.35 | 65 |
-| q5 | 17.99 | 15 | 16.10 | 40 | 27.27 | 194 |
-| q6 | 6.78 | 10 | 5.41 | 19 | 15.48 | — |
-| q7 | 23.05 | 16 | 20.74 | 29 | 33.60 | — |
-| q8 | 24.27 | 17 | 23.07 | 48 | 39.57 | — |
-| q9 | 35.90 | 21 | 20.66 | 60 | 42.96 | — |
-| q10 | 22.35 | 14 | 17.95 | 28 | 37.29 | — |
-
-### H2O Groupby (ms, Sirius)
-
-| Query | 1gb | 2gb | 3gb | 4gb |
-|-------|-----|-----|-----|-----|
-| q1 | 129 | 892 | 1,035 | 409 |
-| q2 | 764 | 323 | 1,228 | 520 |
-| q3 | 414 | 713 | 2,616 | 1,171 |
-| q5 | 171 | 239 | 332 | 526 |
-| q7 | 343 | 540 | 1,706 | 969 |
-
-### Completion Status
-
-| Benchmark | SF | Sirius | Maximus |
-|-----------|-----|--------|---------|
-| TPC-H | 1 | 25/25 OK | 22/22 OK |
-| TPC-H | 2 | 25/25 OK | 22/22 OK |
-| TPC-H | 10 | 25/25 OK | 20/22 (q21-22 OOM) |
-| H2O | 1-4gb | 40/40 (3 fallback) | 36/36 OK |
-| ClickBench | 10, 20, 50, 100 | 168/172 (12 fallback) | In progress |
+- sf1-sf10: fit comfortably with `--storage_device=gpu`
+- sf20 (TPC-H): OOM on q17/q18/q19/q21 (use `--storage_device=cpu`)
+- sf4 (H2O): OOM on q3/q7/q10 (use `--storage_device=cpu`)
+- sf20 (ClickBench): fits (14.8GB CSV)
 
 ## Project Structure
 
 ```
 gpu_db/
-├── setup.sh                        # One-click deployment
-├── sirius/                         # DuckDB GPU extension (git submodule)
-├── src/maximus/                    # Maximus engine source
+├── setup.sh                           # One-click deployment
+├── sirius/                            # DuckDB GPU extension (git submodule)
+├── src/maximus/                       # Maximus engine source
+│   ├── operators/gpu/cudf/            #   cuDF operator implementations
+│   ├── gpu/                           #   GPU context, CUDA wrappers
+│   └── microbench/                    #   120 microbench query plans (C++)
 ├── benchmarks/
-│   ├── maxbench.cpp                # C++ benchmark binary
-│   ├── scripts/
-│   │   ├── run_all.py              # Master runner (both engines)
-│   │   ├── run_maximus_benchmark.py
-│   │   ├── run_maximus_metrics.py  # Power/energy measurement
-│   │   ├── run_sirius_benchmark.py
-│   │   ├── compare_results.py
-│   │   └── plot_metrics.py         # Visualization
-│   └── data/                       # Data generation scripts
-├── results/                        # CSVs + plots
-├── scripts/                        # Build & install scripts
-├── docs/                           # Detailed guides
-└── third_party/                    # cxxopts, sqlparser
+│   ├── maxbench.cpp                   # C++ benchmark binary
+│   └── utils.hpp                      # Benchmark dispatch (standard + microbench)
+├── microbench/                        # 123 SQL files (DuckDB baseline)
+│   ├── h2o/                           #   35 H2O queries
+│   ├── tpch/                          #   55 TPC-H queries
+│   └── clickbench/                    #   25 ClickBench queries
+├── scripts/benchmarks/
+│   ├── run_all_microbench.sh          # One-command microbench runner
+│   ├── run_timing.py                  # Standard timing benchmarks
+│   ├── run_metrics.py                 # GPU metrics benchmarks
+│   ├── run_microbench_maximus.py      # Microbench Maximus runner
+│   ├── run_microbench_duckdb.py       # Microbench DuckDB baseline
+│   ├── generate_tpch_data.py          # TPC-H data generator
+│   ├── generate_h2o_data.py           # H2O data generator
+│   └── generate_clickbench_data.py    # ClickBench data generator
+├── results/                           # Benchmark result CSVs
+├── tests/                             # Benchmark data (CSV)
+└── third_party/                       # cxxopts, sqlparser
 ```
+
+## Key Bug Fixes & Lessons Learned
+
+### 1. CCCL ABI Mismatch (Segfault)
+**Symptom**: Segfault in `PinnedMemoryPool::do_allocate` with null function pointer.
+**Root cause**: cuDF 24.12 was built with CCCL 2.5.0, but pip `nvidia-cuda-cccl` installs CCCL 2.8.2. The ABI for `cuda::mr::async_resource_ref` changed between versions.
+**Fix**: Set `CCCL_DIR` to cuDF's bundled CCCL at `libcudf/include/libcudf/lib/rapids/cmake/cccl`.
+
+### 2. find_package Case Sensitivity
+**Symptom**: `cmake` can't find cudf package.
+**Root cause**: `find_package(CUDF)` looks for `CUDFConfig.cmake`, but the actual file is `cudf-config.cmake` (lowercase).
+**Fix**: Use `find_package(cudf REQUIRED)` (lowercase).
+
+### 3. H2O Data Generator INT32 Overflow
+**Symptom**: DuckDB crashes generating H2O data at scale >= 5GB (`n_rows * 7` overflows INT32).
+**Root cause**: `hash(i + offset + n_rows*7)` where `n_rows=325000000` and multiplier=7 exceeds INT32 range.
+**Fix**: Cast all arithmetic to BIGINT: `CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*N`.
+
+### 4. Aggregate Function Names
+**Symptom**: `std::runtime_error` when using `hash_min_max` aggregate in query plans.
+**Root cause**: `hash_min_max` is not a valid aggregate function name in Maximus. Min and max must be specified separately.
+**Fix**: Replace `aggregate("hash_min_max", ...)` with separate `aggregate("min", col, alias)` and `aggregate("max", col, alias)` calls.
+
+### 5. GPU Memory Contention in Parallel Runs
+**Symptom**: Queries that pass at sf10 fail with OOM at sf5.
+**Root cause**: Multiple benchmark processes launched in parallel share the same GPU. Each process's RMM pool allocates 50-90% of GPU memory, causing contention.
+**Fix**: Run benchmarks sequentially, not in parallel. Even with `--storage_device=cpu`, cuDF GPU computation still allocates GPU memory.
+
+## Troubleshooting
+
+### "Maximum pool size exceeded" (OOM)
+Reduce scale factor or use `--storage_device=cpu` (slower but uses less GPU memory).
+
+### Segfault in PinnedMemoryPool::do_allocate
+CCCL version mismatch. See Bug Fix #1 above.
+
+### libkvikio.so not found at runtime
+Add `/usr/local/lib/python3.10/dist-packages/libkvikio/lib64` to `LD_LIBRARY_PATH`.
 
 ## License
 

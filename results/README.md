@@ -1,59 +1,84 @@
 # Benchmark Results
 
-GPU-accelerated SQL engine benchmark results on **NVIDIA RTX 5090** (32 GB GDDR7 VRAM).
+GPU-accelerated SQL engine benchmark results on **NVIDIA A100 80GB**.
 
-## Systems Tested
+## Engine
 
-| Engine | Type | Version |
-|--------|------|---------|
-| **Maximus** | Standalone GPU query engine (Apache Arrow + cuDF) | v0.2.0 |
-| **Sirius** | DuckDB GPU extension | dev branch |
+| Engine | Type | Stack |
+|--------|------|-------|
+| **Maximus** | Standalone GPU query engine | Apache Arrow Acero + cuDF 24.12 |
 
 ## Benchmark Suites
 
-| Suite | Queries | Sirius Scale Factors | Maximus Scale Factors |
-|-------|---------|---------------------|----------------------|
-| TPC-H | 22 (Q1-Q22) | SF 1, 2, 10, 20 | SF 1, 2, 10 |
-| H2O groupby | 9-10 | 1gb, 2gb, 3gb, 4gb | 1gb, 2gb, 3gb, 4gb |
-| ClickBench | 39-43 | SF 10, 20, 50, 100 | SF 1, 2 |
+### Standard Benchmarks
+
+| Suite | Queries | Scale Factors | Tests | Pass | Fail |
+|-------|---------|---------------|-------|------|------|
+| TPC-H | 22 (q1-q22) | sf1, sf10, sf20 | 66 | 61 | 5 (OOM sf20) |
+| H2O | 9 (q1-q7, q9, q10) | sf1, sf2, sf3, sf4 | 36 | 33 | 3 (OOM sf4) |
+| ClickBench | 43 (q0-q42) | sf1, sf10, sf20 | 129 | 117 | 12 (4 unimplemented x 3SF) |
+| **Total** | **74** | | **231** | **211** | **20** |
+
+### Microbenchmarks
+
+| Suite | Queries | Scale Factors | Tests | Pass | Fail |
+|-------|---------|---------------|-------|------|------|
+| Micro H2O | 35 | sf1, sf5 | 70 | 66 | 4 (OOM sf5) |
+| Micro TPC-H | 55 | sf1, sf5 | 110 | 110 | 0 |
+| Micro ClickBench | 30 | sf5, sf10 | 60 | 60 | 0 |
+| **Total** | **120** | | **240** | **236** | **4** |
+
+### Overall
+
+| Category | Pass/Total | Rate |
+|----------|-----------|------|
+| Standard | 211/231 | 91.3% |
+| Microbench | 236/240 | 98.3% |
+| **All** | **447/471** | **94.9%** |
 
 ## Timing Methodology
 
-### Sirius
-- Each (benchmark, SF) runs in a **separate DuckDB process** to avoid GPU memory leaks
-- 3 passes, queries in batches of 10, **3rd pass timing recorded**
-- Overhead subtracted: 8.3644s (TPC-H/ClickBench), 15.9511s (H2O)
-- Status: `OK` (GPU success) or `FALLBACK` (fell back to CPU)
-
-### Maximus
-- `maxbench` binary with `-s gpu` (pre-loaded to VRAM)
-- 50-100 repetitions per query, **minimum time reported**
-- Load and run phases measured separately
+- `maxbench` binary with `--storage_device=gpu` (data pre-loaded to VRAM)
+- 3-5 repetitions per query, **minimum time** reported
+- CUDA stream barriers before/after each query ensure true GPU execution time
 
 ## Data Files
 
-| File | Description | Rows |
-|------|-------------|------|
-| `sirius_timing_per_query.csv` | Sirius per-query timing (all suites) | 312 |
-| `maximus_adaptive.csv` | Maximus timing (all suites, 50 reps) | ~200 |
-| `maximus_tpch_sf1_corrected.csv` | Maximus TPC-H SF1 (corrected) | 22 |
-| `tpch_timing.csv` | Sirius TPC-H timing summary | 100 |
-| `h2o_timing.csv` | Sirius H2O timing summary | 40 |
-| `clickbench_timing.csv` | Sirius ClickBench timing summary | 172 |
-| `*_metrics_samples_summary.csv` | GPU metrics summaries (power, memory, utilization) | varies |
-| `plots/*.png` | Visualization charts | 10 files |
+### Standard Benchmark Results
 
-## Plots
-
-| Plot | Description |
+| File | Description |
 |------|-------------|
-| `tpch_timing_by_sf.png` | TPC-H query timing grouped by scale factor |
-| `h2o_timing_by_sf.png` | H2O query timing grouped by scale factor |
-| `clickbench_timing_by_sf.png` | ClickBench query timing grouped by scale factor |
-| `tpch_gpu_memory.png` | TPC-H max GPU memory per query |
-| `h2o_gpu_memory.png` | H2O max GPU memory per query |
-| `clickbench_gpu_memory.png` | ClickBench max GPU memory per query |
-| `gpu_power_by_benchmark.png` | GPU power consumption box plots |
-| `tpch_time_vs_memory.png` | TPC-H execution time vs GPU memory scatter |
-| `timing_overview_heatmap.png` | All benchmarks/SFs timing heatmap |
-| `tpch_scaling.png` | TPC-H scaling with data size |
+| `tpch_timing.csv` | TPC-H sf1/sf10 timing (gpu storage) |
+| `tpch_timing_sf20_cpu.csv` | TPC-H sf20 timing (cpu storage) |
+| `h2o_timing.csv` | H2O sf1/sf2/sf3 timing (gpu storage) |
+| `h2o_timing_sf4_cpu.csv` | H2O sf4 timing (cpu storage) |
+| `clickbench_timing_full.csv` | ClickBench 43q x 4SF timing |
+| `tpch_metrics_timings.csv` | TPC-H per-query metrics timing |
+| `h2o_metrics_timings.csv` | H2O per-query metrics timing |
+| `clickbench_metrics_timings.csv` | ClickBench per-query metrics timing |
+
+### Microbench Results
+
+| File | Description |
+|------|-------------|
+| `microbench_maximus_timing.csv` | 120 Maximus microbench timing (sf1/sf10) |
+| `microbench_maximus_metrics.csv` | GPU metrics samples during microbench |
+| `microbench_maximus_sf5_timing.csv` | 120 Maximus microbench timing (sf5) with metrics |
+| `microbench_duckdb_timing.csv` | 120 DuckDB baseline timing |
+| `microbench_duckdb_metrics.csv` | GPU metrics during DuckDB microbench |
+
+### GPU Metrics Files
+
+| File | Description |
+|------|-------------|
+| `*_metrics_samples.csv` | Raw 50ms GPU samples (power, utilization, memory) |
+| `*_metrics_timings.csv` | Per-query timing from metrics runs |
+| `*_raw_*.txt` | Raw maxbench stdout per scale factor |
+
+### CSV Column Formats
+
+**Timing CSV**: `benchmark, scale, query, min_ms, avg_ms, reps`
+
+**Metrics Samples CSV**: `benchmark, scale, query, time_offset_ms, power_w, gpu_util_pct, mem_used_mb, pcie_gen`
+
+**Microbench Timing CSV**: `engine, benchmark, query_id, workload, min_ms, avg_ms, max_ms, reps`

@@ -195,11 +195,13 @@ Add `/usr/local/lib/python3.10/dist-packages/libkvikio/lib64` to `LD_LIBRARY_PAT
 
 ## Results Location
 All benchmark results are in `/workspace/gpu_db/results/`:
-- `tpch_timing.csv` — TPC-H sf1/sf2/sf10 timing (gpu storage)
+- `tpch_timing.csv` — TPC-H sf1/sf10 timing (gpu storage)
 - `tpch_timing_sf20_cpu.csv` — TPC-H sf20 timing (cpu storage)
 - `h2o_timing.csv` — H2O sf1/sf2/sf3 timing (gpu storage)
 - `h2o_timing_sf4_cpu.csv` — H2O sf4 timing (cpu storage)
-- `clickbench_timing_full.csv` — ClickBench 43q × 4SF timing (per-query)
+- `clickbench_timing_full.csv` — ClickBench 43q × 3SF timing (per-query)
+- `microbench_maximus_timing.csv` — 120 microbench timing
+- `microbench_maximus_metrics.csv` — Microbench GPU metrics samples
 - `*_metrics_samples.csv` — GPU metrics time-series (power, utilization, memory)
 - `*_metrics_timings.csv` — Per-query timing from metrics runs
 - `*_raw_*.txt` — Raw maxbench output per scale factor
