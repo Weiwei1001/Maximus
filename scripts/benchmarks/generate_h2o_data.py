@@ -69,14 +69,14 @@ def generate_h2o(output_dir: Path, scale: int):
             INSERT INTO groupby
             SELECT
                 'id' || CAST(abs(hash(i + {offset})) % {k} + 1 AS VARCHAR) AS id1,
-                'id' || CAST(abs(hash(i + {offset} + {n_rows})) % {k} + 1 AS VARCHAR) AS id2,
-                'id' || CAST(abs(hash(i + {offset} + {n_rows}*2)) % ({n_rows} // {k}) + 1 AS VARCHAR) AS id3,
-                CAST(abs(hash(i + {offset} + {n_rows}*3)) % {k} + 1 AS INTEGER) AS id4,
-                CAST(abs(hash(i + {offset} + {n_rows}*4)) % {k} + 1 AS INTEGER) AS id5,
-                CAST(abs(hash(i + {offset} + {n_rows}*5)) % ({n_rows} // {k}) + 1 AS INTEGER) AS id6,
-                CAST(abs(hash(i + {offset} + {n_rows}*6)) % 100 + 1 AS INTEGER) AS v1,
-                CAST(abs(hash(i + {offset} + {n_rows}*7)) % 100 + 1 AS INTEGER) AS v2,
-                abs(hash(i + {offset} + {n_rows}*8)) % 100000 / 100.0 AS v3
+                'id' || CAST(abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT))) % {k} + 1 AS VARCHAR) AS id2,
+                'id' || CAST(abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*2)) % ({n_rows} // {k}) + 1 AS VARCHAR) AS id3,
+                CAST(abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*3)) % {k} + 1 AS INTEGER) AS id4,
+                CAST(abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*4)) % {k} + 1 AS INTEGER) AS id5,
+                CAST(abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*5)) % ({n_rows} // {k}) + 1 AS INTEGER) AS id6,
+                CAST(abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*6)) % 100 + 1 AS INTEGER) AS v1,
+                CAST(abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*7)) % 100 + 1 AS INTEGER) AS v2,
+                abs(hash(CAST(i AS BIGINT) + CAST({offset} AS BIGINT) + CAST({n_rows} AS BIGINT)*8)) % 100000 / 100.0 AS v3
             FROM generate_series(1, {chunk}) AS t(i)
         """)
         remaining -= chunk

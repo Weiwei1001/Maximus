@@ -7,6 +7,9 @@
 #include <maximus/utils/utils.hpp>
 #include <maximus/clickbench/clickbench_queries.hpp>
 #include <maximus/h2o/h2o_queries.hpp>
+#include <maximus/microbench/microbench_h2o.hpp>
+#include <maximus/microbench/microbench_tpch.hpp>
+#include <maximus/microbench/microbench_clickbench.hpp>
 
 std::string csv_path() {
     std::string path = PROJECT_SOURCE_DIR;
@@ -132,8 +135,17 @@ std::vector<std::string> get_table_names(const std::string& benchmark) {
     if (benchmark == "h2o") {
         return maximus::h2o::table_names();
     }
+    if (benchmark == "microbench_h2o") {
+        return maximus::microbench_h2o::table_names();
+    }
+    if (benchmark == "microbench_tpch") {
+        return maximus::microbench_tpch::table_names();
+    }
+    if (benchmark == "microbench_clickbench") {
+        return maximus::microbench_clickbench::table_names();
+    }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
+        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o, microbench_h2o, microbench_tpch, microbench_clickbench}");
 }
 
 std::vector<std::shared_ptr<maximus::Schema>> get_table_schemas(const std::string& benchmark) {
@@ -146,8 +158,17 @@ std::vector<std::shared_ptr<maximus::Schema>> get_table_schemas(const std::strin
     if (benchmark == "h2o") {
         return maximus::h2o::schemas();
     }
+    if (benchmark == "microbench_h2o") {
+        return maximus::microbench_h2o::schemas();
+    }
+    if (benchmark == "microbench_tpch") {
+        return maximus::microbench_tpch::schemas();
+    }
+    if (benchmark == "microbench_clickbench") {
+        return maximus::microbench_clickbench::schemas();
+    }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
+        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o, microbench_h2o, microbench_tpch, microbench_clickbench}");
 }
 
 std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
@@ -162,8 +183,17 @@ std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
     if (benchmark == "h2o") {
         return maximus::h2o::query_plan(query, db);
     }
+    if (benchmark == "microbench_h2o") {
+        return maximus::microbench_h2o::query_plan(query, db);
+    }
+    if (benchmark == "microbench_tpch") {
+        return maximus::microbench_tpch::query_plan(query, db);
+    }
+    if (benchmark == "microbench_clickbench") {
+        return maximus::microbench_clickbench::query_plan(query, db);
+    }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
+        "The benchmark argument not recognized.");
 }
 
 std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
@@ -179,8 +209,17 @@ std::shared_ptr<maximus::QueryPlan> get_query(const std::string& query,
     if (benchmark == "h2o") {
         return maximus::h2o::query_plan(query, db, device);
     }
+    if (benchmark == "microbench_h2o") {
+        return maximus::microbench_h2o::query_plan(query, db, device);
+    }
+    if (benchmark == "microbench_tpch") {
+        return maximus::microbench_tpch::query_plan(query, db, device);
+    }
+    if (benchmark == "microbench_clickbench") {
+        return maximus::microbench_clickbench::query_plan(query, db, device);
+    }
     throw std::runtime_error(
-        "The benchmark argument not recognized. It can only take the values {tpch, clickbench, h2o}");
+        "The benchmark argument not recognized.");
 }
 
 std::string uppercase(const std::string& s) {

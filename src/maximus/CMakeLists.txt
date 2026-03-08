@@ -89,6 +89,11 @@ set(maximus_src_files
 
         # h2o
         h2o/h2o_queries.cpp
+
+        # microbench
+        microbench/microbench_h2o.cpp
+        microbench/microbench_tpch.cpp
+        microbench/microbench_clickbench.cpp
 )
 
 set(maximus_src_files_cuda
