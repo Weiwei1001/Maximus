@@ -20,12 +20,13 @@ from pathlib import Path
 
 TPCH_QUERIES = "q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11,q12,q13,q14,q15,q16,q17,q18,q19,q20,q21,q22"
 H2O_QUERIES = "q1,q2,q3,q4,q5,q6,q7,q9,q10"
-CLICK_QUERIES = "q0,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11,q12,q13,q14,q15,q16,q17,q18,q19,q20,q21,q22,q23,q24,q25,q26,q27,q28,q29,q30,q31,q32,q33,q34,q35,q36,q37,q38,q39,q40,q41,q42"
+# ClickBench: q18, q27, q28, q42 removed (unimplemented functions in Maximus)
+CLICK_QUERIES = "q0,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11,q12,q13,q14,q15,q16,q17,q19,q20,q21,q22,q23,q24,q25,q26,q29,q30,q31,q32,q33,q34,q35,q36,q37,q38,q39,q40,q41"
 
 BENCHMARK_CONFIGS = {
     "tpch": {
         "queries": TPCH_QUERIES,
-        "scales": ["sf1", "sf10", "sf20"],
+        "scales": ["sf1", "sf5", "sf10", "sf20"],
         "data_subdir": "tpch",
     },
     "h2o": {
@@ -35,10 +36,53 @@ BENCHMARK_CONFIGS = {
     },
     "clickbench": {
         "queries": CLICK_QUERIES,
-        "scales": ["sf1", "sf10", "sf20"],
+        "scales": ["sf1", "sf5", "sf10", "sf20"],
         "data_subdir": "clickbench",
     },
 }
+
+# Queries to skip: Maximus OOM (<=100GB) + Sirius FALLBACK (always excluded for fair comparison)
+# Sirius FALLBACK: tpch q01@sf20, h2o q10@sf2/sf3/sf4
+ALWAYS_SKIP = {
+    ("tpch", "sf20"): {"q1"},      # Sirius FALLBACK
+    ("h2o", "sf2"): {"q10"},       # Sirius FALLBACK
+    ("h2o", "sf3"): {"q10"},       # Sirius FALLBACK
+    ("h2o", "sf4"): {"q10"},       # Sirius FALLBACK
+}
+# Additional queries skipped only when GPU <= 100GB (Maximus OOM)
+OOM_SKIP = {
+    ("tpch", "sf20"): {"q17", "q18", "q19", "q21"},
+    ("h2o", "sf4"): {"q3", "q7"},  # q10 already in ALWAYS_SKIP
+}
+
+
+def get_gpu_memory_gb():
+    """Query total GPU memory in GB via nvidia-smi. Returns 0 on failure."""
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0:
+            mem_mb = float(result.stdout.strip().split("\n")[0].strip())
+            return mem_mb / 1024.0
+    except Exception:
+        pass
+    return 0
+
+
+def filter_queries_for_gpu(benchmark: str, sf: str, queries: str, gpu_mem_gb: float):
+    """Remove ALWAYS_SKIP (Sirius FALLBACK) and OOM queries (if GPU <= 100GB)."""
+    skip = set(ALWAYS_SKIP.get((benchmark, sf), set()))
+    if gpu_mem_gb <= 100:
+        skip |= OOM_SKIP.get((benchmark, sf), set())
+    if not skip:
+        return queries
+    filtered = [q for q in queries.split(",") if q not in skip]
+    skipped = [q for q in queries.split(",") if q in skip]
+    if skipped:
+        print(f"    Skipping queries: {', '.join(skipped)}")
+    return ",".join(filtered)
 
 
 def build_env(maximus_dir: Path):
@@ -111,7 +155,8 @@ def append_csv(filepath: Path, rows: list, fieldnames: list):
 
 
 def run_benchmark(benchmark: str, config: dict, maximus_dir: Path, data_dir: Path,
-                  output_dir: Path, n_reps: int, storage_device: str, env: dict):
+                  output_dir: Path, n_reps: int, storage_device: str, env: dict,
+                  gpu_mem_gb: float = 0):
     """Run a single benchmark across all scale factors."""
     csv_path = output_dir / f"{benchmark}_timing.csv"
     fieldnames = ["benchmark", "scale", "query", "min_ms", "avg_ms", "reps"]
@@ -126,10 +171,12 @@ def run_benchmark(benchmark: str, config: dict, maximus_dir: Path, data_dir: Pat
             print(f"  [{benchmark} {sf}] Data not found at {data_path}, skipping")
             continue
 
-        print(f"\n  [{benchmark} {sf}] Running {config['queries'].count(',') + 1} queries x {n_reps} reps...")
+        queries = filter_queries_for_gpu(benchmark, sf, config["queries"], gpu_mem_gb)
+        n_queries = queries.count(",") + 1
+        print(f"\n  [{benchmark} {sf}] Running {n_queries} queries x {n_reps} reps...")
         t0 = time.time()
 
-        output, elapsed = run_maxbench(maximus_dir, benchmark, config["queries"],
+        output, elapsed = run_maxbench(maximus_dir, benchmark, queries,
                                        data_path, n_reps, storage_device, env)
 
         # Save raw output
@@ -169,6 +216,8 @@ def main():
                         help="Storage device (default: gpu)")
     parser.add_argument("--benchmarks", type=str, nargs="+", default=["tpch", "h2o", "clickbench"],
                         choices=["tpch", "h2o", "clickbench"], help="Benchmarks to run")
+    parser.add_argument("--test", action="store_true",
+                        help="Quick test: 1 query per benchmark at smallest SF")
     args = parser.parse_args()
 
     maximus_dir = Path(args.maximus_dir)
@@ -180,21 +229,33 @@ def main():
         return
 
     env = build_env(maximus_dir)
+    gpu_mem_gb = get_gpu_memory_gb()
 
     print("=" * 60)
     print(f"  Maximus Timing Benchmark")
     print(f"  Start: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"  GPU memory: {gpu_mem_gb:.0f} GB")
     print(f"  Storage device: {args.storage_device}")
     print(f"  Repetitions: {args.n_reps}")
     print(f"  Benchmarks: {args.benchmarks}")
+    if gpu_mem_gb > 100:
+        print(f"  OOM protection: OFF (GPU > 100GB, running all queries)")
+    else:
+        print(f"  OOM protection: ON (GPU <= 100GB, skipping known OOM queries)")
     print("=" * 60)
 
     for bench in args.benchmarks:
-        config = BENCHMARK_CONFIGS[bench]
+        config = BENCHMARK_CONFIGS[bench].copy()
+        if args.test:
+            # Quick test: 1 query at smallest SF
+            first_q = config["queries"].split(",")[0]
+            config["queries"] = first_q
+            config["scales"] = [config["scales"][0]]
         print(f"\n{'#' * 60}")
-        print(f"#  {bench.upper()}")
+        print(f"#  {bench.upper()}" + (" [TEST]" if args.test else ""))
         print(f"{'#' * 60}")
-        run_benchmark(bench, config, maximus_dir, data_dir, output_dir, args.n_reps, args.storage_device, env)
+        run_benchmark(bench, config, maximus_dir, data_dir, output_dir, args.n_reps, args.storage_device, env,
+                      gpu_mem_gb)
 
     print(f"\n{'=' * 60}")
     print(f"  Timing complete: {time.strftime('%Y-%m-%d %H:%M:%S')}")

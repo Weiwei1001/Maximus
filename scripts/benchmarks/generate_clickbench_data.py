@@ -86,8 +86,8 @@ def main():
     parser.add_argument("--output-dir", type=str, required=True, help="Output directory for CSV files")
     parser.add_argument("--parquet", type=str, default=None,
                         help="Path to hits.parquet (will download if not specified)")
-    parser.add_argument("--percentages", type=int, nargs="+", default=[10, 20],
-                        help="Percentage samples to create (default: 10 20)")
+    parser.add_argument("--percentages", type=int, nargs="+", default=[5, 10, 20],
+                        help="Percentage samples to create (default: 5 10 20)")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)

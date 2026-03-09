@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 
 
+# Intersection of Maximus C++ plans and DuckDB/Sirius SQL files (79 queries)
 H2O_QUERIES = [
     "w1_001", "w1_002", "w1_003", "w1_004", "w1_005", "w1_006", "w1_007",
     "w2_008", "w2_009", "w2_010", "w2_011", "w2_012", "w2_013", "w2_014",
@@ -25,29 +26,26 @@ H2O_QUERIES = [
 ]
 
 TPCH_QUERIES = [
-    "w1_002", "w1_004", "w1_005", "w1_006", "w1_007", "w1_008", "w1_009",
-    "w2_010", "w2_011", "w2_012", "w2_013", "w2_014", "w2_015", "w2_016", "w2_017",
-    "w2_020", "w2_021",
-    "w3_022", "w3_023", "w3_024", "w3_025", "w3_026", "w3_028", "w3_029",
-    "w4_030", "w4_031", "w4_032", "w4_033", "w4_034", "w4_035", "w4_036",
-    "w4_037", "w4_038", "w4_039", "w4_040", "w4_041", "w4_042",
-    "w5a_043", "w5a_044", "w5a_045", "w5a_046", "w5a_047", "w5a_048",
-    "w5b_049", "w5b_050", "w5b_051", "w5b_052", "w5b_053", "w5b_054",
-    "w6_001", "w6_003", "w6_055", "w6_056", "w6_057",
+    "w1_002", "w1_004", "w1_005", "w1_006", "w1_007", "w1_008",
+    "w2_012", "w2_013", "w2_014", "w2_015", "w2_016", "w2_017",
+    "w3_023", "w3_024", "w3_025", "w3_028",
+    "w4_033",
+    "w5a_048",
+    "w5b_051",
 ]
 
 CLICKBENCH_QUERIES = [
     "w1_001", "w1_002", "w1_003", "w1_004", "w1_005", "w1_006",
-    "w2_007", "w2_008", "w2_009", "w2_010", "w2_018", "w2_019",
-    "w3_011", "w3_012", "w3_013", "w3_014", "w3_015", "w3_027",
-    "w4_021", "w4_022", "w4_023", "w4_024", "w4_025", "w4_058",
-    "w6_016", "w6_017", "w6_018", "w6_019", "w6_020", "w6_022",
+    "w2_007", "w2_008", "w2_009", "w2_010",
+    "w3_011", "w3_012", "w3_013", "w3_014", "w3_015",
+    "w4_021", "w4_022", "w4_023", "w4_024", "w4_025",
+    "w6_016", "w6_017", "w6_018", "w6_019", "w6_020",
 ]
 
 BENCHMARKS = {
-    "microbench_h2o": {"queries": H2O_QUERIES, "data_subdir": "h2o", "scales": ["sf1"]},
-    "microbench_tpch": {"queries": TPCH_QUERIES, "data_subdir": "tpch", "scales": ["sf1"]},
-    "microbench_clickbench": {"queries": CLICKBENCH_QUERIES, "data_subdir": "clickbench", "scales": ["sf10"]},
+    "microbench_h2o": {"queries": H2O_QUERIES, "data_subdir": "h2o", "scales": ["sf1", "sf2", "sf3"]},
+    "microbench_tpch": {"queries": TPCH_QUERIES, "data_subdir": "tpch", "scales": ["sf1", "sf5", "sf10"]},
+    "microbench_clickbench": {"queries": CLICKBENCH_QUERIES, "data_subdir": "clickbench", "scales": ["sf1", "sf5", "sf10", "sf20"]},
 }
 
 
@@ -153,6 +151,8 @@ def main():
     parser.add_argument("--device", type=str, default="gpu")
     parser.add_argument("--storage-device", type=str, default="gpu")
     parser.add_argument("--sample-interval", type=int, default=50)
+    parser.add_argument("--test", action="store_true",
+                        help="Quick test: 1 query per benchmark at smallest SF")
     parser.add_argument("--benchmarks", nargs="+",
                         default=["microbench_h2o", "microbench_tpch", "microbench_clickbench"])
     args = parser.parse_args()
@@ -200,62 +200,68 @@ def main():
 
         bench = BENCHMARKS[bench_name]
         queries = bench["queries"]
-        scale = bench["scales"][0]
-        data_path = data_dir / bench["data_subdir"] / scale
+        scales = bench["scales"]
 
-        if not data_path.exists():
-            print(f"\nData not found: {data_path}, skipping {bench_name}")
-            continue
+        if args.test:
+            scales = [scales[0]]
+            queries = [queries[0]]
 
-        print(f"\n### {bench_name.upper()} ({len(queries)} queries, scale={scale})")
+        for scale in scales:
+            data_path = data_dir / bench["data_subdir"] / scale
 
-        for qid in queries:
-            workload = qid.split("_")[0]
+            if not data_path.exists():
+                print(f"\nData not found: {data_path}, skipping {bench_name} {scale}")
+                continue
 
-            sampler.start(engine="maximus", benchmark=bench_name,
-                         scale=scale, query_id=qid)
+            print(f"\n### {bench_name.upper()} {scale} ({len(queries)} queries)")
 
-            times, error = run_maxbench(
-                maxbench, bench_name, qid, str(data_path),
-                args.device, args.storage_device, args.n_reps)
+            for qid in queries:
+                workload = qid.split("_")[0]
 
-            samples = sampler.stop()
+                sampler.start(engine="maximus", benchmark=bench_name,
+                             scale=scale, query_id=qid)
 
-            if times and not error:
-                min_ms = min(times) if times[0] > 0 else 0
-                avg_ms = round(sum(times) / len(times), 1) if times[0] > 0 else 0
-                reps_str = ",".join(str(t) for t in times)
-                status = f"min={min_ms}ms avg={avg_ms}ms" if min_ms > 0 else "OK (timing unparsed)"
-                print(f"  {qid}: {status}")
-                total_ok += 1
-            else:
-                min_ms = avg_ms = 0
-                reps_str = ""
-                error_short = (error or "unknown")[:80]
-                print(f"  {qid}: FAIL - {error_short}")
-                total_fail += 1
+                times, error = run_maxbench(
+                    maxbench, bench_name, qid, str(data_path),
+                    args.device, args.storage_device, args.n_reps)
 
-            # Append timing
-            write_header = not timing_path.exists()
-            with open(timing_path, "a", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=timing_fields)
-                if write_header:
-                    w.writeheader()
-                w.writerow({
-                    "engine": "maximus", "benchmark": bench_name, "scale": scale,
-                    "query_id": qid, "workload": workload,
-                    "min_ms": min_ms, "avg_ms": avg_ms, "reps": reps_str,
-                    "error": error or "",
-                })
+                samples = sampler.stop()
 
-            # Append samples
-            if samples:
-                write_header = not samples_path.exists()
-                with open(samples_path, "a", newline="") as f:
-                    w = csv.DictWriter(f, fieldnames=sample_fields)
+                if times and not error:
+                    min_ms = min(times) if times[0] > 0 else 0
+                    avg_ms = round(sum(times) / len(times), 1) if times[0] > 0 else 0
+                    reps_str = ",".join(str(t) for t in times)
+                    status = f"min={min_ms}ms avg={avg_ms}ms" if min_ms > 0 else "OK (timing unparsed)"
+                    print(f"  {qid}: {status}")
+                    total_ok += 1
+                else:
+                    min_ms = avg_ms = 0
+                    reps_str = ""
+                    error_short = (error or "unknown")[:80]
+                    print(f"  {qid}: FAIL - {error_short}")
+                    total_fail += 1
+
+                # Append timing
+                write_header = not timing_path.exists()
+                with open(timing_path, "a", newline="") as f:
+                    w = csv.DictWriter(f, fieldnames=timing_fields)
                     if write_header:
                         w.writeheader()
-                    w.writerows(samples)
+                    w.writerow({
+                        "engine": "maximus", "benchmark": bench_name, "scale": scale,
+                        "query_id": qid, "workload": workload,
+                        "min_ms": min_ms, "avg_ms": avg_ms, "reps": reps_str,
+                        "error": error or "",
+                    })
+
+                # Append samples
+                if samples:
+                    write_header = not samples_path.exists()
+                    with open(samples_path, "a", newline="") as f:
+                        w = csv.DictWriter(f, fieldnames=sample_fields)
+                        if write_header:
+                            w.writeheader()
+                        w.writerows(samples)
 
     print(f"\n{'=' * 60}")
     print(f"Done. OK: {total_ok}, FAIL: {total_fail}")

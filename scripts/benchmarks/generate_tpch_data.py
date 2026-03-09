@@ -49,8 +49,8 @@ def generate_tpch(output_dir: Path, sf: int):
 def main():
     parser = argparse.ArgumentParser(description="Generate TPC-H data as CSV")
     parser.add_argument("--output-dir", type=str, required=True, help="Output directory for CSV files")
-    parser.add_argument("--scale-factors", type=int, nargs="+", default=[1, 2, 10, 20],
-                        help="TPC-H scale factors (default: 1 2 10 20)")
+    parser.add_argument("--scale-factors", type=int, nargs="+", default=[1, 2, 5, 10, 20],
+                        help="TPC-H scale factors (default: 1 2 5 10 20)")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)

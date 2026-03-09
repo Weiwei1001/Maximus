@@ -36,25 +36,32 @@ def main():
     parser.add_argument("--skip-datagen", action="store_true", help="Skip data generation")
     parser.add_argument("--skip-timing", action="store_true", help="Skip timing benchmarks")
     parser.add_argument("--skip-metrics", action="store_true", help="Skip metrics benchmarks")
+    parser.add_argument("--skip-microbench", action="store_true", help="Skip microbenchmarks")
+    parser.add_argument("--test", action="store_true",
+                        help="Quick test: 1 query per benchmark at smallest SF (verify setup)")
     parser.add_argument("--benchmarks", type=str, nargs="+", default=["tpch", "h2o", "clickbench"],
                         choices=["tpch", "h2o", "clickbench"])
     parser.add_argument("--clickbench-parquet", type=str, default=None,
                         help="Path to hits.parquet for ClickBench")
     # TPC-H scale factors
-    parser.add_argument("--tpch-scales", type=int, nargs="+", default=[1, 2, 10, 20])
+    parser.add_argument("--tpch-scales", type=int, nargs="+", default=[1, 2, 5, 10, 20])
     parser.add_argument("--h2o-scales", type=int, nargs="+", default=[1, 2, 3, 4])
-    parser.add_argument("--click-percentages", type=int, nargs="+", default=[10, 20])
+    parser.add_argument("--click-percentages", type=int, nargs="+", default=[5, 10, 20])
     args = parser.parse_args()
 
     scripts_dir = Path(__file__).parent
     data_dir = Path(args.data_dir)
     output_dir = Path(args.output_dir) if args.output_dir else data_dir
 
+    test_flag = ["--test"] if args.test else []
+
     print("=" * 60)
     print("  Maximus Full Benchmark Pipeline")
     print(f"  Start: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Data dir: {data_dir}")
     print(f"  Output dir: {output_dir}")
+    if args.test:
+        print("  Mode: TEST (1 query per benchmark at smallest SF)")
     print("=" * 60)
 
     # Step 1: Generate data
@@ -91,7 +98,7 @@ def main():
             "--output-dir", str(output_dir),
             "--n-reps", str(args.n_reps),
             "--storage-device", args.storage_device,
-            "--benchmarks"] + args.benchmarks)
+            "--benchmarks"] + args.benchmarks + test_flag)
 
     # Step 3: Run metrics
     if not args.skip_metrics:
@@ -105,7 +112,28 @@ def main():
             "--n-reps", str(args.n_reps),
             "--sample-interval", str(args.sample_interval),
             "--storage-device", args.storage_device,
-            "--benchmarks"] + args.benchmarks)
+            "--benchmarks"] + args.benchmarks + test_flag)
+
+    # Step 4: Run microbenchmarks
+    if not args.skip_microbench:
+        print("\n" + "=" * 60)
+        print("  STEP 4: Microbenchmarks (Maximus)")
+        print("=" * 60)
+        run_script(str(scripts_dir / "run_microbench_maximus.py"), [
+            "--maximus-dir", args.maximus_dir,
+            "--data-dir", str(data_dir),
+            "--output-dir", str(output_dir),
+            "--n-reps", str(args.n_reps),
+            "--storage-device", args.storage_device] + test_flag)
+
+        print("\n" + "=" * 60)
+        print("  STEP 5: Microbenchmarks (DuckDB/Sirius)")
+        print("=" * 60)
+        run_script(str(scripts_dir / "run_microbench_duckdb.py"), [
+            "--data-dir", str(data_dir),
+            "--microbench-dir", str(Path(args.maximus_dir) / "microbench"),
+            "--output-dir", str(output_dir),
+            "--n-reps", str(args.n_reps)] + test_flag)
 
     print(f"\n{'=' * 60}")
     print(f"  Pipeline complete: {time.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -115,6 +143,8 @@ def main():
         print(f"    {bench}_metrics_timings.csv  - Per-query timing with metrics")
         print(f"    {bench}_metrics_samples.csv  - GPU metric samples")
         print(f"    {bench}_raw_*.txt            - Raw maxbench output")
+    print(f"    microbench_maximus_timing.csv  - Microbench Maximus timing")
+    print(f"    microbench_duckdb_timing.csv   - Microbench DuckDB/Sirius timing")
     print("=" * 60)
 
 
