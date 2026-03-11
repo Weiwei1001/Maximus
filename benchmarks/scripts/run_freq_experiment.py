@@ -26,9 +26,11 @@ from datetime import datetime
 from pathlib import Path
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SIRIUS_DIR = Path("/home/xzw/sirius")
+SCRIPT_DIR = Path(__file__).resolve().parent
+MAXIMUS_DIR = SCRIPT_DIR.parent.parent
+SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", str(MAXIMUS_DIR / "sirius")))
 DUCKDB_BIN = SIRIUS_DIR / "build" / "release" / "duckdb"
-DB_PATH = Path("/home/xzw/tpch_duckdb/tpch_sf5.duckdb")
+DB_PATH = Path(os.environ.get("SIRIUS_DB_PATH", str(MAXIMUS_DIR / "tests" / "tpch_duckdb" / "tpch_sf5.duckdb")))
 GPU_ID = "1"
 N_REPS = 30
 N_TIMING_PASSES = 3
@@ -45,9 +47,15 @@ GPU_QUERY = ('call gpu_processing("SELECT l_returnflag, l_linestatus, '
              'GROUP BY l_returnflag, l_linestatus '
              'ORDER BY l_returnflag, l_linestatus;");')
 
+import sysconfig as _sysconfig
+_site = Path(_sysconfig.get_path("purelib"))
 LD_EXTRA = [
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
+    str(p) for p in [
+        _site / "nvidia" / "libnvcomp" / "lib64",
+        _site / "libkvikio" / "lib64",
+        _site / "libcudf" / "lib64",
+        _site / "librmm" / "lib64",
+    ] if p.exists()
 ]
 _ld = os.environ.get("LD_LIBRARY_PATH", "")
 os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + _ld if _ld else "")
@@ -296,7 +304,7 @@ def run_metrics(config_name):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    results_dir = Path(__file__).resolve().parent.parent.parent / "results" / "freq_experiment"
+    results_dir = MAXIMUS_DIR / "results" / "freq_experiment"
     results_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 

@@ -31,19 +31,25 @@ from pathlib import Path
 # ── Defaults (adjust to your environment) ───────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent          # benchmarks/scripts -> Maximus root
-DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", "/home/xzw/sirius"))
+DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", str(MAXIMUS_DIR / "sirius")))
 DEFAULT_RESULTS_DIR = MAXIMUS_DIR / "results"
 
 # Set LD_LIBRARY_PATH for Sirius to find GPU libraries
+import sysconfig as _sysconfig
+_site = Path(_sysconfig.get_path("purelib"))
 LD_EXTRA_SIRIUS = [
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
+    str(p) for p in [
+        _site / "nvidia" / "libnvcomp" / "lib64",
+        _site / "libkvikio" / "lib64",
+        _site / "libcudf" / "lib64",
+        _site / "librmm" / "lib64",
+    ] if p.exists()
 ]
 _ld = os.environ.get("LD_LIBRARY_PATH", "")
 os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA_SIRIUS) + (":" + _ld if _ld else "")
 
 # Sirius data directories (configurable via env vars or defaults)
-SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", "/home/xzw"))
+SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", str(MAXIMUS_DIR / "tests")))
 
 BUFFER_INIT = 'call gpu_buffer_init("10 GB", "5 GB");'
 N_PASSES = 3

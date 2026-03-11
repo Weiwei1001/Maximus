@@ -6,7 +6,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-RESULTS_DIR="/home/xzw/gpu_db/results"
+MAXIMUS_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+RESULTS_DIR="$MAXIMUS_DIR/results"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG_DIR="$RESULTS_DIR/logs_${TIMESTAMP}"
 mkdir -p "$LOG_DIR"

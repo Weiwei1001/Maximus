@@ -24,9 +24,15 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent
 MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
 
+import sysconfig as _sysconfig
+_site = Path(_sysconfig.get_path("purelib"))
 LD_EXTRA = [
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
+    str(p) for p in [
+        _site / "nvidia" / "libnvcomp" / "lib64",
+        _site / "libkvikio" / "lib64",
+        _site / "libcudf" / "lib64",
+        _site / "librmm" / "lib64",
+    ] if p.exists()
 ]
 
 BENCHMARKS = {

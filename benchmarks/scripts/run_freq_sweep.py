@@ -24,8 +24,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+MAXIMUS_DIR = SCRIPT_DIR.parent.parent
 GPU_ID = "1"
-SUDO_PASS = "xujianjun010816?"
 
 CONFIGS = [
     {"name": "baseline",  "cpu_perf_pct": 100, "no_turbo": 0, "gpu_clk": None},
@@ -40,8 +40,8 @@ TARGET_TIME = 10  # seconds of sustained execution per query
 
 def sudo_cmd(cmd_str):
     subprocess.run(
-        ["sudo", "-S", "bash", "-c", cmd_str],
-        input=SUDO_PASS + "\n", text=True, capture_output=True)
+        ["sudo", "bash", "-c", cmd_str],
+        text=True, capture_output=True)
 
 
 def set_freq_config(cfg):
@@ -102,7 +102,7 @@ def main():
     parser.add_argument("--target-time", type=int, default=TARGET_TIME)
     args = parser.parse_args()
 
-    results_base = Path("/home/xzw/gpu_db/results/freq_sweep")
+    results_base = MAXIMUS_DIR / "results" / "freq_sweep"
     results_base.mkdir(parents=True, exist_ok=True)
 
     configs_to_run = CONFIGS

@@ -97,7 +97,7 @@ sudo apt-get update -qq
 sudo apt-get install -y --no-install-recommends \
     build-essential g++ ninja-build \
     libboost-all-dev libsnappy-dev libbrotli-dev \
-    libthrift-dev libre2-dev \
+    libthrift-dev libre2-dev rapidjson-dev \
     libssl-dev libconfig++-dev libnuma-dev \
     ca-certificates wget curl pkg-config \
     python3 python3-pip python3-venv

@@ -26,16 +26,24 @@ from datetime import datetime
 from pathlib import Path
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-MAXBENCH = Path("/home/xzw/gpu_db/build/benchmarks/maxbench")
-SIRIUS_DUCKDB = Path("/home/xzw/sirius/build/release/duckdb")
-TPCH_CSV = Path("/home/xzw/gpu_db/tests/tpch/csv-5")
-TPCH_DB = Path("/home/xzw/tpch_duckdb/tpch_sf5.duckdb")
+SCRIPT_DIR = Path(__file__).resolve().parent
+MAXIMUS_DIR = SCRIPT_DIR.parent.parent
+MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
+SIRIUS_DUCKDB = Path(os.environ.get("SIRIUS_BIN", str(MAXIMUS_DIR / "sirius" / "build" / "release" / "duckdb")))
+TPCH_CSV = MAXIMUS_DIR / "tests" / "tpch" / "csv-5"
+TPCH_DB = Path(os.environ.get("SIRIUS_DB_PATH", str(MAXIMUS_DIR / "tests" / "tpch_duckdb" / "tpch_sf5.duckdb")))
 GPU_ID = "1"
 QUERY_TIMEOUT_S = 600
 
+import sysconfig as _sysconfig
+_site = Path(_sysconfig.get_path("purelib"))
 LD_EXTRA = [
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
-    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
+    str(p) for p in [
+        _site / "nvidia" / "libnvcomp" / "lib64",
+        _site / "libkvikio" / "lib64",
+        _site / "libcudf" / "lib64",
+        _site / "librmm" / "lib64",
+    ] if p.exists()
 ]
 _ld = os.environ.get("LD_LIBRARY_PATH", "")
 os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + _ld if _ld else "")
@@ -53,8 +61,6 @@ SIRIUS_GPU_QUERY = ('call gpu_processing("SELECT l_returnflag, l_linestatus, '
 
 RE_RUN_TIME = re.compile(r"Run Time \(s\):\s*real\s+([\d.]+)", re.IGNORECASE)
 RE_MAXIMUS_TIMES = re.compile(r"MAXIMUS TIMINGS \[ms\]:\s*(.*)")
-
-SUDO_PASS = "xujianjun010816?"
 
 CONFIGS = [
     {"name": "baseline",  "cpu_perf_pct": 100, "no_turbo": 0, "gpu_clk": None},
@@ -91,10 +97,10 @@ def read_rapl_uj():
 
 # ── Frequency control ────────────────────────────────────────────────────────
 def sudo_cmd(cmd_str):
-    """Run a shell command with sudo, passing password via stdin."""
+    """Run a shell command with sudo."""
     subprocess.run(
-        ["sudo", "-S", "bash", "-c", cmd_str],
-        input=SUDO_PASS + "\n", text=True, capture_output=True)
+        ["sudo", "bash", "-c", cmd_str],
+        text=True, capture_output=True)
 
 
 def set_cpu_perf(perf_pct, no_turbo):
@@ -278,7 +284,7 @@ def run_with_sampling(engine_name, n_reps, device="gpu"):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    results_dir = Path("/home/xzw/gpu_db/results/freq_experiment")
+    results_dir = MAXIMUS_DIR / "results" / "freq_experiment"
     results_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
