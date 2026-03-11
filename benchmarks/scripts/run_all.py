@@ -30,8 +30,8 @@ RESULTS_DIR = Path(os.environ.get("RESULTS_DIR", MAXIMUS_DIR / "results"))
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 LD_EXTRA = [
-    "/usr/local/lib/python3.12/dist-packages/nvidia/libnvcomp/lib64",
-    "/usr/local/lib/python3.12/dist-packages/libkvikio/lib64",
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
 ]
 
 # ── Sirius settings ──────────────────────────────────────────────────────────
@@ -100,6 +100,7 @@ def get_env():
     env = os.environ.copy()
     ld = env.get("LD_LIBRARY_PATH", "")
     env["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + ld if ld else "")
+    # Don't restrict CUDA_VISIBLE_DEVICES; maxbench auto-selects RTX 5080 (GPU 1)
     return env
 
 

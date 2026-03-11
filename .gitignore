@@ -75,6 +75,26 @@ clickbench.parquet
 results/*_metrics_samples.csv
 results/maximus_*_metrics_samples_*.csv
 results/maximus_*_samples_*.csv
+results/sirius_*_metrics_samples_*.csv
+results/sirius_*_samples_*.csv
+results/maximus_cpu_data_metrics_samples_*.csv
+results/sirius_cpu_data_samples_*.csv
+
+# Large raw data directories
+results/power_traces/
+results/energy_sweep/**/samples_*.csv
+benchmarks/scripts/results/**/samples_*.csv
+
+# Log files
+cufile.log
+benchmarks/scripts/cufile.log
+
+# Temp CSV at repo root
+results.csv
+benchmarks/scripts/results.csv
+
+# Test data symlinks
+tests/tpch/csv/
 
 # Sirius build artifacts (submodule)
 sirius/build/

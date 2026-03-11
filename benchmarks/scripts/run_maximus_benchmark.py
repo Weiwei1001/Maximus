@@ -30,8 +30,8 @@ MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
 
 # Extra library paths needed by pip-installed cuDF
 LD_EXTRA = [
-    "/usr/local/lib/python3.12/dist-packages/nvidia/libnvcomp/lib64",
-    "/usr/local/lib/python3.12/dist-packages/libkvikio/lib64",
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
 ]
 
 # ── Benchmark configurations ────────────────────────────────────────────────
@@ -39,7 +39,7 @@ BENCHMARKS = {
     "tpch": {
         "data_base": MAXIMUS_DIR / "tests" / "tpch",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2, 10, 20],
+        "scale_factors": [1, 2, 5, 10],
         "queries": [f"q{i}" for i in range(1, 23)],
     },
     "h2o": {
@@ -52,7 +52,7 @@ BENCHMARKS = {
     "clickbench": {
         "data_base": MAXIMUS_DIR / "tests" / "clickbench",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [10, 20, 50, 100],
+        "scale_factors": [5, 10, 20],
         # 39 working GPU queries (q18,q27,q28,q42 unsupported on cuDF GPU)
         "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
     },
@@ -63,6 +63,7 @@ def get_env():
     env = os.environ.copy()
     ld = env.get("LD_LIBRARY_PATH", "")
     env["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + ld if ld else "")
+    # Don't restrict CUDA_VISIBLE_DEVICES; maxbench auto-selects RTX 5080 (GPU 1)
     return env
 
 

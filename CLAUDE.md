@@ -4,204 +4,152 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**gpu_db** is a GPU-accelerated SQL query engine with two components:
-- **Maximus**: Standalone GPU query engine built on Apache Arrow Acero + NVIDIA cuDF
-- **Sirius**: DuckDB GPU extension (git submodule at `sirius/`)
+GPU-accelerated SQL benchmark suite comparing **Maximus** (standalone GPU query engine built on Arrow Acero + cuDF) and **Sirius** (DuckDB GPU extension). Benchmarks: TPC-H (22 queries), H2O groupby (9 queries, q8 unimplemented), ClickBench (39 of 43 queries; q18/q27/q28/q42 unsupported on cuDF).
 
-## Build Instructions
-
-### Prerequisites
-- CUDA 12.6+ (nvcc required; install via `apt install cuda-nvcc-12-6`)
-- Apache Arrow 17.0.0 (build from source, install to `/root/arrow_install`)
-- Taskflow (build from source, install to `/root/taskflow_install`)
-- cuDF 24.12.0 + librmm 24.12.1 (`pip install libcudf-cu12==24.12.0 librmm-cu12==24.12.1`)
-- NVIDIA A100 80GB (or equivalent)
-
-### CRITICAL: CCCL Version Must Match cuDF
-
-cuDF 24.12 was built with **CCCL 2.5.0**. Using a newer CCCL (e.g., 2.8.2 from `nvidia-cuda-cccl` pip package) causes ABI mismatch in `cuda::mr::async_resource_ref`, resulting in null function pointer crashes in `PinnedMemoryPool::do_allocate`.
-
-**Fix**: Use the CCCL bundled with cuDF:
-```
-CCCL_DIR="/usr/local/lib/python3.10/dist-packages/libcudf/include/libcudf/lib/rapids/cmake/cccl"
-```
-
-### CMake Configuration
-
-The build uses an initial cache file for reliable semicolon handling:
+## Build Commands
 
 ```bash
-cd /workspace/gpu_db/build
+# Full setup from scratch (deps + build + test data)
+./setup.sh && source setup_env.sh
 
-PB="/usr/local/lib/python3.10/dist-packages"
-export rmm_DIR="${PB}/librmm/lib64/cmake/rmm"
-export nvcomp_DIR="${PB}/nvidia/libnvcomp/lib64/cmake/nvcomp"
-export rapids_logger_DIR="${PB}/rapids_logger/lib64/cmake/rapids_logger"
-export nvtx3_DIR="${PB}/librmm/lib64/cmake/nvtx3"
-export cuco_DIR="${PB}/libcudf/lib64/cmake/cuco"
-export CCCL_DIR="${PB}/libcudf/include/libcudf/lib/rapids/cmake/cccl"
-export fmt_DIR="${PB}/librmm/lib64/cmake/fmt"
-export spdlog_DIR="${PB}/librmm/lib64/cmake/spdlog"
+# Configure with GPU support
+cmake -B build -GNinja \
+  -DMAXIMUS_WITH_GPU=ON \
+  -DMAXIMUS_WITH_BENCHMARKS=ON \
+  -DMAXIMUS_WITH_TESTS=ON \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CUDA_ARCHITECTURES=90  # 90=Blackwell/5080, 80=Ampere, 70=Volta
 
-cmake -C initial_cache.cmake ..
-cmake --build . -j$(nproc)
-```
+# Build
+ninja -C build -j$(nproc)
 
-The `initial_cache.cmake` file is at `build/initial_cache.cmake` and sets:
-- `CMAKE_BUILD_TYPE=Release`
-- `MAXIMUS_WITH_TESTS=ON`, `MAXIMUS_WITH_GPU=ON`, `MAXIMUS_WITH_BENCHMARKS=ON`
-- `CMAKE_CUDA_ARCHITECTURES=80` (A100)
-- `CMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc`
-- All `*_DIR` paths for pip-installed dependencies
-
-### Why Export + Cache?
-
-cmake's `find_dependency()` inside `cudf-config.cmake` doesn't see cache variables set by `-C`. The exported env vars ensure transitive dependencies (rmm, nvcomp, etc.) are found.
-
-### Running
-
-```bash
-export LD_LIBRARY_PATH="/root/arrow_install/lib:/usr/local/lib/python3.10/dist-packages/nvidia/libnvcomp/lib64:/usr/local/lib/python3.10/dist-packages/libkvikio/lib64:/usr/local/lib/python3.10/dist-packages/libcudf/lib64:/usr/local/lib/python3.10/dist-packages/librmm/lib64"
-
-# Single query
-./build/benchmarks/maxbench --benchmark=tpch --queries=q6 --device=gpu --storage_device=gpu --engines=maximus --n_reps=3 --path=tests/tpch/sf1
-
-# Run tests
+# Run all tests
 cd build && ctest
+# or: ninja -C build test
+
+# Run a single test (tests are gtest binaries)
+./build/tests/maximus_test --gtest_filter="TpchGpu.*"
 ```
 
-## Benchmark Suites
-
-### Data Layout
-```
-tests/
-├── tpch/sf{1,10,20}/       # 8 CSV tables each (lineitem, orders, etc.)
-├── h2o/sf{1,2,3,4}/        # groupby.csv
-└── clickbench/sf{1,10,20}/ # t.csv (sampled from hits.parquet)
-```
-
-### Timing Benchmarks
-```bash
-python3 scripts/benchmarks/run_timing.py \
-  --maximus-dir /workspace/gpu_db \
-  --data-dir /workspace/gpu_db/tests \
-  --output-dir /workspace/gpu_db/results \
-  --n-reps 3 --storage-device gpu \
-  --benchmarks tpch h2o clickbench
-```
-
-### Metrics Benchmarks (GPU power/utilization sampling)
-```bash
-python3 scripts/benchmarks/run_metrics.py \
-  --maximus-dir /workspace/gpu_db \
-  --data-dir /workspace/gpu_db/tests \
-  --output-dir /workspace/gpu_db/results \
-  --n-reps 3 --storage-device gpu --sample-interval 50 \
-  --benchmarks tpch h2o clickbench
-```
-
-### Query Counts
-| Suite      | Queries | Scale Factors | Timing Tests | Succeeded | Failed |
-|------------|---------|---------------|-------------|-----------|--------|
-| TPC-H      | 22 (q1-q22) | sf1,sf10,sf20 | 66 | 61 | 5 OOM (sf20) |
-| H2O        | 9 (q1-q7,q9,q10) | sf1,sf2,sf3,sf4 | 36 | 33 | 3 OOM (sf4) |
-| ClickBench | 43 (q0-q42) | sf1,sf10,sf20 | 129 | 117 | 12 (4 unimplemented × 3SF) |
-| **Total**  | **74** | | **231** | **211** | **20** |
-
-Notes:
-- sf1-sf10 use `--storage_device=gpu` (all data on GPU, fastest)
-- sf20 (TPC-H) and sf4 (H2O) use `--storage_device=cpu` to avoid OOM
-- ClickBench q18, q27, q28, q42 throw "Unsupported function call" / "Not implemented yet"
-- Metrics benchmarks also completed (174 tests) with GPU power/utilization sampling
-
-### Microbenchmarks (120 queries)
-Fine-grained workload-typed queries across all three benchmark suites.
-
-| Suite      | Queries | Workloads |
-|------------|---------|-----------|
-| H2O        | 35      | w1(scan/agg), w2(filter), w3(low-card GB), w4(high-card GB), w6(sort) |
-| TPC-H      | 55      | w1-w4, w5a(2-3 table joins), w5b(5-6 table joins), w6(sort/limit) |
-| ClickBench | 30      | w1-w4, w6 (includes 5 cross-benchmark queries from TPC-H) |
-| **Total**  | **120** | All passed on GPU (sf1 H2O, sf1 TPC-H, sf10 ClickBench) |
+## Running Benchmarks
 
 ```bash
-# Run microbench via Maximus
-./build/benchmarks/maxbench --benchmark=microbench_h2o --queries=w1_001 \
-  --device=gpu --storage_device=gpu --engines=maximus --n_reps=5 \
-  --path=tests/h2o/sf1
+# Master orchestrator (both engines, all benchmarks)
+python benchmarks/scripts/run_all.py
+python benchmarks/scripts/run_all.py --engine maximus --benchmarks tpch h2o
 
-# Run DuckDB baseline
-python3 scripts/benchmarks/run_microbench_duckdb.py \
-  --data-dir tests --output-dir results --n-reps 5
+# Individual engine timing
+python benchmarks/scripts/run_maximus_benchmark.py tpch h2o clickbench
+python benchmarks/scripts/run_sirius_benchmark.py tpch h2o clickbench
 
-# One-command: build + run all 120 microbench with timing & GPU metrics
-bash scripts/benchmarks/run_all_microbench.sh --n-reps 5
-bash scripts/benchmarks/run_all_microbench.sh --skip-build --n-reps 3
+# Power/energy measurement (nvidia-smi sampling at 50ms)
+python benchmarks/scripts/run_maximus_metrics.py tpch --scale-factors 1 2
+python benchmarks/scripts/run_sirius_metrics.py tpch --scale-factors 1 2
+
+# Direct maxbench usage
+./build/benchmarks/maxbench --benchmark tpch -q q1,q2,q3 -d gpu -r 50 \
+    --path tests/tpch/csv-1 -s gpu --engines maximus
 ```
-
-Source files: `src/maximus/microbench/microbench_{h2o,tpch,clickbench}.{hpp,cpp}`
-
-### GPU Memory Limits (A100 80GB)
-- TPC-H sf10: fits comfortably
-- TPC-H sf20: OOM on most queries (data load ~5.3s consumes most memory)
-- H2O sf4 q2+: OOM in batch timing mode; works in per-query metrics mode
-- ClickBench sf20: fits (14.8GB CSV)
 
 ## Architecture
 
-### Key Directories
-- `src/maximus/` — Core engine library (libmaximus.so)
-- `src/maximus/operators/gpu/cudf/` — cuDF GPU operator implementations (hash join, group by, filter, project)
-- `src/maximus/gpu/` — GPU context, table management, CUDA API wrappers
-- `benchmarks/` — maxbench binary and benchmark queries (SQL files in `benchmarks/queries/`)
-- `scripts/benchmarks/` — Python timing/metrics runners and data generators
-- `tests/` — GTest test suites and benchmark data
+### Query Execution Pipeline
+```
+SQL string → hsql parser (third_party/sql-parser)
+  → MaxSQL AST → QueryPlan (DAG of QueryNodes)
+  → Executor → Pipeline(s)
+  → Operators (CPU via Acero OR GPU via cuDF)
+  → Arrow Table result
+```
 
-### Execution Flow
-1. `maxbench` creates a `MaximusContext` (initializes RMM GPU pool, pinned memory pool, CUDA streams)
-2. CSV data loaded → Arrow tables → optionally copied to GPU (`storage_device=gpu`)
-3. SQL queries parsed → operator tree built (with optional operator fusion)
-4. GPU operators execute via cuDF (hash join, group by, filter, project, sort)
-5. Results exported back to Arrow tables
+### Key Source Layout
+- `src/maximus/sql/parser.cpp` — SQL→query plan translation
+- `src/maximus/dag/` — query plan DAG (QueryPlan, QueryNode, Edge)
+- `src/maximus/exec/` — executor and pipeline scheduling
+- `src/maximus/operators/acero/` — CPU operators (Arrow Acero backend)
+- `src/maximus/operators/gpu/cudf/` — GPU operators (filter, project, group_by, hash_join, order_by, table_source)
+- `src/maximus/gpu/cudf/cudf_expr.cpp` — expression compilation to RAPIDS/cuDF
+- `src/maximus/gpu/gtable/` — GPU table/column abstractions (GTable, GColumn)
+- `src/maximus/frontend/query_plan_api.cpp` — programmatic query construction API
+- `src/maximus/tpch/`, `h2o/`, `clickbench/` — benchmark query definitions (hardcoded query plans)
 
-### Important Classes
-- `MaximusContext` (`src/maximus/context.hpp`) — Central context: memory pools, CUDA streams, RMM pool
-- `PinnedMemoryPool` (`src/maximus/memory_pool.hpp`) — Host-pinned memory for fast H2D transfers
-- `GpuOperator` (`src/maximus/operators/gpu/`) — Base class for cuDF operators
-- `Schema` / `DeviceTable` — Arrow-compatible table abstractions
+### Operator Abstraction
+Abstract base classes (`abstract_*.hpp`) define the interface. Implementations live in `acero/` (CPU), `gpu/cudf/` (GPU), or `native/` (custom CPU). Operator selection is by `DeviceType::CPU|GPU`.
 
-### Config via Environment Variables
-- `MAXIMUS_NUM_OUTER_THREADS` / `MAXIMUS_NUM_INNER_THREADS` — Thread counts
-- `MAXIMUS_CSV_BATCH_SIZE` — CSV read batch size
-- `MAXIMUS_MAX_PINNED_POOL_SIZE` — Pinned memory pool (default: 4GB)
-- `MAXIMUS_OPERATORS_FUSION` — Enable/disable operator fusion
+### Dual-Engine Design
+- **Maximus**: C++ engine, queries defined as programmatic query plans in `*_queries.cpp`, run via `maxbench` binary
+- **Sirius**: DuckDB GPU extension (`sirius/` git submodule), queries generated as SQL by `generate_sirius_sql.py`, run via DuckDB CLI
 
-## Troubleshooting
+## Benchmark Scale Factors
 
-### "Maximum pool size exceeded" (OOM)
-The RMM pool allocates 50% of GPU memory initially and grows up to 90%. If datasets are too large, reduce scale factor or use `--storage_device=cpu` (slower but uses less GPU memory).
+| Benchmark | Scale Factors | Data Path |
+|-----------|--------------|-----------|
+| TPC-H | 1, 2, 10, 20 | `tests/tpch/csv-{sf}` |
+| H2O | 1gb, 2gb, 3gb, 4gb | `tests/h2o/csv-{sf}` |
+| ClickBench | 10, 20, 50, 100 | `tests/clickbench/csv-{sf}` |
 
-### Segfault in PinnedMemoryPool::do_allocate
-CCCL version mismatch. Ensure `CCCL_DIR` points to cuDF's bundled CCCL 2.5.0, not the standalone pip package.
+## Measurement Methodology
 
-### cmake can't find cudf (case-sensitive)
-Use `find_package(cudf REQUIRED)` (lowercase) — the config file is `cudf-config.cmake`, not `CUDFConfig.cmake`.
+**Timing**: Maximus uses CUDA stream barriers + chrono (reports min of 50 reps). Sirius uses DuckDB `.timer` (3 passes × 100 reps, reports last pass).
 
-### libkvikio.so not found at runtime
-Add `/usr/local/lib/python3.10/dist-packages/libkvikio/lib64` to `LD_LIBRARY_PATH`.
+**Power/Energy**: nvidia-smi sampled at 50ms intervals. Steady-state detected by GPU utilization threshold (avg_util across all samples). Energy = P_steady × query_latency.
 
-### setup.sh patches
-`setup.sh` step 6.5 applies cuDF compatibility patches designed for specific versions. If using cuDF 24.12, skip patches or run `git checkout -- src/ tests/` to revert them.
+## Key CMake Options
 
-## Results Location
-All benchmark results are in `/workspace/gpu_db/results/`:
-- `tpch_timing.csv` — TPC-H sf1/sf10 timing (gpu storage)
-- `tpch_timing_sf20_cpu.csv` — TPC-H sf20 timing (cpu storage)
-- `h2o_timing.csv` — H2O sf1/sf2/sf3 timing (gpu storage)
-- `h2o_timing_sf4_cpu.csv` — H2O sf4 timing (cpu storage)
-- `clickbench_timing_full.csv` — ClickBench 43q × 3SF timing (per-query)
-- `microbench_maximus_timing.csv` — 120 microbench timing
-- `microbench_maximus_metrics.csv` — Microbench GPU metrics samples
-- `*_metrics_samples.csv` — GPU metrics time-series (power, utilization, memory)
-- `*_metrics_timings.csv` — Per-query timing from metrics runs
-- `*_raw_*.txt` — Raw maxbench output per scale factor
+| Option | Default | Purpose |
+|--------|---------|---------|
+| `MAXIMUS_WITH_GPU` | OFF | Enable CUDA/cuDF support |
+| `MAXIMUS_WITH_TESTS` | ON | Build gtest targets |
+| `MAXIMUS_WITH_BENCHMARKS` | OFF | Build maxbench binary |
+| `MAXIMUS_WITH_PROFILING` | OFF | Enable Caliper profiling |
+| `CMAKE_CUDA_ARCHITECTURES` | — | GPU compute capability |
+
+## Dependencies
+
+- Apache Arrow 17.0.0 (Acero + Parquet)
+- cuDF 24.12+ (pip install, for GPU)
+- RMM (RAPIDS memory manager)
+- Taskflow v3.11.0
+- CUDA 12.0+, C++20, CMake 3.17+, Ninja
+
+## Hardware Environment
+
+- GPU: NVIDIA RTX 5080 (index 1, 16GB) + T400 (index 0, 2GB)
+- CPU: Intel Xeon w5-2455X (12C/24T)
+- Maximus install: `/home/xzw/Maximus/`
+- Sirius install: `/home/xzw/sirius/`
+- Sirius DuckDB binary: `sirius/build/release/duckdb`
+
+## Code Style
+
+Google C++ style (`.clang-format`), 4-space indent, ~100 char line width, C++20.
+
+## Energy Sweep Experiment (completed 2026-03-05)
+
+**Goal**: Explore GPU (power-limit, SM-clock) configurations to find energy-optimal settings for each engine/benchmark combination.
+
+**Script**: `benchmarks/scripts/run_energy_sweep.py`
+
+**Config grid**: 3 power limits × 3 SM clocks = 9 configs, all DONE.
+
+**Results locations**:
+- Run 1 (with clickbench): `results/energy_sweep/pl250w_clk{0600,1200,1800}mhz/`
+- Run 3 (tpch+h2o only): `benchmarks/scripts/results/energy_sweep/pl*/`
+- Summary CSV: `benchmarks/scripts/results/energy_sweep/energy_sweep_summary.csv` (1164 rows)
+- Log: `results/energy_sweep/sweep.log`
+
+**Best configurations** (lowest total energy per benchmark):
+
+| Engine | Benchmark | SF | PL(W) | CLK(MHz) | Avg E(J) |
+|--------|-----------|-----|-------|----------|----------|
+| maximus | clickbench | 5 | 250 | 600 | 3.13 |
+| maximus | h2o | 1gb | 450 | 1800 | 2.26 |
+| maximus | h2o | 2gb | 300 | 1800 | 5.17 |
+| maximus | tpch | 1 | 300 | 1800 | 0.92 |
+| maximus | tpch | 2 | 300 | 1800 | 1.75 |
+| sirius | h2o | 1gb | 250 | 1800 | 0.24 |
+| sirius | h2o | 2gb | 250 | 1800 | 0.47 |
+| sirius | tpch | 1 | 450 | 1800 | 0.12 |
+| sirius | tpch | 2 | 250 | 1800 | 0.18 |
+
+**Run history**: Total 3 runs. Run 3 completed 2026-03-05 09:47 (9h13m, 9/9 configs, 0 failures).

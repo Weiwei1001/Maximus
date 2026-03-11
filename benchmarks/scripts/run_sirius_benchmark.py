@@ -31,13 +31,21 @@ from pathlib import Path
 # ── Defaults (adjust to your environment) ───────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent          # benchmarks/scripts -> Maximus root
-DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", MAXIMUS_DIR / "sirius"))
+DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", "/home/xzw/sirius"))
 DEFAULT_RESULTS_DIR = MAXIMUS_DIR / "results"
 
-# Sirius data directories (configurable via env vars or defaults)
-SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", MAXIMUS_DIR / "tests"))
+# Set LD_LIBRARY_PATH for Sirius to find GPU libraries
+LD_EXTRA_SIRIUS = [
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
+]
+_ld = os.environ.get("LD_LIBRARY_PATH", "")
+os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA_SIRIUS) + (":" + _ld if _ld else "")
 
-BUFFER_INIT = 'call gpu_buffer_init("20 GB", "10 GB");'
+# Sirius data directories (configurable via env vars or defaults)
+SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", "/home/xzw"))
+
+BUFFER_INIT = 'call gpu_buffer_init("10 GB", "5 GB");'
 N_PASSES = 3
 BATCH_SIZE = 10       # queries per batch (avoids OOM)
 QUERY_TIMEOUT_S = 60  # per-query timeout; >60s = FALLBACK
@@ -47,7 +55,7 @@ BENCHMARKS = {
         "db_dir": SIRIUS_DATA_DIR / "tpch_duckdb",
         "db_pattern": "tpch_sf{sf}.duckdb",
         "query_dir": SIRIUS_DATA_DIR / "tpch_sql" / "queries" / "1",
-        "scale_factors": [1, 2, 10, 20],
+        "scale_factors": [1, 2, 5, 10],
     },
     "h2o": {
         "db_dir": SIRIUS_DATA_DIR / "h2o_duckdb",
@@ -59,7 +67,7 @@ BENCHMARKS = {
         "db_dir": SIRIUS_DATA_DIR / "click_duckdb",
         "db_pattern": "clickbench_{sf}.duckdb",
         "query_dir": SIRIUS_DATA_DIR / "click_sql" / "queries" / "1",
-        "scale_factors": [10, 20, 50, 100],
+        "scale_factors": [10, 20],
     },
 }
 
@@ -172,12 +180,55 @@ def main():
         print(f"ERROR: Sirius DuckDB binary not found: {duckdb_bin}")
         sys.exit(1)
 
-    global BATCH_SIZE, BUFFER_INIT
-    BATCH_SIZE = args.batch_size
-    BUFFER_INIT = args.buffer_init
+    # Update module-level settings from args
+    _batch_size = args.batch_size
+    _buffer_init = args.buffer_init
 
     all_rows = []
     t0 = time.perf_counter()
+
+    def _run_single_pass(db_path, queries):
+        """Run one pass with configured batch size and buffer init."""
+        all_data = {}
+        batches = [queries[i:i+_batch_size] for i in range(0, len(queries), _batch_size)]
+        for batch in batches:
+            sql = build_batch_sql(batch, _buffer_init)
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".sql", delete=False) as f:
+                f.write(sql)
+                tmp = f.name
+            total_timeout = QUERY_TIMEOUT_S * len(batch) + 120
+            try:
+                r = subprocess.run(
+                    [str(duckdb_bin), str(db_path)],
+                    stdin=open(tmp, "r"),
+                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    text=True, timeout=total_timeout,
+                )
+                batch_data = parse_batch_output(r.stdout or "")
+                all_data.update(batch_data)
+            except (subprocess.TimeoutExpired, Exception):
+                pass
+            finally:
+                os.unlink(tmp)
+            for qn, gl in batch:
+                if qn not in all_data:
+                    sql2 = build_batch_sql([(qn, gl)], _buffer_init)
+                    with tempfile.NamedTemporaryFile(mode="w", suffix=".sql", delete=False) as f:
+                        f.write(sql2)
+                        tmp2 = f.name
+                    try:
+                        r2 = subprocess.run(
+                            [str(duckdb_bin), str(db_path)],
+                            stdin=open(tmp2, "r"),
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, timeout=QUERY_TIMEOUT_S + 60,
+                        )
+                        all_data.update(parse_batch_output(r2.stdout or ""))
+                    except Exception:
+                        all_data[qn] = (-1, False)
+                    finally:
+                        os.unlink(tmp2)
+        return all_data
 
     for bench_name in args.benchmarks:
         if bench_name not in BENCHMARKS:
@@ -202,7 +253,7 @@ def main():
             for p in range(args.n_passes):
                 print(f"  Pass {p+1}/{args.n_passes}...")
                 sys.stdout.flush()
-                all_pass_data.append(run_single_pass(duckdb_bin, db_path, queries))
+                all_pass_data.append(_run_single_pass(db_path, queries))
 
             # Record last pass timing
             ok = 0

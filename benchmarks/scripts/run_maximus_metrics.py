@@ -42,8 +42,8 @@ MAXIMUS_DIR = SCRIPT_DIR.parent.parent
 MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
 
 LD_EXTRA = [
-    "/usr/local/lib/python3.12/dist-packages/nvidia/libnvcomp/lib64",
-    "/usr/local/lib/python3.12/dist-packages/libkvikio/lib64",
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/nvidia/libnvcomp/lib64",
+    "/home/xzw/Maximus/.venv/lib/python3.12/site-packages/libkvikio/lib64",
 ]
 
 # ── Benchmark configurations ────────────────────────────────────────────────
@@ -51,19 +51,19 @@ BENCHMARKS = {
     "tpch": {
         "data_base": MAXIMUS_DIR / "tests" / "tpch",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2, 10, 20],
+        "scale_factors": [1, 2],  # SF5+ OOMs on 16GB GPU with -s gpu
         "queries": [f"q{i}" for i in range(1, 23)],
     },
     "h2o": {
         "data_base": MAXIMUS_DIR / "tests" / "h2o",
         "data_pattern": "csv-{sf}",
-        "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
+        "scale_factors": ["1gb", "2gb"],
         "queries": [f"q{i}" for i in [1, 2, 3, 4, 5, 6, 7, 9, 10]],
     },
     "clickbench": {
         "data_base": MAXIMUS_DIR / "tests" / "clickbench",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [10, 20, 50, 100],
+        "scale_factors": [5],
         # 39 working GPU queries (q18,q27,q28,q42 unsupported on cuDF GPU)
         "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
     },
@@ -79,6 +79,7 @@ def get_env():
     env = os.environ.copy()
     ld = env.get("LD_LIBRARY_PATH", "")
     env["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + ld if ld else "")
+    # Don't restrict CUDA_VISIBLE_DEVICES; maxbench auto-selects RTX 5080 (GPU 1)
     return env
 
 
@@ -116,26 +117,60 @@ def parse_timing(output, query):
     return []
 
 
+GPU_ID = "1"  # RTX 5080
+
+# RAPL paths for CPU power measurement
+RAPL_PKG_PATHS = []
+RAPL_DRAM_PATHS = []
+for d in sorted(Path("/sys/class/powercap").glob("intel-rapl:*")):
+    if d.is_dir() and (d / "energy_uj").exists():
+        name_file = d / "name"
+        if name_file.exists() and name_file.read_text().strip().startswith("package"):
+            RAPL_PKG_PATHS.append(d / "energy_uj")
+        for sub in sorted(d.glob("intel-rapl:*")):
+            if sub.is_dir() and (sub / "name").exists():
+                if (sub / "name").read_text().strip() == "dram":
+                    RAPL_DRAM_PATHS.append(sub / "energy_uj")
+
+
+def read_rapl_uj():
+    """Read current RAPL energy counters (microjoules)."""
+    pkg = sum(int(p.read_text().strip()) for p in RAPL_PKG_PATHS) if RAPL_PKG_PATHS else 0
+    dram = sum(int(p.read_text().strip()) for p in RAPL_DRAM_PATHS) if RAPL_DRAM_PATHS else 0
+    return pkg, dram
+
+
 def sample_gpu_metrics(stop_event, samples, interval=0.05):
-    """Sample GPU metrics via nvidia-smi at 50ms intervals."""
+    """Sample GPU + CPU metrics at 50ms intervals."""
     start = time.time()
+    prev_pkg, prev_dram = read_rapl_uj()
+    prev_time = start
     while not stop_event.is_set():
         try:
             r = subprocess.run(
-                ["nvidia-smi",
+                ["nvidia-smi", "-i", GPU_ID,
                  "--query-gpu=power.draw,utilization.gpu,memory.used,pcie.link.gen.current",
                  "--format=csv,noheader,nounits"],
                 capture_output=True, text=True, timeout=5
             )
+            now = time.time()
+            cur_pkg, cur_dram = read_rapl_uj()
+            dt = now - prev_time
+            cpu_pkg_w = (cur_pkg - prev_pkg) / 1e6 / dt if dt > 0 else 0
+            cpu_dram_w = (cur_dram - prev_dram) / 1e6 / dt if dt > 0 else 0
+            prev_pkg, prev_dram, prev_time = cur_pkg, cur_dram, now
+
             if r.returncode == 0:
                 line = r.stdout.strip()
                 parts = [p.strip() for p in line.split(",")]
                 if len(parts) >= 3:
                     samples.append({
-                        "time_offset_ms": int((time.time() - start) * 1000),
+                        "time_offset_ms": int((now - start) * 1000),
                         "power_w": float(parts[0]),
                         "gpu_util_pct": float(parts[1]),
                         "mem_used_mb": float(parts[2]),
+                        "cpu_pkg_power_w": round(cpu_pkg_w, 1),
+                        "cpu_dram_power_w": round(cpu_dram_w, 1),
                     })
         except Exception:
             pass
@@ -143,7 +178,7 @@ def sample_gpu_metrics(stop_event, samples, interval=0.05):
 
 
 def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
-                              results_dir):
+                              results_dir, storage="gpu"):
     """Run full metrics measurement for one (benchmark, sf) combination."""
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     tag = f"{benchmark}_sf{sf}"
@@ -155,17 +190,14 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
     print(f"{'=' * 70}")
 
     # ── Phase 1: Calibration ──────────────────────────────────────────────
-    # Use -s gpu for accurate pure-GPU timing. With -s cpu, each rep includes
-    # CPU->GPU transfer (data is NOT cached between reps), which inflates
-    # latency and lowers steady-state power readings.
-    # If -s gpu OOMs (e.g. SF=20 ClickBench needs ~2x data size for CSV
-    # parsing), the query is skipped.
-    print(f"\n--- Phase 1: Calibration ({CALIBRATION_REPS} reps, -s gpu) ---")
+    # If -s cpu, each rep includes CPU->GPU transfer (data is NOT cached
+    # between reps). If -s gpu OOMs (e.g. SF=20 ClickBench), query is skipped.
+    print(f"\n--- Phase 1: Calibration ({CALIBRATION_REPS} reps, -s {storage}) ---")
     calibration = {}
     for q in queries:
         print(f"  {q}...", end=" ", flush=True)
         output, rc = run_maxbench(benchmark, q, CALIBRATION_REPS, data_path,
-                                  storage="gpu")
+                                  storage=storage)
         if rc < 0 or "out_of_memory" in output.lower():
             calibration[q] = {"min_ms": 0, "storage": "oom"}
             print("OOM (skip)")
@@ -203,7 +235,7 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             continue
 
         n_reps = cal["n_reps"]
-        print(f"  {q} ({n_reps} reps, -s gpu)...", end=" ", flush=True)
+        print(f"  {q} ({n_reps} reps, -s {storage})...", end=" ", flush=True)
 
         # Start GPU sampling
         samples = []
@@ -214,7 +246,7 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
 
         start_time = time.time()
         output, rc = run_maxbench(benchmark, q, n_reps, data_path,
-                                  storage="gpu", timeout=600)
+                                  storage=storage, timeout=600)
         elapsed = time.time() - start_time
 
         stop_event.set()
@@ -263,16 +295,20 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             max_mem = max(s["mem_used_mb"] for s in steady)
             avg_util = sum(s["gpu_util_pct"] for s in steady) / len(steady)
             max_util = max(s["gpu_util_pct"] for s in steady)
+            avg_cpu_pkg_w = sum(s.get("cpu_pkg_power_w", 0) for s in steady) / len(steady)
+            avg_cpu_dram_w = sum(s.get("cpu_dram_power_w", 0) for s in steady) / len(steady)
         else:
             avg_power = max_power = max_mem = avg_util = max_util = 0
+            avg_cpu_pkg_w = avg_cpu_dram_w = 0
 
         min_ms = min(times) if times else 0
         avg_ms = sum(times) / len(times) if times else 0
-        energy_j = avg_power * (min_ms / 1000) if min_ms > 0 else 0  # per-query energy
+        energy_j = avg_power * (min_ms / 1000) if min_ms > 0 else 0  # per-query GPU energy
+        cpu_energy_j = avg_cpu_pkg_w * (min_ms / 1000) if min_ms > 0 else 0  # per-query CPU energy
 
         summaries.append({
             "run_id": run_id, "benchmark": benchmark, "sf": sf, "query": q,
-            "storage": "gpu", "n_reps": n_reps,
+            "storage": storage, "n_reps": n_reps,
             "min_ms": min_ms, "avg_ms": f"{avg_ms:.1f}",
             "elapsed_s": f"{elapsed:.2f}",
             "num_samples": len(samples),
@@ -283,11 +319,14 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             "avg_gpu_util": f"{avg_util:.1f}",
             "max_gpu_util": f"{max_util:.0f}",
             "energy_j": f"{energy_j:.1f}",
+            "avg_cpu_pkg_w": f"{avg_cpu_pkg_w:.1f}",
+            "avg_cpu_dram_w": f"{avg_cpu_dram_w:.1f}",
+            "cpu_energy_j": f"{cpu_energy_j:.1f}",
             "status": status,
         })
 
-        print(f"{min_ms}ms, {elapsed:.1f}s, {avg_power:.0f}W, "
-              f"{max_util:.0f}%util, {max_mem:.0f}MB, {energy_j:.0f}J [{status}]")
+        print(f"{min_ms}ms, {elapsed:.1f}s, GPU:{avg_power:.0f}W CPU:{avg_cpu_pkg_w:.0f}W, "
+              f"{max_util:.0f}%util, {max_mem:.0f}MB, GPU_E:{energy_j:.0f}J CPU_E:{cpu_energy_j:.0f}J [{status}]")
 
     # ── Save ──────────────────────────────────────────────────────────────
     samples_file = results_dir / f"maximus_{tag}_metrics_samples_{ts}.csv"
@@ -295,6 +334,7 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
         w = csv.DictWriter(f, fieldnames=[
             "run_id", "sf", "query", "time_offset_ms",
             "power_w", "gpu_util_pct", "mem_used_mb",
+            "cpu_pkg_power_w", "cpu_dram_power_w",
         ])
         w.writeheader()
         w.writerows(all_samples)
@@ -306,7 +346,8 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             "min_ms", "avg_ms", "elapsed_s",
             "num_samples", "num_steady_samples",
             "avg_power_w", "max_power_w", "max_mem_mb",
-            "avg_gpu_util", "max_gpu_util", "energy_j", "status",
+            "avg_gpu_util", "max_gpu_util", "energy_j",
+            "avg_cpu_pkg_w", "avg_cpu_dram_w", "cpu_energy_j", "status",
         ])
         w.writeheader()
         w.writerows(summaries)
@@ -328,6 +369,9 @@ def main():
                              f"(default: {TARGET_TIME_S})")
     parser.add_argument("--results-dir", type=str, default=None,
                         help="Directory for output CSVs")
+    parser.add_argument("--storage", type=str, default="gpu",
+                        choices=["gpu", "cpu"],
+                        help="Storage device for tables (default: gpu)")
     args = parser.parse_args()
 
     results_dir = (Path(args.results_dir) if args.results_dir
@@ -365,7 +409,7 @@ def main():
                 continue
             run_metrics_for_benchmark(
                 bench_name, sf, data_path, cfg["queries"],
-                args.target_time, results_dir)
+                args.target_time, results_dir, storage=args.storage)
 
     print(f"\n{'=' * 70}")
     print(f"  ALL DONE — {datetime.now()}")

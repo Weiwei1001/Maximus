@@ -41,9 +41,9 @@ MAXIMUS_BENCHMARKS = {
     "clickbench": [5],
 }
 SIRIUS_BENCHMARKS = {
-    "tpch": [1, 2, 5, 10],
-    "h2o": ["1gb", "2gb", "3gb", "4gb"],
-    "clickbench": [10, 20],
+    "tpch": [1, 2],
+    "h2o": ["1gb", "2gb"],
+    "clickbench": [5],
 }
 
 # Unified summary CSV columns
@@ -109,37 +109,33 @@ def restore_gpu_defaults() -> None:
 
 
 def verify_gpu_config(expected_pl_w: int, expected_clk_mhz: int) -> bool:
-    """Read back GPU settings and verify they match the expected values."""
+    """Read back GPU power limit and verify it matches.
+
+    Note: SM clock is only verifiable under load on Blackwell GPUs (RTX 50xx).
+    At idle, clocks.sm reports the idle frequency regardless of --lock-gpu-clocks.
+    We trust the lock command's return code for clock verification.
+    """
     r = subprocess.run(
         ["nvidia-smi", "-i", GPU_ID,
-         "--query-gpu=power.limit,clocks.sm,clocks.max.sm",
+         "--query-gpu=power.limit",
          "--format=csv,noheader,nounits"],
         capture_output=True, text=True, timeout=10,
     )
     if r.returncode != 0:
         return False
 
-    parts = [p.strip() for p in r.stdout.strip().split(",")]
-    if len(parts) < 2:
-        return False
-
     try:
-        actual_pl = float(parts[0])
-        actual_clk = int(float(parts[1]))
+        actual_pl = float(r.stdout.strip())
     except (ValueError, IndexError):
         return False
 
     # Power limit: allow 1W tolerance (nvidia-smi may round)
     pl_ok = abs(actual_pl - expected_pl_w) <= 1.0
-    # Clock: allow 15 MHz tolerance (driver may adjust slightly)
-    clk_ok = abs(actual_clk - expected_clk_mhz) <= 15
 
     if not pl_ok:
         print(f"  [GPU] PL mismatch: expected {expected_pl_w}W, got {actual_pl}W")
-    if not clk_ok:
-        print(f"  [GPU] CLK mismatch: expected {expected_clk_mhz}MHz, got {actual_clk}MHz")
 
-    return pl_ok and clk_ok
+    return pl_ok
 
 
 def get_gpu_temperature() -> float:
@@ -605,8 +601,8 @@ Examples:
         help="Target sustained time for Maximus in seconds (default: 10)",
     )
     parser.add_argument(
-        "--sirius-target-time", type=float, default=60,
-        help="Target sustained time for Sirius in seconds (default: 60)",
+        "--sirius-target-time", type=float, default=20,
+        help="Target sustained time for Sirius in seconds (default: 20)",
     )
     args = parser.parse_args()
 
