@@ -195,9 +195,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 log "Step 6.5: Applying cuDF 24.12 compatibility patches..."
 
-# Fix 1: RMM header path (rmm/mr/ -> rmm/mr/device/)
-sed -i 's|#include <rmm/mr/pool_memory_resource\.hpp>|#include <rmm/mr/device/pool_memory_resource.hpp>|' \
-    "$MAXIMUS_DIR/src/maximus/context.hpp"
+# Fix 1: RMM header path — now handled by __has_include in context.hpp (no patch needed)
 
 # Fix 2: allocate_sync/deallocate_sync removed in RMM 24.12 -> use async
 sed -i 's|pool()\.allocate_sync(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment))|pool().allocate_async(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment), cudf::get_default_stream())|' \

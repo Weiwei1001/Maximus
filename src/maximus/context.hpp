@@ -10,7 +10,13 @@
 #ifdef MAXIMUS_WITH_CUDA
 #include <cudf/detail/utilities/stream_pool.hpp>
 #include <rmm/cuda_stream_view.hpp>
+// RMM 24.12+: rmm/mr/device/pool_memory_resource.hpp
+// RMM older:   rmm/mr/pool_memory_resource.hpp
+#if __has_include(<rmm/mr/device/pool_memory_resource.hpp>)
 #include <rmm/mr/device/pool_memory_resource.hpp>
+#else
+#include <rmm/mr/pool_memory_resource.hpp>
+#endif
 #endif
 
 // Forward declaration
