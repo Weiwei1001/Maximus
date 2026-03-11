@@ -1,0 +1,93 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ca081ea..c9e2b12 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -165,8 +165,23 @@ set_target_properties(${LOADABLE_EXTENSION_NAME}
+ # target_link_libraries(${EXTENSION_NAME} substrait_extension cudf::cudf
+ # rmm::rmm ${NUMA_LIB}) target_link_libraries(${LOADABLE_EXTENSION_NAME}
+ # substrait_extension cudf::cudf rmm::rmm)
++# Find transitive dependencies of cudf that need explicit linking
++# Search in pip/conda package paths where RAPIDS libraries are installed
++find_library(KVIKIO_LIB NAMES kvikio
++  HINTS "${CUDF_ENV_PREFIX}/lib64" "${CUDF_ENV_PREFIX}/../libkvikio/lib64"
++        "$ENV{CONDA_PREFIX}/lib" "${CMAKE_PREFIX_PATH}")
++find_library(NVCOMP_LIB NAMES nvcomp
++  HINTS "${CUDF_ENV_PREFIX}/../nvidia/libnvcomp/lib64"
++        "$ENV{CONDA_PREFIX}/lib" "${CMAKE_PREFIX_PATH}")
++
+ target_link_libraries(${EXTENSION_NAME} cudf::cudf rmm::rmm ${NUMA_LIB}
+                       ${LIBCONFIG++_LIBRARIES} absl::any_invocable)
++if(KVIKIO_LIB)
++  target_link_libraries(${EXTENSION_NAME} ${KVIKIO_LIB})
++endif()
++if(NVCOMP_LIB)
++  target_link_libraries(${EXTENSION_NAME} ${NVCOMP_LIB})
++endif()
+ target_link_libraries(${LOADABLE_EXTENSION_NAME} cudf::cudf rmm::rmm)
+ 
+ # Link third-party libraries
+diff --git a/src/expression_executor/gpu_expression_translator.cpp b/src/expression_executor/gpu_expression_translator.cpp
+index eafb9ed..527d040 100644
+--- a/src/expression_executor/gpu_expression_translator.cpp
++++ b/src/expression_executor/gpu_expression_translator.cpp
+@@ -70,7 +70,7 @@ std::optional<expr_ref> gpu_expression_translator::add_join_condition(
+         cudf::ast::ast_operator::GREATER_EQUAL, *left_expr, *right_expr);
+     default:
+       SIRIUS_LOG_DEBUG("[expression_translator] Unsupported join condition comparison type: {}",
+-                       condition.comparison);
++                       static_cast<int>(condition.comparison));
+       return std::nullopt;
+   }
+ }
+@@ -194,7 +194,7 @@ std::optional<expr_ref> gpu_expression_translator::add_expression(
+                                                      *child_expr);
+     default: {
+       SIRIUS_LOG_DEBUG("[expression_translator] Unsupported cast type_id: {}",
+-                       cudf_return_type.id());
++                       static_cast<int>(cudf_return_type.id()));
+       return std::nullopt;
+     }
+   }
+@@ -327,7 +327,7 @@ std::optional<expr_ref> gpu_expression_translator::add_expression(
+         _resource_ref);
+     }
+     default: {
+-      SIRIUS_LOG_DEBUG("[expression_translator] Unsupported constant type_id: {}", cudf_type.id());
++      SIRIUS_LOG_DEBUG("[expression_translator] Unsupported constant type_id: {}", static_cast<int>(cudf_type.id()));
+       return std::nullopt;
+     }
+   }
+diff --git a/src/include/config_option.hpp b/src/include/config_option.hpp
+index 6125fac..9f7b08d 100644
+--- a/src/include/config_option.hpp
++++ b/src/include/config_option.hpp
+@@ -226,7 +226,7 @@ struct config_value_applicator<ValueType> {
+     std::string_view str_value = value.c_str();
+     // Use the string converter found via ADL
+     if (!string_to_enum(str_value, opt)) {
+-      throw std::invalid_argument(fmt::format("Invalid configuration string for enum {}", value));
++      throw std::invalid_argument(fmt::format("Invalid configuration string for enum {}", str_value));
+     }
+   }
+ };
+@@ -420,9 +420,9 @@ static inline std::pair<libconfig::Setting*, std::string> ensure_parent_path(
+ 
+     // Create or get the group for this component
+     if (!current->exists(component)) {
+-      current = &current->add(component, libconfig::Setting::TypeGroup);
++      current = &current->add(component.c_str(), libconfig::Setting::TypeGroup);
+     } else {
+-      current = &(*current)[component];
++      current = &(*current)[component.c_str()];
+     }
+ 
+     pos = dot_pos + 1;
+@@ -739,7 +739,7 @@ struct configuration_setter {
+ 
+       if (!current->exists(component)) { return nullptr; }
+ 
+-      current = &(*current)[component];
++      current = &(*current)[component.c_str()];
+ 
+       if (dot_pos == std::string::npos) { break; }
+       pos = dot_pos + 1;

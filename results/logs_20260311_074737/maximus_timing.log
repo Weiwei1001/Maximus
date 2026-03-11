@@ -1,0 +1,16 @@
+[SKIP] tpch SF=1: /workspace/gpu_db/tests/tpch/csv-1 not found
+[SKIP] tpch SF=2: /workspace/gpu_db/tests/tpch/csv-2 not found
+[SKIP] tpch SF=5: /workspace/gpu_db/tests/tpch/csv-5 not found
+[SKIP] tpch SF=10: /workspace/gpu_db/tests/tpch/csv-10 not found
+[SKIP] h2o SF=1gb: /workspace/gpu_db/tests/h2o/csv-1gb not found
+[SKIP] h2o SF=2gb: /workspace/gpu_db/tests/h2o/csv-2gb not found
+[SKIP] h2o SF=3gb: /workspace/gpu_db/tests/h2o/csv-3gb not found
+[SKIP] h2o SF=4gb: /workspace/gpu_db/tests/h2o/csv-4gb not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/clickbench/csv-10 not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/clickbench/csv-20 not found
+
+============================================================
+  DONE (0s = 0.0min)
+  Results: /workspace/gpu_db/results/maximus_benchmark.csv
+============================================================

@@ -47,6 +47,7 @@ LD_EXTRA_SIRIUS = [
         _site / "libkvikio" / "lib64",
         _site / "libcudf" / "lib64",
         _site / "librmm" / "lib64",
+        _site / "rapids_logger" / "lib64",
     ] if p.exists()
 ]
 _ld = os.environ.get("LD_LIBRARY_PATH", "")

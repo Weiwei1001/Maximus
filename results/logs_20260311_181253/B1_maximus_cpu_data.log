@@ -1,0 +1,177 @@
+======================================================================
+  MAXIMUS DATA-ON-CPU BENCHMARK (-s cpu)
+  Started: 2026-03-11 18:46:41.906369
+======================================================================
+
+======================================================================
+  TPCH SF=1 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=25ms avg=35.0ms [OK]
+  q3: min=13ms avg=16.0ms [OK]
+  q6: min=9ms avg=119.7ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  TPCH SF=5 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=126ms avg=137.7ms [OK]
+  q3: min=58ms avg=66.0ms [OK]
+  q6: min=44ms avg=75.7ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  TPCH SF=10 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=249ms avg=411.0ms [OK]
+  q3: min=116ms avg=156.3ms [OK]
+  q6: min=90ms avg=322.0ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  TPCH SF=20 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=506ms avg=632.7ms [OK]
+  q3: min=240ms avg=296.0ms [OK]
+  q6: min=182ms avg=210.7ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=1gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=56ms avg=72.7ms [OK]
+  q3: min=307ms avg=413.7ms [OK]
+  q5: min=71ms avg=79.0ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=2gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=112ms avg=135.7ms [OK]
+  q3: min=460ms avg=786.3ms [OK]
+  q5: min=142ms avg=153.7ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=3gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=192ms avg=200.7ms [OK]
+  q3: min=537ms avg=786.3ms [OK]
+  q5: min=213ms avg=246.7ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=4gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  q1: min=245ms avg=262.3ms [OK]
+  q3: min=829ms avg=1220.3ms [OK]
+  q5: min=314ms avg=334.3ms [OK]
+  --- 3/3 OK
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/clickbench/csv-1 not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/clickbench/csv-10 not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/clickbench/csv-20 not found
+
+======================================================================
+  MICROBENCH_TPCH SF=1 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_002: min=1ms avg=43.7ms [OK]
+  w3_001: min=0ms avg=11.0ms [OK]
+  w5a_029: min=3ms avg=6.0ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_TPCH SF=5 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_002: min=6ms avg=7.0ms [OK]
+  w3_001: min=1ms avg=12.3ms [OK]
+  w5a_029: min=14ms avg=14.3ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_TPCH SF=10 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_002: min=19ms avg=34.3ms [OK]
+  w3_001: min=2ms avg=9.7ms [OK]
+  w5a_029: min=46ms avg=87.3ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_TPCH SF=20 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_002: min=36ms avg=40.0ms [OK]
+  w3_001: min=5ms avg=13.3ms [OK]
+  w5a_029: min=77ms avg=91.0ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=1gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_001: min=13ms avg=19.0ms [OK]
+  w3_016: min=81ms avg=187.0ms [OK]
+  w6_022: min=93ms avg=100.0ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=2gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_001: min=33ms avg=152.3ms [OK]
+  w3_016: min=112ms avg=169.3ms [OK]
+  w6_022: min=181ms avg=201.0ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=3gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_001: min=37ms avg=176.0ms [OK]
+  w3_016: min=182ms avg=199.0ms [OK]
+  w6_022: min=284ms avg=311.7ms [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=4gb (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  w1_001: min=68ms avg=166.3ms [OK]
+  w3_016: min=261ms avg=262.3ms [OK]
+  w6_022: min=391ms avg=425.3ms [OK]
+  --- 3/3 OK
+[SKIP] microbench_clickbench SF=1: /workspace/gpu_db/tests/clickbench/csv-1 not found
+[SKIP] microbench_clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+[SKIP] microbench_clickbench SF=10: /workspace/gpu_db/tests/clickbench/csv-10 not found
+[SKIP] microbench_clickbench SF=20: /workspace/gpu_db/tests/clickbench/csv-20 not found
+
+======================================================================
+  DONE (722s = 12.0min)
+  Timing: /workspace/gpu_db/results/maximus_cpu_data_timing.csv
+======================================================================

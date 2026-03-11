@@ -1,0 +1,51 @@
+diff --git a/src/data/representation_converter.cpp b/src/data/representation_converter.cpp
+index d8974b6..8f59ff7 100644
+--- a/src/data/representation_converter.cpp
++++ b/src/data/representation_converter.cpp
+@@ -394,7 +394,11 @@ struct BatchCopyAccumulator {
+ 
+   std::size_t count() const { return dsts.size(); }
+ 
+-  void flush(rmm::cuda_stream_view stream, cudaMemcpySrcAccessOrder src_order)
++  void flush(rmm::cuda_stream_view stream
++#if CUDART_VERSION >= 12080
++             , cudaMemcpySrcAccessOrder src_order
++#endif
++  )
+   {
+     if (count() == 0) { return; }
+ #if CUDART_VERSION >= 12080
+@@ -412,7 +416,6 @@ struct BatchCopyAccumulator {
+ #endif
+ #else
+     // cudaMemcpyBatchAsync requires CUDA 12.8+; fall back to individual copies.
+-    (void)sort_order;
+     for (std::size_t i = 0; i < count(); ++i) {
+       RMM_CUDA_TRY(cudaMemcpyAsync(dsts[i], srcs[i], sizes[i], cudaMemcpyDefault, stream.value()));
+     }
+@@ -589,7 +592,11 @@ std::unique_ptr<idata_representation> convert_gpu_to_host_fast(
+   for (cudf::size_type i = 0; i < view.num_columns(); ++i) {
+     collect_column_d2h_ops(view.column(i), columns[static_cast<std::size_t>(i)], allocation, batch);
+   }
+-  batch.flush(stream, cudaMemcpySrcAccessOrderStream);
++  batch.flush(stream
++#if CUDART_VERSION >= 12080
++              , cudaMemcpySrcAccessOrderStream
++#endif
++  );
+   stream.synchronize();
+ 
+   auto host_alloc = std::make_unique<memory::host_table_allocation>(
+@@ -727,7 +734,11 @@ std::unique_ptr<idata_representation> convert_host_fast_to_gpu(
+   for (const auto& col_meta : fast_table->columns) {
+     gpu_columns.push_back(reconstruct_column(col_meta, fast_table->allocation, stream, mr, batch));
+   }
+-  batch.flush(stream, cudaMemcpySrcAccessOrderStream);
++  batch.flush(stream
++#if CUDART_VERSION >= 12080
++              , cudaMemcpySrcAccessOrderStream
++#endif
++  );
+ 
+   auto new_table = std::make_unique<cudf::table>(std::move(gpu_columns));
+   stream.synchronize();

@@ -1,0 +1,162 @@
+
+============================================================
+  TPCH SF=1 (3 queries, 3 reps)
+============================================================
+  q1: min=11ms avg=28.0ms [OK]
+  q3: min=2ms avg=5.7ms [OK]
+  q6: min=0ms avg=105.3ms [OK]
+  --- 3/3 OK
+
+============================================================
+  TPCH SF=5 (3 queries, 3 reps)
+============================================================
+  q1: min=52ms avg=63.7ms [OK]
+  q3: min=7ms avg=115.0ms [OK]
+  q6: min=2ms avg=3.0ms [OK]
+  --- 3/3 OK
+
+============================================================
+  TPCH SF=10 (3 queries, 3 reps)
+============================================================
+  q1: min=107ms avg=118.0ms [OK]
+  q3: min=13ms avg=19.7ms [OK]
+  q6: min=4ms avg=5.3ms [OK]
+  --- 3/3 OK
+
+============================================================
+  TPCH SF=20 (3 queries, 3 reps)
+============================================================
+  Full batch incomplete (0/3), retrying...
+  q1: NO DATA [FAIL]
+  q3: NO DATA [FAIL]
+  q6: NO DATA [FAIL]
+  --- 0/3 OK
+
+============================================================
+  H2O SF=1gb (3 queries, 3 reps)
+============================================================
+  q1: min=14ms avg=21.3ms [OK]
+  q3: min=185ms avg=190.7ms [OK]
+  q5: min=9ms avg=9.7ms [OK]
+  --- 3/3 OK
+
+============================================================
+  H2O SF=2gb (3 queries, 3 reps)
+============================================================
+  q1: min=28ms avg=35.0ms [OK]
+  q3: min=227ms avg=232.0ms [OK]
+  q5: min=18ms avg=18.7ms [OK]
+  --- 3/3 OK
+
+============================================================
+  H2O SF=3gb (3 queries, 3 reps)
+============================================================
+  q1: min=42ms avg=158.0ms [OK]
+  q3: min=255ms avg=260.3ms [OK]
+  q5: min=27ms avg=27.3ms [OK]
+  --- 3/3 OK
+
+============================================================
+  H2O SF=4gb (3 queries, 3 reps)
+============================================================
+  q1: min=56ms avg=65.3ms [OK]
+  q3: min=285ms avg=288.7ms [OK]
+  q5: min=36ms avg=37.0ms [OK]
+  --- 3/3 OK
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/clickbench/csv-1 not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/clickbench/csv-10 not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/clickbench/csv-20 not found
+
+============================================================
+  MICROBENCH_TPCH SF=1 (3 queries, 3 reps)
+============================================================
+  w1_002: min=0ms avg=1.3ms [OK]
+  w3_001: min=0ms avg=7.0ms [OK]
+  w5a_029: min=1ms avg=4.3ms [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_TPCH SF=5 (3 queries, 3 reps)
+============================================================
+  w1_002: min=2ms avg=4.7ms [OK]
+  w3_001: min=0ms avg=10.3ms [OK]
+  w5a_029: min=7ms avg=10.0ms [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_TPCH SF=10 (3 queries, 3 reps)
+============================================================
+  w1_002: min=5ms avg=82.3ms [OK]
+  w3_001: min=1ms avg=18.3ms [OK]
+  w5a_029: min=14ms avg=18.7ms [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_TPCH SF=20 (3 queries, 3 reps)
+============================================================
+  w1_002: min=14ms avg=140.3ms [OK]
+  w3_001: min=2ms avg=9.7ms [OK]
+  w5a_029: min=31ms avg=36.3ms [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=1gb (3 queries, 3 reps)
+============================================================
+  w1_001: min=0ms avg=0.3ms [OK]
+  w3_016: min=14ms avg=19.7ms [OK]
+  w6_022: min=36ms avg=37.7ms [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=2gb (3 queries, 3 reps)
+============================================================
+  w1_001: min=0ms avg=0.3ms [OK]
+  w3_016: min=28ms avg=33.7ms [OK]
+  w6_022: min=74ms avg=75.7ms [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=3gb (3 queries, 3 reps)
+============================================================
+  w1_001: min=0ms avg=111.3ms [OK]
+  w3_016: min=42ms avg=47.7ms [OK]
+  w6_022: min=110ms avg=112.0ms [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=4gb (3 queries, 3 reps)
+============================================================
+  w1_001: min=0ms avg=0.3ms [OK]
+  w3_016: min=56ms avg=63.3ms [OK]
+  w6_022: min=147ms avg=149.0ms [OK]
+  --- 3/3 OK
+[SKIP] microbench_clickbench SF=1: /workspace/gpu_db/tests/clickbench/csv-1 not found
+[SKIP] microbench_clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+[SKIP] microbench_clickbench SF=10: /workspace/gpu_db/tests/clickbench/csv-10 not found
+[SKIP] microbench_clickbench SF=20: /workspace/gpu_db/tests/clickbench/csv-20 not found
+
+============================================================
+  DONE (137s = 2.3min)
+  Results: /workspace/gpu_db/results/maximus_benchmark.csv
+============================================================
+  TPCH: 9/12 OK
+    SF=1: 3/3 OK
+    SF=5: 3/3 OK
+    SF=10: 3/3 OK
+    SF=20: 0/3 OK  FAIL: q1, q3, q6
+  H2O: 12/12 OK
+    SF=1gb: 3/3 OK
+    SF=2gb: 3/3 OK
+    SF=3gb: 3/3 OK
+    SF=4gb: 3/3 OK
+  MICROBENCH_TPCH: 12/12 OK
+    SF=1: 3/3 OK
+    SF=5: 3/3 OK
+    SF=10: 3/3 OK
+    SF=20: 3/3 OK
+  MICROBENCH_H2O: 12/12 OK
+    SF=1gb: 3/3 OK
+    SF=2gb: 3/3 OK
+    SF=3gb: 3/3 OK
+    SF=4gb: 3/3 OK

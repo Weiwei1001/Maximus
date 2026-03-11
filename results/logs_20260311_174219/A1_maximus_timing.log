@@ -1,0 +1,47 @@
+
+============================================================
+  TPCH SF=1 (3 queries, 3 reps)
+============================================================
+  q1: min=1ms avg=9.7ms [OK]
+  q3: min=0ms avg=3.7ms [OK]
+  q6: min=0ms avg=0.7ms [OK]
+  --- 3/3 OK
+[SKIP] tpch SF=5: /workspace/gpu_db/tests/tpch/csv-5 not found
+[SKIP] tpch SF=10: /workspace/gpu_db/tests/tpch/csv-10 not found
+[SKIP] tpch SF=20: /workspace/gpu_db/tests/tpch/csv-20 not found
+[SKIP] h2o SF=1gb: /workspace/gpu_db/tests/h2o/csv-1gb not found
+[SKIP] h2o SF=2gb: /workspace/gpu_db/tests/h2o/csv-2gb not found
+[SKIP] h2o SF=3gb: /workspace/gpu_db/tests/h2o/csv-3gb not found
+[SKIP] h2o SF=4gb: /workspace/gpu_db/tests/h2o/csv-4gb not found
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/clickbench/csv-1 not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/clickbench/csv-10 not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/clickbench/csv-20 not found
+
+============================================================
+  MICROBENCH_TPCH SF=1 (3 queries, 3 reps)
+============================================================
+  w1_002: min=0ms avg=1.0ms [OK]
+  w3_001: min=0ms avg=10.3ms [OK]
+  w5a_029: min=0ms avg=3.0ms [OK]
+  --- 3/3 OK
+[SKIP] microbench_tpch SF=5: /workspace/gpu_db/tests/tpch/csv-5 not found
+[SKIP] microbench_tpch SF=10: /workspace/gpu_db/tests/tpch/csv-10 not found
+[SKIP] microbench_tpch SF=20: /workspace/gpu_db/tests/tpch/csv-20 not found
+[SKIP] microbench_h2o SF=1gb: /workspace/gpu_db/tests/h2o/csv-1gb not found
+[SKIP] microbench_h2o SF=2gb: /workspace/gpu_db/tests/h2o/csv-2gb not found
+[SKIP] microbench_h2o SF=3gb: /workspace/gpu_db/tests/h2o/csv-3gb not found
+[SKIP] microbench_h2o SF=4gb: /workspace/gpu_db/tests/h2o/csv-4gb not found
+[SKIP] microbench_clickbench SF=1: /workspace/gpu_db/tests/clickbench/csv-1 not found
+[SKIP] microbench_clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+[SKIP] microbench_clickbench SF=10: /workspace/gpu_db/tests/clickbench/csv-10 not found
+[SKIP] microbench_clickbench SF=20: /workspace/gpu_db/tests/clickbench/csv-20 not found
+
+============================================================
+  DONE (9s = 0.1min)
+  Results: /workspace/gpu_db/results/maximus_benchmark.csv
+============================================================
+  TPCH: 3/3 OK
+    SF=1: 3/3 OK
+  MICROBENCH_TPCH: 3/3 OK
+    SF=1: 3/3 OK

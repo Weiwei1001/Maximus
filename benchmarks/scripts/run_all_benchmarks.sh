@@ -28,10 +28,7 @@ done
 MODE="FULL"
 [ -n "$TEST_FLAG" ] && MODE="TEST"
 
-# In test mode, create symlinks so every SF has a data directory
-if [ "$MODE" = "TEST" ]; then
-    python3 "$SCRIPT_DIR/hw_detect.py" --ensure-test-data 2>&1 || true
-fi
+DATA_DIR="$MAXIMUS_DIR/benchmarks/data"
 
 echo "========================================================================"
 echo "  BENCHMARK SUITE ($MODE MODE)"
@@ -39,6 +36,65 @@ echo "  Started: $(date)"
 echo "  Results: $RESULTS_DIR"
 echo "  Logs:    $LOG_DIR"
 echo "========================================================================"
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Step 0: Generate missing benchmark data
+# ══════════════════════════════════════════════════════════════════════════
+echo ""
+echo "======== STEP 0: Generate missing data ========"
+
+# TPC-H: CSV for Maximus (tests/tpch/csv-{sf})
+TPCH_SFS="1 5 10 20"
+for sf in $TPCH_SFS; do
+    if [ ! -d "$MAXIMUS_DIR/tests/tpch/csv-$sf" ]; then
+        echo "  [DATAGEN] TPC-H SF=$sf CSV..."
+        (cd "$MAXIMUS_DIR/tests/tpch" && python3 generate_data.py --sf "$sf") 2>&1 | tail -3
+    fi
+done
+
+# H2O: CSV for Maximus (tests/h2o/csv-{sf})
+H2O_SFS="1gb 2gb 3gb 4gb"
+H2O_MISSING=""
+for sf in $H2O_SFS; do
+    if [ ! -d "$MAXIMUS_DIR/tests/h2o/csv-$sf" ]; then
+        H2O_MISSING="$H2O_MISSING $sf"
+    fi
+done
+if [ -n "$H2O_MISSING" ]; then
+    echo "  [DATAGEN] H2O:$H2O_MISSING ..."
+    mkdir -p "$MAXIMUS_DIR/tests/h2o"
+    python3 "$DATA_DIR/generate_h2o.py" --format csv \
+        -o "$MAXIMUS_DIR/tests/h2o" $H2O_MISSING 2>&1 | tail -5
+fi
+
+# ClickBench: CSV for Maximus (tests/clickbench/csv-{sf})
+# Requires downloading ~14GB parquet, so skip if no internet or in test mode
+CB_SFS="1 5 10 20"
+CB_MISSING=""
+for sf in $CB_SFS; do
+    if [ ! -d "$MAXIMUS_DIR/tests/clickbench/csv-$sf" ]; then
+        CB_MISSING="$CB_MISSING $sf"
+    fi
+done
+if [ -n "$CB_MISSING" ]; then
+    mkdir -p "$MAXIMUS_DIR/tests/clickbench"
+    PARQUET_PATH="$MAXIMUS_DIR/tests/clickbench/clickbench.parquet"
+    if [ ! -f "$PARQUET_PATH" ]; then
+        echo "  [DATAGEN] Downloading ClickBench parquet (~14GB)..."
+        wget -q --show-progress -O "$PARQUET_PATH" \
+            "https://datasets.clickhouse.com/hits_compatible/hits.parquet" 2>&1 || true
+    fi
+    if [ -f "$PARQUET_PATH" ]; then
+        echo "  [DATAGEN] ClickBench:$CB_MISSING ..."
+        python3 "$DATA_DIR/generate_clickbench.py" --format csv \
+            -o "$MAXIMUS_DIR/tests/clickbench" --parquet-path "$PARQUET_PATH" \
+            --scales $CB_MISSING 2>&1 | tail -5
+    else
+        echo "  [WARN] ClickBench: parquet download failed, skipping"
+    fi
+fi
+
+echo "  [DATAGEN] Done."
 
 cd "$SCRIPT_DIR"
 
@@ -64,8 +120,12 @@ run_step() {
     fi
 }
 
-# Check if sirius duckdb binary exists
+# Check if sirius duckdb binary exists; auto-build if missing
 SIRIUS_DUCKDB="$MAXIMUS_DIR/sirius/build/release/duckdb"
+if [ ! -x "$SIRIUS_DUCKDB" ] && [ -f "$MAXIMUS_DIR/sirius_patches/build_sirius.sh" ]; then
+    echo "  [AUTO] Sirius not built — running build_sirius.sh..."
+    bash "$MAXIMUS_DIR/sirius_patches/build_sirius.sh" 2>&1 | tail -20
+fi
 has_sirius() {
     [ -x "$SIRIUS_DUCKDB" ]
 }

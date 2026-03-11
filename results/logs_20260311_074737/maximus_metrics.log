@@ -1,0 +1,14 @@
+======================================================================
+  MAXIMUS GPU STEADY-STATE METRICS
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-11 07:47:38.104012
+======================================================================
+[SKIP] tpch SF=1: /workspace/gpu_db/tests/tpch/csv-1 not found
+[SKIP] tpch SF=2: /workspace/gpu_db/tests/tpch/csv-2 not found
+[SKIP] h2o SF=1gb: /workspace/gpu_db/tests/h2o/csv-1gb not found
+[SKIP] h2o SF=2gb: /workspace/gpu_db/tests/h2o/csv-2gb not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/clickbench/csv-5 not found
+
+======================================================================
+  ALL DONE — 2026-03-11 07:47:38.104112
+======================================================================

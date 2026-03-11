@@ -1,0 +1,32 @@
+  [HW] GPU #0: NVIDIA A100 80GB PCIe, low SM clock=210MHz
+  [HW] CPU: acpi-cpufreq, low=1800000kHz, max=4000000kHz
+
+======================================================================
+  FREQUENCY SWEEP — ALL BENCHMARKS
+  Configs: baseline, cpu_low, gpu_low, both_low
+  Benchmarks: tpch, h2o
+  Target time: 10s per query
+  Resume: True
+  Started: 2026-03-11 17:58:47.218753
+======================================================================
+
+
+  SKIP baseline: already has 10 result files
+
+  SKIP cpu_low: already has 10 result files
+
+  SKIP gpu_low: already has 14 result files
+
+  SKIP both_low: already has 15 result files
+[hw_detect] WARNING: reset GPU clocks failed: 
+  [FREQ] Restored defaults
+
+======================================================================
+  FREQUENCY SWEEP COMPLETE
+  Total time: 0:00:00
+  Results: /workspace/gpu_db/results/freq_sweep/
+  Finished: 2026-03-11 17:58:47.479186
+======================================================================
+
+  Aggregating results...
+  Summary: /workspace/gpu_db/results/freq_sweep/freq_sweep_summary.csv (906 rows)
