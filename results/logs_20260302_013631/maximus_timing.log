@@ -1,0 +1,86 @@
+
+============================================================
+  TPCH SF=1 (22 queries, 5 reps)
+============================================================
+  q1: min=4ms avg=13.4ms [OK]
+  q2: min=2ms avg=6.0ms [OK]
+  q3: min=2ms avg=2.0ms [OK]
+  q4: min=1ms avg=4.6ms [OK]
+  q5: min=2ms avg=4.0ms [OK]
+  q6: min=0ms avg=0.8ms [OK]
+  q7: min=2ms avg=5.8ms [OK]
+  q8: min=2ms avg=4.0ms [OK]
+  q9: min=3ms avg=5.2ms [OK]
+  q10: min=2ms avg=2.0ms [OK]
+  q11: min=2ms avg=4.0ms [OK]
+  q12: min=2ms avg=2.0ms [OK]
+  q13: min=14ms avg=14.0ms [OK]
+  q14: min=1ms avg=1.0ms [OK]
+  q15: min=1ms avg=1.6ms [OK]
+  q16: min=18ms avg=21.0ms [OK]
+  q17: min=3ms avg=3.0ms [OK]
+  q18: min=3ms avg=3.0ms [OK]
+  q19: min=17ms avg=17.0ms [OK]
+  q20: min=3ms avg=3.0ms [OK]
+  q21: min=58ms avg=58.0ms [OK]
+  q22: min=2ms avg=3.4ms [OK]
+  --- 22/22 OK
+
+============================================================
+  TPCH SF=2 (22 queries, 5 reps)
+============================================================
+  q1: min=8ms avg=14.6ms [OK]
+  q2: min=3ms avg=6.0ms [OK]
+  q3: min=3ms avg=3.0ms [OK]
+  q4: min=2ms avg=5.4ms [OK]
+  q5: min=4ms avg=6.0ms [OK]
+  q6: min=1ms avg=1.6ms [OK]
+  q7: min=3ms avg=7.0ms [OK]
+  q8: min=3ms avg=5.2ms [OK]
+  q9: min=6ms avg=8.0ms [OK]
+  q10: min=3ms avg=3.0ms [OK]
+  q11: min=3ms avg=5.2ms [OK]
+  q12: min=2ms avg=2.0ms [OK]
+  q13: min=27ms avg=27.2ms [OK]
+  q14: min=2ms avg=2.0ms [OK]
+  q15: min=1ms avg=2.0ms [OK]
+  q16: min=20ms avg=23.2ms [OK]
+  q17: min=4ms avg=4.0ms [OK]
+  q18: min=6ms avg=6.0ms [OK]
+  q19: min=32ms avg=32.0ms [OK]
+  q20: min=4ms avg=6.6ms [OK]
+  q21: min=115ms avg=115.6ms [OK]
+  q22: min=2ms avg=3.4ms [OK]
+  --- 22/22 OK
+
+============================================================
+  TPCH SF=5 (22 queries, 5 reps)
+============================================================
+  Full batch incomplete (0/22), retrying...
+  q1: NO DATA [FAIL]
+  q2: min=4ms avg=14.0ms [OK]
+  q3: NO DATA [FAIL]
+  q4: NO DATA [FAIL]
+  q5: NO DATA [FAIL]
+  q6: NO DATA [FAIL]
+  q7: NO DATA [FAIL]
+  q8: NO DATA [FAIL]
+  q9: NO DATA [FAIL]
+  q10: NO DATA [FAIL]
+  q11: min=7ms avg=20.2ms [OK]
+  q12: NO DATA [FAIL]
+  q13: min=74ms avg=84.0ms [OK]
+  q14: NO DATA [FAIL]
+  q15: NO DATA [FAIL]
+  q16: min=35ms avg=44.6ms [OK]
+  q17: NO DATA [FAIL]
+  q18: NO DATA [FAIL]
+  q19: NO DATA [FAIL]
+  q20: NO DATA [FAIL]
+  q21: NO DATA [FAIL]
+  q22: min=3ms avg=16.6ms [OK]
+  --- 5/22 OK
+
+============================================================
+  TPCH SF=10 (22 queries, 5 reps)
+============================================================

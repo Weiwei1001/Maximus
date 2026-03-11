@@ -1,0 +1,11 @@
+run_id,benchmark,sf,query,n_reps,min_s,avg_s,elapsed_s,num_samples,num_steady_samples,avg_power_w,max_power_w,max_mem_mb,avg_gpu_util,max_gpu_util,gpu_energy_j,avg_cpu_pkg_w,avg_cpu_dram_w,cpu_energy_j,status
+h2o_sf4gb_q1,h2o,4gb,q1,3,0.0250,1.0530,5.25,65,65,57.2,74.6,15699,0.0,0,1.43,114.3,1.9,2.86,OK
+h2o_sf4gb_q10,h2o,4gb,q10,0,,,,0,0,,,,,,,,,,FALLBACK
+h2o_sf4gb_q2,h2o,4gb,q2,3,0.0460,1.3097,6.29,77,37,58.9,97.1,15701,18.0,88,2.71,119.7,2.0,5.50,OK
+h2o_sf4gb_q3,h2o,4gb,q3,0,,,,0,0,,,,,,,,,,FALLBACK
+h2o_sf4gb_q4,h2o,4gb,q4,3,0.0230,1.0820,5.43,68,7,71.5,73.2,5443,8.0,8,1.65,113.3,1.8,2.61,OK
+h2o_sf4gb_q5,h2o,4gb,q5,0,,,,0,0,,,,,,,,,,FALLBACK
+h2o_sf4gb_q6,h2o,4gb,q6,0,,,,0,0,,,,,,,,,,FALLBACK
+h2o_sf4gb_q7,h2o,4gb,q7,0,,,,0,0,,,,,,,,,,FALLBACK
+h2o_sf4gb_q8,h2o,4gb,q8,0,,,,0,0,,,,,,,,,,FALLBACK
+h2o_sf4gb_q9,h2o,4gb,q9,0,,,,0,0,,,,,,,,,,FALLBACK
