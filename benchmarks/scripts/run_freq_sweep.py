@@ -23,51 +23,40 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from hw_detect import (
+    detect_gpu, detect_cpu, gpu_sm_clock_levels, cpu_freq_levels,
+    set_gpu_sm_clock, reset_gpu_clocks, set_cpu_freq, reset_cpu_freq,
+)
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent
-GPU_ID = "1"
 
-CONFIGS = [
-    {"name": "baseline",  "cpu_perf_pct": 100, "no_turbo": 0, "gpu_clk": None},
-    {"name": "cpu_low",   "cpu_perf_pct": 18,  "no_turbo": 1, "gpu_clk": None},
-    {"name": "gpu_low",   "cpu_perf_pct": 100, "no_turbo": 0, "gpu_clk": 180},
-    {"name": "both_low",  "cpu_perf_pct": 18,  "no_turbo": 1, "gpu_clk": 180},
-]
+# Detected at startup in main().
+GPU_ID: str = "0"
+CONFIGS: list[dict] = []
 
 BENCHMARKS = ["tpch", "h2o", "clickbench"]
 TARGET_TIME = 10  # seconds of sustained execution per query
 
 
-def sudo_cmd(cmd_str):
-    subprocess.run(
-        ["sudo", "bash", "-c", cmd_str],
-        text=True, capture_output=True)
-
-
 def set_freq_config(cfg):
     """Apply CPU and GPU frequency settings."""
-    pct = cfg["cpu_perf_pct"]
-    nt = cfg["no_turbo"]
-    sudo_cmd(f"echo {pct} > /sys/devices/system/cpu/intel_pstate/max_perf_pct")
-    sudo_cmd(f"echo {nt} > /sys/devices/system/cpu/intel_pstate/no_turbo")
+    gpu_id_int = int(GPU_ID)
+    if cfg.get("cpu_freq_khz") is not None:
+        set_cpu_freq(cfg["cpu_freq_khz"])
     if cfg["gpu_clk"] is not None:
-        sudo_cmd(f"nvidia-smi -i {GPU_ID} -lgc {cfg['gpu_clk']},{cfg['gpu_clk']}")
+        set_gpu_sm_clock(gpu_id_int, cfg["gpu_clk"])
     else:
-        sudo_cmd(f"nvidia-smi -i {GPU_ID} -rgc")
+        reset_gpu_clocks(gpu_id_int)
     time.sleep(2)
 
-    # Verify
-    actual_pct = Path("/sys/devices/system/cpu/intel_pstate/max_perf_pct").read_text().strip()
-    actual_nt = Path("/sys/devices/system/cpu/intel_pstate/no_turbo").read_text().strip()
-    actual_freq = int(Path("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").read_text().strip()) // 1000
     gpu_clk_str = f"{cfg['gpu_clk']}MHz" if cfg['gpu_clk'] else "auto"
-    print(f"  [FREQ] CPU: max_perf={actual_pct}%, no_turbo={actual_nt}, cur={actual_freq}MHz | GPU: {gpu_clk_str}")
+    print(f"  [FREQ] CPU freq_khz={cfg.get('cpu_freq_khz', 'max')} | GPU: {gpu_clk_str}")
 
 
 def restore_defaults():
-    sudo_cmd("echo 100 > /sys/devices/system/cpu/intel_pstate/max_perf_pct")
-    sudo_cmd("echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo")
-    sudo_cmd(f"nvidia-smi -i {GPU_ID} -rgc")
+    reset_cpu_freq()
+    reset_gpu_clocks(int(GPU_ID))
     print("  [FREQ] Restored defaults")
 
 
@@ -92,6 +81,25 @@ def run_metrics_script(script_name, benchmarks, results_dir, target_time, extra_
 
 
 def main():
+    global GPU_ID, CONFIGS
+
+    # Auto-detect hardware
+    gpu_info = detect_gpu()
+    cpu_info = detect_cpu()
+    GPU_ID = str(gpu_info["index"])
+    gpu_low_clk = gpu_sm_clock_levels(gpu_info)[0]  # lowest SM clock
+    cpu_low_freq = cpu_freq_levels(cpu_info)[0]      # lowest CPU freq (kHz)
+    cpu_max_freq = cpu_info["max_freq_khz"]
+    print(f"  [HW] GPU #{GPU_ID}: {gpu_info['name']}, low SM clock={gpu_low_clk}MHz")
+    print(f"  [HW] CPU: {cpu_info['governor']}, low={cpu_low_freq}kHz, max={cpu_max_freq}kHz")
+
+    CONFIGS = [
+        {"name": "baseline",  "cpu_freq_khz": cpu_max_freq, "gpu_clk": None},
+        {"name": "cpu_low",   "cpu_freq_khz": cpu_low_freq, "gpu_clk": None},
+        {"name": "gpu_low",   "cpu_freq_khz": cpu_max_freq, "gpu_clk": gpu_low_clk},
+        {"name": "both_low",  "cpu_freq_khz": cpu_low_freq, "gpu_clk": gpu_low_clk},
+    ]
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmarks", nargs="*", default=BENCHMARKS)
@@ -100,7 +108,13 @@ def main():
     parser.add_argument("--resume", action="store_true",
                         help="Skip configs that already have results")
     parser.add_argument("--target-time", type=int, default=TARGET_TIME)
+    parser.add_argument("--test", action="store_true",
+                        help="Quick test mode: baseline config only")
     args = parser.parse_args()
+    if args.test:
+        configs_to_run = [c for c in CONFIGS if c["name"] == "baseline"]
+        if not configs_to_run:
+            configs_to_run = CONFIGS[:1]
 
     results_base = MAXIMUS_DIR / "results" / "freq_sweep"
     results_base.mkdir(parents=True, exist_ok=True)
@@ -124,7 +138,10 @@ def main():
                 f.flush()
         def flush(self):
             for f in self.files:
-                f.flush()
+                try:
+                    f.flush()
+                except ValueError:
+                    pass
 
     log_fh = open(log_file, "a")
     sys.stdout = Tee(sys.__stdout__, log_fh)
@@ -161,7 +178,7 @@ def main():
 
         print(f"\n{'='*70}")
         print(f"  CONFIG {idx+1}/{total_configs}: {cname}")
-        print(f"  CPU={cfg['cpu_perf_pct']}%, no_turbo={cfg['no_turbo']}, GPU={'180MHz' if cfg['gpu_clk'] else 'auto'}")
+        print(f"  CPU={cfg['cpu_freq_khz']}kHz, GPU={cfg['gpu_clk'] or 'auto'}MHz")
         print(f"  ETA: {eta}")
         print(f"{'='*70}")
 
@@ -229,17 +246,22 @@ def main():
                 reader = csv.DictReader(fh)
                 for row in reader:
                     row["config"] = cfg["name"]
-                    row["cpu_perf_pct"] = cfg["cpu_perf_pct"]
+                    row["cpu_freq_khz"] = cfg["cpu_freq_khz"]
                     row["gpu_clk"] = cfg["gpu_clk"] or "auto"
                     row["engine"] = engine
                     all_rows.append(row)
 
     if all_rows:
         agg_file = results_base / "freq_sweep_summary.csv"
-        fields = ["config", "cpu_perf_pct", "gpu_clk", "engine"] + \
-                 [k for k in all_rows[0] if k not in ("config", "cpu_perf_pct", "gpu_clk", "engine")]
+        # Collect all unique fields across all rows to handle heterogeneous CSVs.
+        all_fields = set()
+        for row in all_rows:
+            all_fields.update(row.keys())
+        prefix = ["config", "cpu_freq_khz", "gpu_clk", "engine"]
+        rest = sorted(all_fields - set(prefix))
+        fields = prefix + rest
         with open(agg_file, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=fields)
+            w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
             w.writeheader()
             w.writerows(all_rows)
         print(f"  Summary: {agg_file} ({len(all_rows)} rows)")

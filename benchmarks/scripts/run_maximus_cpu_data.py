@@ -20,8 +20,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from hw_detect import detect_gpu, get_benchmark_config, maximus_data_dir, MAXIMUS_DIR
+
 SCRIPT_DIR = Path(__file__).resolve().parent
-MAXIMUS_DIR = SCRIPT_DIR.parent.parent
 MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
 
 import sysconfig as _sysconfig
@@ -35,28 +36,10 @@ LD_EXTRA = [
     ] if p.exists()
 ]
 
-BENCHMARKS = {
-    "tpch": {
-        "data_base": MAXIMUS_DIR / "tests" / "tpch",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2, 5, 10],
-        "queries": [f"q{i}" for i in range(1, 23)],
-    },
-    "h2o": {
-        "data_base": MAXIMUS_DIR / "tests" / "h2o",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
-        "queries": [f"q{i}" for i in [1, 2, 3, 4, 5, 6, 7, 9, 10]],
-    },
-    "clickbench": {
-        "data_base": MAXIMUS_DIR / "tests" / "clickbench",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": [10, 20],
-        "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
-    },
-}
+gpu_info = detect_gpu()
+BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 
-GPU_ID = "1"
+GPU_ID = str(gpu_info["index"])
 TARGET_TIME_S = 10
 MIN_REPS = 3
 CALIBRATION_REPS = 3
@@ -185,7 +168,13 @@ def main():
     parser.add_argument("--results-dir", type=str, default=str(MAXIMUS_DIR / "results"))
     parser.add_argument("--target-time", type=float, default=TARGET_TIME_S)
     parser.add_argument("--timing-only", action="store_true", help="Skip metrics, only timing")
+    parser.add_argument("--test", action="store_true",
+                        help="Quick test with 3 queries per benchmark")
     args = parser.parse_args()
+
+    global BENCHMARKS
+    if args.test:
+        BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"], test_mode=True)
 
     results_dir = Path(args.results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -207,7 +196,7 @@ def main():
         cfg = BENCHMARKS[bench_name]
 
         for sf in cfg["scale_factors"]:
-            data_path = cfg["data_base"] / cfg["data_pattern"].format(sf=sf)
+            data_path = maximus_data_dir(bench_name, sf)
             if not data_path.exists():
                 print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
                 continue

@@ -36,9 +36,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-# ── Paths (adjust to your environment) ──────────────────────────────────────
+from hw_detect import detect_gpu, get_benchmark_config, maximus_data_dir, MAXIMUS_DIR
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
-MAXIMUS_DIR = SCRIPT_DIR.parent.parent
 MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
 
 import sysconfig as _sysconfig
@@ -52,28 +53,9 @@ LD_EXTRA = [
     ] if p.exists()
 ]
 
-# ── Benchmark configurations ────────────────────────────────────────────────
-BENCHMARKS = {
-    "tpch": {
-        "data_base": MAXIMUS_DIR / "tests" / "tpch",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2],  # SF5+ OOMs on 16GB GPU with -s gpu
-        "queries": [f"q{i}" for i in range(1, 23)],
-    },
-    "h2o": {
-        "data_base": MAXIMUS_DIR / "tests" / "h2o",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": ["1gb", "2gb"],
-        "queries": [f"q{i}" for i in [1, 2, 3, 4, 5, 6, 7, 9, 10]],
-    },
-    "clickbench": {
-        "data_base": MAXIMUS_DIR / "tests" / "clickbench",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": [5],
-        # 39 working GPU queries (q18,q27,q28,q42 unsupported on cuDF GPU)
-        "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
-    },
-}
+# ── Benchmark configurations (loaded dynamically from hw_detect) ──────────
+gpu_info = detect_gpu()
+BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 
 TARGET_TIME_S = 10   # target sustained execution time per query
 MIN_REPS = 3         # minimum repetitions even for slow queries
@@ -85,7 +67,6 @@ def get_env():
     env = os.environ.copy()
     ld = env.get("LD_LIBRARY_PATH", "")
     env["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + ld if ld else "")
-    # Don't restrict CUDA_VISIBLE_DEVICES; maxbench auto-selects RTX 5080 (GPU 1)
     return env
 
 
@@ -123,7 +104,7 @@ def parse_timing(output, query):
     return []
 
 
-GPU_ID = "1"  # RTX 5080
+GPU_ID = str(gpu_info["index"])
 
 # RAPL paths for CPU power measurement
 RAPL_PKG_PATHS = []
@@ -378,7 +359,13 @@ def main():
     parser.add_argument("--storage", type=str, default="gpu",
                         choices=["gpu", "cpu"],
                         help="Storage device for tables (default: gpu)")
+    parser.add_argument("--test", action="store_true",
+                        help="Quick test with 3 queries per benchmark")
     args = parser.parse_args()
+
+    global BENCHMARKS
+    if args.test:
+        BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"], test_mode=True)
 
     results_dir = (Path(args.results_dir) if args.results_dir
                    else MAXIMUS_DIR / "benchmark_results")
@@ -409,7 +396,7 @@ def main():
                 continue
 
         for sf in sfs:
-            data_path = cfg["data_base"] / cfg["data_pattern"].format(sf=sf)
+            data_path = maximus_data_dir(bench_name, sf)
             if not data_path.exists():
                 print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
                 continue

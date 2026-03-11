@@ -23,9 +23,10 @@ import sys
 import time
 from pathlib import Path
 
-# ── Paths (adjust to your environment) ──────────────────────────────────────
+from hw_detect import detect_gpu, get_benchmark_config, maximus_data_dir, MAXIMUS_DIR
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
-MAXIMUS_DIR = SCRIPT_DIR.parent.parent          # benchmarks/scripts -> Maximus root
 MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
 
 # Extra library paths needed by pip-installed cuDF
@@ -40,29 +41,9 @@ LD_EXTRA = [
     ] if p.exists()
 ]
 
-# ── Benchmark configurations ────────────────────────────────────────────────
-BENCHMARKS = {
-    "tpch": {
-        "data_base": MAXIMUS_DIR / "tests" / "tpch",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2, 5, 10],
-        "queries": [f"q{i}" for i in range(1, 23)],
-    },
-    "h2o": {
-        "data_base": MAXIMUS_DIR / "tests" / "h2o",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
-        # q8 is not implemented in Maximus
-        "queries": [f"q{i}" for i in [1, 2, 3, 4, 5, 6, 7, 9, 10]],
-    },
-    "clickbench": {
-        "data_base": MAXIMUS_DIR / "tests" / "clickbench",
-        "data_pattern": "csv-{sf}",
-        "scale_factors": [5, 10, 20],
-        # 39 working GPU queries (q18,q27,q28,q42 unsupported on cuDF GPU)
-        "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
-    },
-}
+# ── Benchmark configurations (loaded dynamically from hw_detect) ──────────
+gpu_info = detect_gpu()
+BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 
 
 def get_env():
@@ -133,7 +114,13 @@ def main():
     parser.add_argument("--n-reps", type=int, default=3, help="Number of timed repetitions")
     parser.add_argument("--results-dir", type=str, default=None,
                         help="Directory for output CSVs (default: <maximus>/benchmark_results)")
+    parser.add_argument("--test", action="store_true",
+                        help="Quick test with 3 queries per benchmark")
     args = parser.parse_args()
+
+    global BENCHMARKS
+    if args.test:
+        BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"], test_mode=True)
 
     results_dir = Path(args.results_dir) if args.results_dir else MAXIMUS_DIR / "benchmark_results"
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -149,7 +136,7 @@ def main():
         cfg = BENCHMARKS[bench_name]
 
         for sf in cfg["scale_factors"]:
-            data_path = cfg["data_base"] / cfg["data_pattern"].format(sf=sf)
+            data_path = maximus_data_dir(bench_name, sf)
             if not data_path.exists():
                 print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
                 continue

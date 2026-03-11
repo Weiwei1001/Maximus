@@ -25,18 +25,25 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from hw_detect import (
+    detect_gpu, detect_cpu, gpu_sm_clock_levels, cpu_freq_levels,
+    set_gpu_sm_clock, reset_gpu_clocks, set_cpu_freq as hw_set_cpu_freq,
+    reset_cpu_freq, buffer_init_sql,
+)
+
 # ── Config ────────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent
 SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", str(MAXIMUS_DIR / "sirius")))
 DUCKDB_BIN = SIRIUS_DIR / "build" / "release" / "duckdb"
 DB_PATH = Path(os.environ.get("SIRIUS_DB_PATH", str(MAXIMUS_DIR / "tests" / "tpch_duckdb" / "tpch_sf5.duckdb")))
-GPU_ID = "1"
 N_REPS = 30
 N_TIMING_PASSES = 3
 QUERY_TIMEOUT_S = 300
 
-BUFFER_INIT = 'call gpu_buffer_init("10 GB", "5 GB");'
+# Detected at startup in main().
+GPU_ID: str = "0"
+BUFFER_INIT: str = 'call gpu_buffer_init("10 GB", "5 GB");'
 GPU_QUERY = ('call gpu_processing("SELECT l_returnflag, l_linestatus, '
              'sum(l_quantity) AS sum_qty, sum(l_extendedprice) AS sum_base_price, '
              'sum(l_extendedprice * (1 - l_discount)) AS sum_disc_price, '
@@ -62,12 +69,8 @@ os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + _ld if _ld else "")
 
 RE_RUN_TIME = re.compile(r"Run Time \(s\):\s*real\s+([\d.]+)", re.IGNORECASE)
 
-CONFIGS = [
-    {"name": "baseline",  "cpu_freq": 4400000, "cpu_gov": "performance", "gpu_clk": None},
-    {"name": "cpu_low",   "cpu_freq": 800000,  "cpu_gov": "powersave",   "gpu_clk": None},
-    {"name": "gpu_low",   "cpu_freq": 4400000, "cpu_gov": "performance", "gpu_clk": 180},
-    {"name": "both_low",  "cpu_freq": 800000,  "cpu_gov": "powersave",   "gpu_clk": 180},
-]
+# Populated dynamically in main().
+CONFIGS: list[dict] = []
 
 # ── RAPL ──────────────────────────────────────────────────────────────────────
 RAPL_PKG_PATHS = []
@@ -90,48 +93,26 @@ def read_rapl_uj():
 
 
 # ── Frequency control ────────────────────────────────────────────────────────
-def set_cpu_freq(freq_khz, governor):
-    """Set CPU frequency for all cores."""
-    n_cpus = os.cpu_count() or 1
-    for i in range(n_cpus):
-        subprocess.run(
-            ["sudo", "tee", f"/sys/devices/system/cpu/cpu{i}/cpufreq/scaling_governor"],
-            input=governor, text=True, capture_output=True)
-        subprocess.run(
-            ["sudo", "tee", f"/sys/devices/system/cpu/cpu{i}/cpufreq/scaling_max_freq"],
-            input=str(freq_khz), text=True, capture_output=True)
-        subprocess.run(
-            ["sudo", "tee", f"/sys/devices/system/cpu/cpu{i}/cpufreq/scaling_min_freq"],
-            input=str(freq_khz), text=True, capture_output=True)
-    # Verify
-    actual = int(Path(f"/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").read_text().strip())
-    print(f"  [CPU] Set governor={governor}, freq={freq_khz}kHz, actual={actual}kHz")
-
-
 def set_gpu_clk(clk_mhz):
     """Lock GPU SM clock, or unlock if None."""
+    gpu_id_int = int(GPU_ID)
     if clk_mhz is not None:
-        subprocess.run(
-            ["sudo", "nvidia-smi", "-i", GPU_ID, "-lgc", f"{clk_mhz},{clk_mhz}"],
-            capture_output=True)
+        set_gpu_sm_clock(gpu_id_int, clk_mhz)
         print(f"  [GPU] Locked SM clock to {clk_mhz}MHz")
     else:
-        subprocess.run(
-            ["sudo", "nvidia-smi", "-i", GPU_ID, "-rgc"],
-            capture_output=True)
+        reset_gpu_clocks(gpu_id_int)
         print(f"  [GPU] Unlocked SM clock (default)")
 
 
 def restore_defaults():
     """Restore CPU and GPU to defaults."""
-    set_cpu_freq(4400000, "performance")
-    subprocess.run(["sudo", "nvidia-smi", "-i", GPU_ID, "-rgc"], capture_output=True)
-    subprocess.run(["sudo", "nvidia-smi", "-i", GPU_ID, "-rpl"], capture_output=True)
-    print("  [RESTORED] CPU=performance/4400MHz, GPU=unlocked")
+    reset_cpu_freq()
+    reset_gpu_clocks(int(GPU_ID))
+    print("  [RESTORED] CPU and GPU defaults")
 
 
 def apply_config(cfg):
-    set_cpu_freq(cfg["cpu_freq"], cfg["cpu_gov"])
+    hw_set_cpu_freq(cfg["cpu_freq"])
     set_gpu_clk(cfg["gpu_clk"])
     time.sleep(2)  # let settings stabilize
 
@@ -304,12 +285,32 @@ def run_metrics(config_name):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
+    global GPU_ID, BUFFER_INIT, CONFIGS
+
+    # Auto-detect hardware
+    gpu_info = detect_gpu()
+    cpu_info = detect_cpu()
+    GPU_ID = str(gpu_info["index"])
+    BUFFER_INIT = buffer_init_sql(gpu_info["vram_mb"])
+    gpu_low_clk = gpu_sm_clock_levels(gpu_info)[0]
+    cpu_low_freq = cpu_freq_levels(cpu_info)[0]
+    cpu_max_freq = cpu_info["max_freq_khz"]
+
+    CONFIGS = [
+        {"name": "baseline",  "cpu_freq": cpu_max_freq, "gpu_clk": None},
+        {"name": "cpu_low",   "cpu_freq": cpu_low_freq, "gpu_clk": None},
+        {"name": "gpu_low",   "cpu_freq": cpu_max_freq, "gpu_clk": gpu_low_clk},
+        {"name": "both_low",  "cpu_freq": cpu_low_freq, "gpu_clk": gpu_low_clk},
+    ]
+
     results_dir = MAXIMUS_DIR / "results" / "freq_experiment"
     results_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     print("=" * 70)
     print("  FREQUENCY SCALING EXPERIMENT")
+    print(f"  [HW] GPU #{GPU_ID}: {gpu_info['name']}, VRAM={gpu_info['vram_mb']}MB")
+    print(f"  [HW] BUFFER_INIT: {BUFFER_INIT}")
     print(f"  Sirius TPC-H SF=5 Q1, {N_REPS} reps, {N_TIMING_PASSES} timing passes")
     print(f"  Started: {datetime.now()}")
     print("=" * 70)
@@ -319,7 +320,7 @@ def main():
 
     for cfg in CONFIGS:
         name = cfg["name"]
-        cpu_mhz = cfg["cpu_freq"] // 1000
+        cpu_mhz = cfg["cpu_freq"] // 1000 if cfg["cpu_freq"] >= 1000 else cfg["cpu_freq"]
         gpu_mhz = cfg["gpu_clk"] if cfg["gpu_clk"] else "auto"
 
         print(f"\n{'='*70}")

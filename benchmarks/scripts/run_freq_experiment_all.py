@@ -25,6 +25,12 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from hw_detect import (
+    detect_gpu, detect_cpu, gpu_sm_clock_levels, cpu_freq_levels,
+    set_gpu_sm_clock, reset_gpu_clocks, set_cpu_freq as hw_set_cpu_freq,
+    reset_cpu_freq, buffer_init_sql,
+)
+
 # ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent
@@ -32,8 +38,10 @@ MAXBENCH = MAXIMUS_DIR / "build" / "benchmarks" / "maxbench"
 SIRIUS_DUCKDB = Path(os.environ.get("SIRIUS_BIN", str(MAXIMUS_DIR / "sirius" / "build" / "release" / "duckdb")))
 TPCH_CSV = MAXIMUS_DIR / "tests" / "tpch" / "csv-5"
 TPCH_DB = Path(os.environ.get("SIRIUS_DB_PATH", str(MAXIMUS_DIR / "tests" / "tpch_duckdb" / "tpch_sf5.duckdb")))
-GPU_ID = "1"
 QUERY_TIMEOUT_S = 600
+
+# Detected at startup in main().
+GPU_ID: str = "0"
 
 import sysconfig as _sysconfig
 _site = Path(_sysconfig.get_path("purelib"))
@@ -48,7 +56,8 @@ LD_EXTRA = [
 _ld = os.environ.get("LD_LIBRARY_PATH", "")
 os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA) + (":" + _ld if _ld else "")
 
-SIRIUS_BUFFER_INIT = 'call gpu_buffer_init("10 GB", "5 GB");'
+# Populated dynamically in main().
+SIRIUS_BUFFER_INIT: str = 'call gpu_buffer_init("10 GB", "5 GB");'
 SIRIUS_GPU_QUERY = ('call gpu_processing("SELECT l_returnflag, l_linestatus, '
     'sum(l_quantity) AS sum_qty, sum(l_extendedprice) AS sum_base_price, '
     'sum(l_extendedprice * (1 - l_discount)) AS sum_disc_price, '
@@ -62,12 +71,8 @@ SIRIUS_GPU_QUERY = ('call gpu_processing("SELECT l_returnflag, l_linestatus, '
 RE_RUN_TIME = re.compile(r"Run Time \(s\):\s*real\s+([\d.]+)", re.IGNORECASE)
 RE_MAXIMUS_TIMES = re.compile(r"MAXIMUS TIMINGS \[ms\]:\s*(.*)")
 
-CONFIGS = [
-    {"name": "baseline",  "cpu_perf_pct": 100, "no_turbo": 0, "gpu_clk": None},
-    {"name": "cpu_low",   "cpu_perf_pct": 18,  "no_turbo": 1, "gpu_clk": None},
-    {"name": "gpu_low",   "cpu_perf_pct": 100, "no_turbo": 0, "gpu_clk": 180},
-    {"name": "both_low",  "cpu_perf_pct": 18,  "no_turbo": 1, "gpu_clk": 180},
-]
+# Populated dynamically in main().
+CONFIGS: list[dict] = []
 
 ENGINES = [
     {"name": "sirius_gpu",  "n_reps": 30},
@@ -96,41 +101,24 @@ def read_rapl_uj():
 
 
 # ── Frequency control ────────────────────────────────────────────────────────
-def sudo_cmd(cmd_str):
-    """Run a shell command with sudo."""
-    subprocess.run(
-        ["sudo", "bash", "-c", cmd_str],
-        text=True, capture_output=True)
-
-
-def set_cpu_perf(perf_pct, no_turbo):
-    """Set CPU performance via intel_pstate."""
-    sudo_cmd(f"echo {perf_pct} > /sys/devices/system/cpu/intel_pstate/max_perf_pct")
-    sudo_cmd(f"echo {no_turbo} > /sys/devices/system/cpu/intel_pstate/no_turbo")
-    time.sleep(1)
-    actual_pct = int(Path("/sys/devices/system/cpu/intel_pstate/max_perf_pct").read_text().strip())
-    actual_turbo = int(Path("/sys/devices/system/cpu/intel_pstate/no_turbo").read_text().strip())
-    actual_freq = int(Path("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").read_text().strip())
-    print(f"  [CPU] max_perf_pct={actual_pct}%, no_turbo={actual_turbo}, cur_freq={actual_freq//1000}MHz")
-
-
 def set_gpu_clk(clk_mhz):
+    gpu_id_int = int(GPU_ID)
     if clk_mhz is not None:
-        sudo_cmd(f"nvidia-smi -i {GPU_ID} -lgc {clk_mhz},{clk_mhz}")
+        set_gpu_sm_clock(gpu_id_int, clk_mhz)
         print(f"  [GPU] Locked SM clock to {clk_mhz}MHz")
     else:
-        sudo_cmd(f"nvidia-smi -i {GPU_ID} -rgc")
+        reset_gpu_clocks(gpu_id_int)
         print(f"  [GPU] Unlocked SM clock")
 
 
 def restore_defaults():
-    set_cpu_perf(100, 0)
-    sudo_cmd(f"nvidia-smi -i {GPU_ID} -rgc")
+    reset_cpu_freq()
+    reset_gpu_clocks(int(GPU_ID))
     print("  [RESTORED] defaults")
 
 
 def apply_config(cfg):
-    set_cpu_perf(cfg["cpu_perf_pct"], cfg["no_turbo"])
+    hw_set_cpu_freq(cfg["cpu_freq_khz"])
     set_gpu_clk(cfg["gpu_clk"])
     time.sleep(2)
 
@@ -284,12 +272,32 @@ def run_with_sampling(engine_name, n_reps, device="gpu"):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
+    global GPU_ID, SIRIUS_BUFFER_INIT, CONFIGS
+
+    # Auto-detect hardware
+    gpu_info = detect_gpu()
+    cpu_info = detect_cpu()
+    GPU_ID = str(gpu_info["index"])
+    SIRIUS_BUFFER_INIT = buffer_init_sql(gpu_info["vram_mb"])
+    gpu_low_clk = gpu_sm_clock_levels(gpu_info)[0]
+    cpu_low_freq = cpu_freq_levels(cpu_info)[0]
+    cpu_max_freq = cpu_info["max_freq_khz"]
+
+    CONFIGS = [
+        {"name": "baseline",  "cpu_freq_khz": cpu_max_freq, "gpu_clk": None},
+        {"name": "cpu_low",   "cpu_freq_khz": cpu_low_freq, "gpu_clk": None},
+        {"name": "gpu_low",   "cpu_freq_khz": cpu_max_freq, "gpu_clk": gpu_low_clk},
+        {"name": "both_low",  "cpu_freq_khz": cpu_low_freq, "gpu_clk": gpu_low_clk},
+    ]
+
     results_dir = MAXIMUS_DIR / "results" / "freq_experiment"
     results_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     print("=" * 70)
     print("  FREQUENCY SCALING EXPERIMENT — ALL ENGINES")
+    print(f"  [HW] GPU #{GPU_ID}: {gpu_info['name']}, VRAM={gpu_info['vram_mb']}MB")
+    print(f"  [HW] BUFFER_INIT: {SIRIUS_BUFFER_INIT}")
     print("  TPC-H SF=5 Q1")
     print(f"  Engines: {', '.join(e['name'] + '(' + str(e['n_reps']) + ' reps)' for e in ENGINES)}")
     print(f"  Started: {datetime.now()}")
@@ -300,11 +308,11 @@ def main():
 
     for cfg in CONFIGS:
         cname = cfg["name"]
-        cpu_pct = cfg["cpu_perf_pct"]
+        cpu_khz = cfg["cpu_freq_khz"]
         gpu_mhz = cfg["gpu_clk"] if cfg["gpu_clk"] else "auto"
 
         print(f"\n{'='*70}")
-        print(f"  CONFIG: {cname} (CPU={cpu_pct}%, GPU={gpu_mhz}MHz)")
+        print(f"  CONFIG: {cname} (CPU={cpu_khz}kHz, GPU={gpu_mhz}MHz)")
         print(f"{'='*70}")
         apply_config(cfg)
 
@@ -327,7 +335,7 @@ def main():
 
             row = {
                 "config": cname, "engine": ename,
-                "cpu_perf_pct": cpu_pct, "gpu_clk_mhz": gpu_mhz,
+                "cpu_freq_khz": cpu_khz, "gpu_clk_mhz": gpu_mhz,
                 "n_reps": n_reps, "status": result["status"],
                 "min_s": f"{result['min_s']:.4f}" if result["status"] == "OK" else "",
                 "avg_s": f"{result['avg_s']:.4f}" if result["status"] == "OK" else "",
@@ -356,7 +364,7 @@ def main():
 
     # Save summary
     summary_file = results_dir / f"freq_all_summary_{ts}.csv"
-    fields = ["config", "engine", "cpu_perf_pct", "gpu_clk_mhz", "n_reps", "status",
+    fields = ["config", "engine", "cpu_freq_khz", "gpu_clk_mhz", "n_reps", "status",
               "min_s", "avg_s", "elapsed_s",
               "avg_gpu_w", "max_gpu_w", "avg_util", "avg_clk",
               "avg_cpu_w", "avg_dram_w", "gpu_energy_j", "cpu_energy_j", "max_mem_mb"]

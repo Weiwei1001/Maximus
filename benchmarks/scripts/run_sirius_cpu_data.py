@@ -32,8 +32,12 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from hw_detect import (
+    detect_gpu, get_benchmark_config, sirius_db_path, sirius_query_dir,
+    buffer_init_sql, MAXIMUS_DIR,
+)
+
 SCRIPT_DIR = Path(__file__).resolve().parent
-MAXIMUS_DIR = SCRIPT_DIR.parent.parent
 DEFAULT_SIRIUS_DIR = Path(os.environ.get("SIRIUS_DIR", str(MAXIMUS_DIR / "sirius")))
 DEFAULT_RESULTS_DIR = MAXIMUS_DIR / "results"
 
@@ -50,31 +54,14 @@ LD_EXTRA_SIRIUS = [
 _ld = os.environ.get("LD_LIBRARY_PATH", "")
 os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA_SIRIUS) + (":" + _ld if _ld else "")
 
-SIRIUS_DATA_DIR = Path(os.environ.get("SIRIUS_DATA_DIR", str(MAXIMUS_DIR / "tests")))
-BUFFER_INIT = 'call gpu_buffer_init("10 GB", "5 GB");'
-GPU_ID = "1"
+# Detect GPU and build dynamic config
+_gpu_info = detect_gpu()
+GPU_ID = str(_gpu_info["index"])
+BUFFER_INIT = buffer_init_sql(_gpu_info["vram_mb"])
 N_REPS = 50  # 1st = CPU data, rest = GPU cached; enough reps for steady-state power
 
-BENCHMARKS = {
-    "tpch": {
-        "db_dir": SIRIUS_DATA_DIR / "tpch_duckdb",
-        "db_pattern": "tpch_sf{sf}.duckdb",
-        "query_dir": SIRIUS_DATA_DIR / "tpch_sql" / "queries" / "1",
-        "scale_factors": [1, 2, 5, 10],
-    },
-    "h2o": {
-        "db_dir": SIRIUS_DATA_DIR / "h2o_duckdb",
-        "db_pattern": "h2o_{sf}.duckdb",
-        "query_dir": SIRIUS_DATA_DIR / "h2o_sql" / "queries" / "1",
-        "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
-    },
-    "clickbench": {
-        "db_dir": SIRIUS_DATA_DIR / "click_duckdb",
-        "db_pattern": "clickbench_{sf}.duckdb",
-        "query_dir": SIRIUS_DATA_DIR / "click_sql" / "queries" / "1",
-        "scale_factors": [10, 20],
-    },
-}
+# Sirius-supported benchmarks only (no microbench)
+_SIRIUS_BENCHMARKS = {"tpch", "h2o", "clickbench"}
 
 RE_RUN_TIME = re.compile(r"Run Time \(s\):\s*real\s+([\d.]+)", re.IGNORECASE)
 
@@ -176,6 +163,8 @@ def main():
     parser.add_argument("--results-dir", type=str, default=str(DEFAULT_RESULTS_DIR))
     parser.add_argument("--n-reps", type=int, default=N_REPS)
     parser.add_argument("--buffer-init", type=str, default=BUFFER_INIT)
+    parser.add_argument("--test", action="store_true",
+                        help="Test mode: use reduced query lists for quick validation")
     args = parser.parse_args()
 
     sirius_dir = Path(args.sirius_dir)
@@ -189,8 +178,14 @@ def main():
         print(f"ERROR: Sirius DuckDB binary not found: {duckdb_bin}")
         import sys; sys.exit(1)
 
+    # Build dynamic benchmark config from hw_detect
+    bench_config = get_benchmark_config(_gpu_info["vram_mb"], test_mode=args.test)
+    BENCHMARKS = {k: v for k, v in bench_config.items() if k in _SIRIUS_BENCHMARKS}
+
     print("=" * 70)
     print("  SIRIUS DATA-ON-CPU BENCHMARK")
+    print(f"  GPU: {_gpu_info['name']} (index {_gpu_info['index']}, "
+          f"{_gpu_info['vram_mb']} MiB)")
     print(f"  Method: gpu_buffer_init() + {n_reps} x gpu_processing()")
     print(f"  Rep 1 = data-on-CPU (includes transfer), Rep 2+ = data-on-GPU")
     print(f"  Started: {datetime.now()}")
@@ -205,10 +200,14 @@ def main():
             print(f"Unknown: {bench_name}, skipping")
             continue
         cfg = BENCHMARKS[bench_name]
-        queries = load_queries(cfg["query_dir"])
+        queries = load_queries(sirius_query_dir(bench_name))
+        # In test mode, filter to only the configured queries
+        if args.test:
+            allowed = set(cfg["queries"])
+            queries = [(qn, gl) for qn, gl in queries if qn in allowed]
 
         for sf in cfg["scale_factors"]:
-            db_path = cfg["db_dir"] / cfg["db_pattern"].format(sf=sf)
+            db_path = sirius_db_path(bench_name, sf)
             if not db_path.exists():
                 print(f"[SKIP] {bench_name} SF={sf}: {db_path} not found")
                 continue

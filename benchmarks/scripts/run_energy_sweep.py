@@ -27,13 +27,20 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from hw_detect import (
+    detect_gpu, gpu_power_levels, gpu_sm_clock_levels,
+    set_gpu_power_limit, set_gpu_sm_clock, reset_gpu_clocks,
+    restore_gpu_defaults,
+)
+
 # ── Constants ─────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-DEFAULT_POWER_LIMITS = [250, 275, 300, 325, 360, 450]
-DEFAULT_SM_CLOCKS = [600, 1200, 1800, 2400, 3090]
-DEFAULT_POWER_LIMIT = 360  # RTX 5080 default
-GPU_ID = "1"
+# Detected at startup in main(); set as module-level for helper functions.
+GPU_ID: str = "0"
+_GPU_INFO: dict = {}
+DEFAULT_POWER_LIMITS: list[int] = []
+DEFAULT_SM_CLOCKS: list[int] = []
 
 MAXIMUS_BENCHMARKS = {
     "tpch": [1, 2],
@@ -65,23 +72,11 @@ def set_gpu_config(power_limit_w: int, sm_clock_mhz: int) -> bool:
     """Set GPU power limit and lock SM clocks. Returns True on success."""
     print(f"  [GPU] Setting power limit to {power_limit_w}W, SM clock to {sm_clock_mhz}MHz")
 
-    # Set power limit
-    rc1 = subprocess.run(
-        ["sudo", "nvidia-smi", "-i", GPU_ID, "-pl", str(power_limit_w)],
-        capture_output=True, text=True,
-    )
-    if rc1.returncode != 0:
-        print(f"  [GPU] WARNING: Failed to set power limit: {rc1.stderr.strip()}")
+    gpu_id_int = int(GPU_ID)
+    if not set_gpu_power_limit(gpu_id_int, power_limit_w):
         return False
 
-    # Lock SM clocks
-    rc2 = subprocess.run(
-        ["sudo", "nvidia-smi", "-i", GPU_ID,
-         f"--lock-gpu-clocks={sm_clock_mhz},{sm_clock_mhz}"],
-        capture_output=True, text=True,
-    )
-    if rc2.returncode != 0:
-        print(f"  [GPU] WARNING: Failed to lock SM clocks: {rc2.stderr.strip()}")
+    if not set_gpu_sm_clock(gpu_id_int, sm_clock_mhz):
         return False
 
     # Verify
@@ -93,18 +88,11 @@ def set_gpu_config(power_limit_w: int, sm_clock_mhz: int) -> bool:
     return True
 
 
-def restore_gpu_defaults() -> None:
+def _restore_gpu_defaults() -> None:
     """Restore GPU to default power limit and unlock clocks."""
-    print(f"\n  [GPU] Restoring defaults: PL={DEFAULT_POWER_LIMIT}W, clocks=unlocked")
-
-    subprocess.run(
-        ["sudo", "nvidia-smi", "-i", GPU_ID, "-pl", str(DEFAULT_POWER_LIMIT)],
-        capture_output=True, text=True,
-    )
-    subprocess.run(
-        ["sudo", "nvidia-smi", "-i", GPU_ID, "--reset-gpu-clocks"],
-        capture_output=True, text=True,
-    )
+    default_pl = _GPU_INFO.get("power_default_w") if _GPU_INFO else None
+    print(f"\n  [GPU] Restoring defaults: PL={default_pl}W, clocks=unlocked")
+    restore_gpu_defaults(int(GPU_ID), default_pl)
     print("  [GPU] Defaults restored")
 
 
@@ -553,6 +541,17 @@ def parse_int_list(s: str) -> list[int]:
 
 
 def main():
+    global GPU_ID, _GPU_INFO, DEFAULT_POWER_LIMITS, DEFAULT_SM_CLOCKS
+
+    # Auto-detect GPU hardware
+    _GPU_INFO = detect_gpu()
+    GPU_ID = str(_GPU_INFO["index"])
+    DEFAULT_POWER_LIMITS = gpu_power_levels(_GPU_INFO, n=6)
+    DEFAULT_SM_CLOCKS = gpu_sm_clock_levels(_GPU_INFO, n=5)
+    print(f"  [HW] Detected GPU #{GPU_ID}: {_GPU_INFO['name']}")
+    print(f"  [HW] Power levels: {DEFAULT_POWER_LIMITS}")
+    print(f"  [HW] SM clock levels: {DEFAULT_SM_CLOCKS}")
+
     parser = argparse.ArgumentParser(
         description="GPU energy sweep: explore (power-limit, SM-clock) configurations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -604,7 +603,15 @@ Examples:
         "--sirius-target-time", type=float, default=20,
         help="Target sustained time for Sirius in seconds (default: 20)",
     )
+    parser.add_argument(
+        "--test", action="store_true",
+        help="Quick test mode: use fewer configs and queries",
+    )
     args = parser.parse_args()
+    if args.test:
+        # In test mode, use only 1 power limit and 1 SM clock
+        args.power_limits = [DEFAULT_POWER_LIMITS[-1]]  # default PL only
+        args.sm_clocks = [DEFAULT_SM_CLOCKS[-1]]        # max SM clock only
 
     # Safety: always restore GPU defaults on exit
     try:
@@ -616,7 +623,7 @@ Examples:
         import traceback
         traceback.print_exc()
     finally:
-        restore_gpu_defaults()
+        _restore_gpu_defaults()
 
 
 if __name__ == "__main__":

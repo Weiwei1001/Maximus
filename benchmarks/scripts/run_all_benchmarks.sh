@@ -1,13 +1,13 @@
 #!/bin/bash
-# Master script to re-run ALL benchmarks for Maximus and Sirius
-# Both GPU-data and CPU-data modes, timing and metrics
+# Master script to re-run ALL benchmarks for Maximus and Sirius.
+# Covers Category A (GPU-data), B (CPU-data), and C (freq sweep).
+# Includes both standard benchmarks and microbenchmarks.
 #
 # Usage:
-#   bash run_all_benchmarks.sh          # Full run (3-6 hours)
-#   bash run_all_benchmarks.sh --test   # Quick smoke test (~2 min)
+#   bash run_all_benchmarks.sh          # Full run
+#   bash run_all_benchmarks.sh --test   # Quick smoke test (3 queries per bench)
 #
-# Estimated total runtime: 3-6 hours (full), ~2 min (test)
-set -e
+set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MAXIMUS_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -17,31 +17,30 @@ LOG_DIR="$RESULTS_DIR/logs_${TIMESTAMP}"
 mkdir -p "$LOG_DIR"
 
 # ── Parse arguments ────────────────────────────────────────────────────────
-TEST_MODE=0
+TEST_FLAG=""
 for arg in "$@"; do
     case "$arg" in
-        --test) TEST_MODE=1 ;;
+        --test) TEST_FLAG="--test" ;;
         *) echo "Unknown argument: $arg"; exit 1 ;;
     esac
 done
 
-if [ "$TEST_MODE" -eq 1 ]; then
-    echo "========================================================================"
-    echo "  BENCHMARK SMOKE TEST"
-    echo "  Started: $(date)"
-    echo "  Results: $RESULTS_DIR"
-    echo "  Logs: $LOG_DIR"
-    echo "========================================================================"
-else
-    echo "========================================================================"
-    echo "  FULL BENCHMARK RE-RUN"
-    echo "  Started: $(date)"
-    echo "  Results: $RESULTS_DIR"
-    echo "  Logs: $LOG_DIR"
-    echo "========================================================================"
-fi
+MODE="FULL"
+[ -n "$TEST_FLAG" ] && MODE="TEST"
+
+echo "========================================================================"
+echo "  BENCHMARK SUITE ($MODE MODE)"
+echo "  Started: $(date)"
+echo "  Results: $RESULTS_DIR"
+echo "  Logs:    $LOG_DIR"
+echo "========================================================================"
 
 cd "$SCRIPT_DIR"
+
+# All benchmarks including microbench
+ALL_BENCH="tpch h2o clickbench microbench_tpch microbench_h2o microbench_clickbench"
+# Only tpch/h2o/clickbench for sirius (no microbench support)
+SIRIUS_BENCH="tpch h2o clickbench"
 
 # Helper function
 run_step() {
@@ -53,100 +52,108 @@ run_step() {
     echo "  Command: $@"
     echo "  Time: $(date)"
     echo "================================================================"
-    "$@" 2>&1 | tee "$LOG_DIR/${step_name}.log"
-    echo "  DONE: $step_name ($(date))"
+    if "$@" 2>&1 | tee "$LOG_DIR/${step_name}.log"; then
+        echo "  DONE: $step_name ($(date))"
+    else
+        echo "  WARN: $step_name exited non-zero ($(date))"
+    fi
 }
 
-# Helper: check if sirius duckdb binary exists
+# Check if sirius duckdb binary exists
 SIRIUS_DUCKDB="$MAXIMUS_DIR/sirius/build/release/duckdb"
 has_sirius() {
     [ -x "$SIRIUS_DUCKDB" ]
 }
 
-if [ "$TEST_MODE" -eq 1 ]; then
-    # ── Test mode: quick smoke test with minimal data ──────────────────────
-    # Run maxbench directly on available TPC-H data (csv-0.01 or csv)
-    TPCH_DATA="$MAXIMUS_DIR/tests/tpch/csv-0.01"
-    if [ ! -d "$TPCH_DATA" ]; then
-        TPCH_DATA="$MAXIMUS_DIR/tests/tpch/csv"
-    fi
-    MAXBENCH_BIN="$MAXIMUS_DIR/build/benchmarks/maxbench"
-    if [ ! -x "$MAXBENCH_BIN" ]; then
-        echo "ERROR: maxbench binary not found at $MAXBENCH_BIN"
-        exit 1
-    fi
-
-    # Test 1: Maximus GPU timing on TPC-H q1,q3,q6 (1 rep)
-    run_step "maximus_gpu_test" \
-        "$MAXBENCH_BIN" --benchmark tpch -q q1,q3,q6 -d gpu -r 1 \
-        --n_reps_storage 1 --path "$TPCH_DATA" -s gpu --engines maximus
-
-    # Test 2: Maximus CPU timing on TPC-H q1 (sanity check)
-    run_step "maximus_cpu_test" \
-        "$MAXBENCH_BIN" --benchmark tpch -q q1 -d cpu -r 1 \
-        --n_reps_storage 1 --path "$TPCH_DATA" -s cpu --engines maximus
-
-    if has_sirius; then
-        run_step "sirius_timing_test" \
-            python3 run_sirius_benchmark.py --n-passes 1 --results-dir "$RESULTS_DIR" \
-            tpch
-    else
-        echo "  [SKIP] Sirius not built (${SIRIUS_DUCKDB} not found)"
-    fi
-else
-    # ── Full mode ──────────────────────────────────────────────────────────
-
-    # ── 1. Maximus GPU-data timing ─────────────────────────────────────────
-    run_step "maximus_timing" \
-        python3 run_maximus_benchmark.py --n-reps 5 --results-dir "$RESULTS_DIR" \
-        tpch h2o clickbench
-
-    # ── 2. Sirius GPU-data timing ──────────────────────────────────────────
-    if has_sirius; then
-        run_step "sirius_timing" \
-            python3 run_sirius_benchmark.py --results-dir "$RESULTS_DIR" \
-            tpch h2o clickbench
-    else
-        echo "  [SKIP] Sirius not built (${SIRIUS_DUCKDB} not found)"
-    fi
-
-    # ── 3. Maximus GPU-data metrics ────────────────────────────────────────
-    run_step "maximus_metrics" \
-        python3 run_maximus_metrics.py --target-time 10 --results-dir "$RESULTS_DIR" \
-        tpch h2o clickbench
-
-    # ── 4. Sirius GPU-data metrics (fixed calibration, target=60s) ─────────
-    if has_sirius; then
-        run_step "sirius_metrics" \
-            python3 run_sirius_metrics.py --target-time 60 --results-dir "$RESULTS_DIR" \
-            tpch h2o clickbench
-    else
-        echo "  [SKIP] Sirius metrics: binary not found"
-    fi
-
-    # ── 5. Maximus CPU-data metrics ────────────────────────────────────────
-    run_step "maximus_cpu_data" \
-        python3 run_maximus_cpu_data.py --target-time 10 --results-dir "$RESULTS_DIR" \
-        tpch h2o
-
-    # ── 6. Sirius CPU-data (50 reps for steady-state power) ───────────────
-    if has_sirius; then
-        run_step "sirius_cpu_data" \
-            python3 run_sirius_cpu_data.py --n-reps 50 --results-dir "$RESULTS_DIR" \
-            tpch h2o clickbench
-    else
-        echo "  [SKIP] Sirius CPU-data: binary not found"
-    fi
+# Check if maxbench is built
+MAXBENCH_BIN="$MAXIMUS_DIR/build/benchmarks/maxbench"
+if [ ! -x "$MAXBENCH_BIN" ]; then
+    echo "ERROR: maxbench binary not found at $MAXBENCH_BIN"
+    echo "       Run: ninja -C build -j\$(nproc)"
+    exit 1
 fi
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Category A: Data on GPU (-s gpu) — timing + metrics
+# ══════════════════════════════════════════════════════════════════════════
+
+echo ""
+echo "======== CATEGORY A: Data on GPU ========"
+
+# A1: Maximus timing (all benchmarks + microbench)
+run_step "A1_maximus_timing" \
+    python3 run_maximus_benchmark.py $TEST_FLAG --n-reps 3 --results-dir "$RESULTS_DIR" \
+    $ALL_BENCH
+
+# A2: Sirius timing
+if has_sirius; then
+    run_step "A2_sirius_timing" \
+        python3 run_sirius_benchmark.py $TEST_FLAG --results-dir "$RESULTS_DIR" \
+        $SIRIUS_BENCH
+else
+    echo "  [SKIP] A2: Sirius not built"
+fi
+
+# A3: Maximus metrics (all benchmarks + microbench)
+run_step "A3_maximus_metrics" \
+    python3 run_maximus_metrics.py $TEST_FLAG --target-time 10 --results-dir "$RESULTS_DIR" \
+    $ALL_BENCH
+
+# A4: Sirius metrics
+if has_sirius; then
+    run_step "A4_sirius_metrics" \
+        python3 run_sirius_metrics.py $TEST_FLAG --target-time 60 --results-dir "$RESULTS_DIR" \
+        $SIRIUS_BENCH
+else
+    echo "  [SKIP] A4: Sirius metrics: binary not found"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Category B: Data on CPU (-s cpu) — timing only
+# ══════════════════════════════════════════════════════════════════════════
+
+echo ""
+echo "======== CATEGORY B: Data on CPU ========"
+
+# B1: Maximus CPU-data timing (all benchmarks + microbench)
+run_step "B1_maximus_cpu_data" \
+    python3 run_maximus_cpu_data.py $TEST_FLAG --timing-only --results-dir "$RESULTS_DIR" \
+    $ALL_BENCH
+
+# B2: Sirius CPU-data timing
+if has_sirius; then
+    run_step "B2_sirius_cpu_data" \
+        python3 run_sirius_cpu_data.py $TEST_FLAG --n-reps 50 --results-dir "$RESULTS_DIR" \
+        $SIRIUS_BENCH
+else
+    echo "  [SKIP] B2: Sirius CPU-data: binary not found"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Category C: Frequency sweep (8x8 CPU x GPU grid)
+#  Only for tpch SF=1,10 and h2o SF=1gb,4gb
+# ══════════════════════════════════════════════════════════════════════════
+
+echo ""
+echo "======== CATEGORY C: Frequency Sweep ========"
+
+# C1: GPU power limit sweep (8 levels)
+run_step "C1_energy_sweep" \
+    python3 run_energy_sweep.py $TEST_FLAG \
+    --benchmarks tpch h2o \
+    --results-dir "$RESULTS_DIR/energy_sweep" \
+    --resume
+
+# C2: Full frequency sweep (CPU x GPU grid)
+run_step "C2_freq_sweep" \
+    python3 run_freq_sweep.py $TEST_FLAG \
+    --benchmarks tpch h2o \
+    --resume
 
 echo ""
 echo "========================================================================"
-if [ "$TEST_MODE" -eq 1 ]; then
-    echo "  SMOKE TEST COMPLETE"
-else
-    echo "  ALL BENCHMARKS COMPLETE"
-fi
+echo "  ALL BENCHMARKS COMPLETE ($MODE MODE)"
 echo "  Finished: $(date)"
-echo "  Results: $RESULTS_DIR"
-echo "  Logs: $LOG_DIR"
+echo "  Results:  $RESULTS_DIR"
+echo "  Logs:     $LOG_DIR"
 echo "========================================================================"

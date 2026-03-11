@@ -12,43 +12,37 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from hw_detect import (
+    detect_gpu, detect_cpu, gpu_sm_clock_levels, cpu_freq_levels,
+    set_gpu_sm_clock, reset_gpu_clocks, set_cpu_freq, reset_cpu_freq,
+)
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 MAXIMUS_DIR = SCRIPT_DIR.parent.parent
-GPU_ID = "1"
 RESULTS_BASE = MAXIMUS_DIR / "results" / "freq_sweep"
 TARGET_TIME = 10
 
-CONFIGS_TO_FIX = [
-    {"name": "gpu_low",   "cpu_perf_pct": 100, "no_turbo": 0, "gpu_clk": 180},
-    {"name": "both_low",  "cpu_perf_pct": 18,  "no_turbo": 1, "gpu_clk": 180},
-]
-
-
-def sudo_cmd(cmd_str):
-    subprocess.run(
-        ["sudo", "bash", "-c", cmd_str],
-        text=True, capture_output=True)
+# Detected at startup in main().
+GPU_ID: str = "0"
+CONFIGS_TO_FIX: list[dict] = []
 
 
 def set_freq_config(cfg):
-    pct = cfg["cpu_perf_pct"]
-    nt = cfg["no_turbo"]
-    sudo_cmd(f"echo {pct} > /sys/devices/system/cpu/intel_pstate/max_perf_pct")
-    sudo_cmd(f"echo {nt} > /sys/devices/system/cpu/intel_pstate/no_turbo")
+    gpu_id_int = int(GPU_ID)
+    if cfg.get("cpu_freq_khz") is not None:
+        set_cpu_freq(cfg["cpu_freq_khz"])
     if cfg["gpu_clk"] is not None:
-        sudo_cmd(f"nvidia-smi -i {GPU_ID} -lgc {cfg['gpu_clk']},{cfg['gpu_clk']}")
+        set_gpu_sm_clock(gpu_id_int, cfg["gpu_clk"])
     else:
-        sudo_cmd(f"nvidia-smi -i {GPU_ID} -rgc")
+        reset_gpu_clocks(gpu_id_int)
     time.sleep(2)
-    actual_pct = Path("/sys/devices/system/cpu/intel_pstate/max_perf_pct").read_text().strip()
     gpu_clk_str = f"{cfg['gpu_clk']}MHz" if cfg['gpu_clk'] else "auto"
-    print(f"  [FREQ] CPU: max_perf={actual_pct}% | GPU: {gpu_clk_str}")
+    print(f"  [FREQ] CPU freq_khz={cfg.get('cpu_freq_khz', 'max')} | GPU: {gpu_clk_str}")
 
 
 def restore_defaults():
-    sudo_cmd("echo 100 > /sys/devices/system/cpu/intel_pstate/max_perf_pct")
-    sudo_cmd("echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo")
-    sudo_cmd(f"nvidia-smi -i {GPU_ID} -rgc")
+    reset_cpu_freq()
+    reset_gpu_clocks(int(GPU_ID))
     print("  [FREQ] Restored defaults")
 
 
@@ -72,9 +66,25 @@ def run_metrics(script_name, benchmarks, results_dir, extra_args=None):
 
 
 def main():
+    global GPU_ID, CONFIGS_TO_FIX
+
+    # Auto-detect hardware
+    gpu_info = detect_gpu()
+    cpu_info = detect_cpu()
+    GPU_ID = str(gpu_info["index"])
+    gpu_low_clk = gpu_sm_clock_levels(gpu_info)[0]
+    cpu_low_freq = cpu_freq_levels(cpu_info)[0]
+    cpu_max_freq = cpu_info["max_freq_khz"]
+
+    CONFIGS_TO_FIX = [
+        {"name": "gpu_low",   "cpu_freq_khz": cpu_max_freq, "gpu_clk": gpu_low_clk},
+        {"name": "both_low",  "cpu_freq_khz": cpu_low_freq, "gpu_clk": gpu_low_clk},
+    ]
+
     total_start = time.time()
     print(f"\n{'='*70}")
     print(f"  FREQ SWEEP FIX — re-run failed configs")
+    print(f"  [HW] GPU #{GPU_ID}: {gpu_info['name']}, low SM clock={gpu_low_clk}MHz")
     print(f"  Started: {datetime.now()}")
     print(f"{'='*70}\n")
 
