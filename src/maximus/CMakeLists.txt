@@ -148,12 +148,24 @@ endif()
 
 target_include_directories(maximus PUBLIC $<BUILD_INTERFACE:${maximus_SOURCE_DIR}/src> ${MAXIMUS_EXTERNAL_INCLUDE_DIRS})
 if (MAXIMUS_WITH_CUDA)
-    set(_rmm_inc "${RMM_INCLUDE_DIR}")
-    if(NOT _rmm_inc)
-        set(_rmm_inc "/usr/local/lib/python3.12/dist-packages/librmm/include")
+    # Auto-detect RMM/cudf include from pip site-packages if not already set
+    if(NOT RMM_INCLUDE_DIR)
+        execute_process(
+            COMMAND python3 -c "import sysconfig; print(sysconfig.get_path('purelib'))"
+            OUTPUT_VARIABLE _PY_SITE_LOCAL OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET)
+        if(_PY_SITE_LOCAL)
+            foreach(_candidate "${_PY_SITE_LOCAL}/librmm/include" "${_PY_SITE_LOCAL}/rmm/include")
+                if(EXISTS "${_candidate}/rmm")
+                    set(RMM_INCLUDE_DIR "${_candidate}")
+                    message(STATUS "Auto-detected RMM include (sub): ${_candidate}")
+                    break()
+                endif()
+            endforeach()
+        endif()
     endif()
-    if(_rmm_inc)
-        target_include_directories(maximus PUBLIC "${_rmm_inc}")
+    if(RMM_INCLUDE_DIR)
+        target_include_directories(maximus PUBLIC "${RMM_INCLUDE_DIR}")
     endif()
 endif()
 
