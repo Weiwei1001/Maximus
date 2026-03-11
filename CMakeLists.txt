@@ -144,13 +144,19 @@ if (MAXIMUS_WITH_CUDA STREQUAL "ON")
     enable_language(CUDA)
     set(RMM_INCLUDE_DIR "" CACHE PATH "RMM include directory (e.g. from pip librmm)")
     find_package(cudf REQUIRED)
-    # pip libcudf depends on libkvikio; ensure linker can find it
-    foreach(_base "/usr/local/lib/python3.10/dist-packages" "/usr/local/lib/python3.12/dist-packages" "$ENV{HOME}/.local/lib/python3.12/site-packages")
-        if(EXISTS "${_base}/libkvikio/lib64")
-            link_directories("${_base}/libkvikio/lib64")
-            break()
-        endif()
-    endforeach()
+    # pip libcudf depends on libkvikio; auto-detect site-packages path
+    execute_process(
+        COMMAND python3 -c "import sysconfig; print(sysconfig.get_path('purelib'))"
+        OUTPUT_VARIABLE _PY_SITE OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET)
+    if(_PY_SITE)
+        foreach(_subdir "libkvikio/lib64" "libkvikio/lib")
+            if(EXISTS "${_PY_SITE}/${_subdir}")
+                link_directories("${_PY_SITE}/${_subdir}")
+                break()
+            endif()
+        endforeach()
+    endif()
     list(APPEND MAXIMUS_EXTERNAL_LIBS cudf::cudf rmm::rmm)
     if(RMM_INCLUDE_DIR AND EXISTS "${RMM_INCLUDE_DIR}/rmm")
         list(APPEND MAXIMUS_EXTERNAL_INCLUDE_DIRS "${RMM_INCLUDE_DIR}")
