@@ -517,6 +517,43 @@ def _base_benchmark_name(benchmark: str) -> str:
     return benchmark
 
 
+def ensure_test_data() -> None:
+    """Create symlinks so every benchmark/SF combination has a data directory.
+
+    For test mode: if csv-{sf} doesn't exist but csv or csv-0.01 does,
+    create a symlink csv-{sf} -> csv (or csv-0.01).  This allows the test
+    to exercise every scale factor slot without requiring full-size data.
+    """
+    benchmarks = _build_benchmarks(large_gpu=False, test_mode=False)
+    for bench, cfg in benchmarks.items():
+        base = _base_benchmark_name(bench)
+        bench_dir = MAXIMUS_DIR / "tests" / base
+        if not bench_dir.exists():
+            continue
+
+        # Find the best available source directory
+        source = None
+        for candidate in ("csv", "csv-0.01", "csv-1"):
+            p = bench_dir / candidate
+            if p.exists() and not p.is_symlink():
+                source = p
+                break
+        # Also check any existing csv-* directory
+        if source is None:
+            for p in sorted(bench_dir.iterdir()):
+                if p.is_dir() and p.name.startswith("csv") and not p.is_symlink():
+                    source = p
+                    break
+        if source is None:
+            continue
+
+        for sf in cfg["scale_factors"]:
+            target = bench_dir / f"csv-{sf}"
+            if not target.exists():
+                target.symlink_to(source.name)
+                print(f"  [TEST] Symlink: {target} -> {source.name}")
+
+
 def maximus_data_dir(benchmark: str, sf: int | str) -> Path:
     """Return the Maximus CSV data directory for a benchmark and scale factor.
 
@@ -623,4 +660,8 @@ def _print_hardware_info() -> None:
 
 
 if __name__ == "__main__":
-    _print_hardware_info()
+    import sys as _sys
+    if "--ensure-test-data" in _sys.argv:
+        ensure_test_data()
+    else:
+        _print_hardware_info()

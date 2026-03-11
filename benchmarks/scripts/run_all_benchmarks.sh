@@ -28,6 +28,11 @@ done
 MODE="FULL"
 [ -n "$TEST_FLAG" ] && MODE="TEST"
 
+# In test mode, create symlinks so every SF has a data directory
+if [ "$MODE" = "TEST" ]; then
+    python3 "$SCRIPT_DIR/hw_detect.py" --ensure-test-data 2>&1 || true
+fi
+
 echo "========================================================================"
 echo "  BENCHMARK SUITE ($MODE MODE)"
 echo "  Started: $(date)"

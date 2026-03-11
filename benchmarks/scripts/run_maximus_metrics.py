@@ -290,13 +290,22 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
 
         min_ms = min(times) if times else 0
         avg_ms = sum(times) / len(times) if times else 0
-        energy_j = avg_power * (min_ms / 1000) if min_ms > 0 else 0  # per-query GPU energy
-        cpu_energy_j = avg_cpu_pkg_w * (min_ms / 1000) if min_ms > 0 else 0  # per-query CPU energy
+        # Per-query time: use elapsed/n_reps for sub-ms queries where int ms rounds to 0
+        if min_ms > 0:
+            query_time_s = min_ms / 1000.0
+        elif n_reps > 0 and elapsed > 0:
+            query_time_s = elapsed / n_reps
+        else:
+            query_time_s = 0
+        energy_j = avg_power * query_time_s        # per-query GPU energy
+        cpu_energy_j = avg_cpu_pkg_w * query_time_s  # per-query CPU energy
 
         summaries.append({
             "run_id": run_id, "benchmark": benchmark, "sf": sf, "query": q,
             "storage": storage, "n_reps": n_reps,
-            "min_ms": min_ms, "avg_ms": f"{avg_ms:.1f}",
+            "min_ms": min_ms,
+            "query_time_ms": f"{query_time_s * 1000:.4f}",
+            "avg_ms": f"{avg_ms:.1f}",
             "elapsed_s": f"{elapsed:.2f}",
             "num_samples": len(samples),
             "num_steady_samples": len(steady),
@@ -305,15 +314,15 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             "max_mem_mb": f"{max_mem:.0f}",
             "avg_gpu_util": f"{avg_util:.1f}",
             "max_gpu_util": f"{max_util:.0f}",
-            "energy_j": f"{energy_j:.1f}",
+            "energy_j": f"{energy_j:.4f}",
             "avg_cpu_pkg_w": f"{avg_cpu_pkg_w:.1f}",
             "avg_cpu_dram_w": f"{avg_cpu_dram_w:.1f}",
-            "cpu_energy_j": f"{cpu_energy_j:.1f}",
+            "cpu_energy_j": f"{cpu_energy_j:.4f}",
             "status": status,
         })
 
-        print(f"{min_ms}ms, {elapsed:.1f}s, GPU:{avg_power:.0f}W CPU:{avg_cpu_pkg_w:.0f}W, "
-              f"{max_util:.0f}%util, {max_mem:.0f}MB, GPU_E:{energy_j:.0f}J CPU_E:{cpu_energy_j:.0f}J [{status}]")
+        print(f"{query_time_s*1000:.3f}ms, {elapsed:.1f}s, GPU:{avg_power:.0f}W CPU:{avg_cpu_pkg_w:.0f}W, "
+              f"{max_util:.0f}%util, {max_mem:.0f}MB, GPU_E:{energy_j:.4f}J CPU_E:{cpu_energy_j:.4f}J [{status}]")
 
     # ── Save ──────────────────────────────────────────────────────────────
     samples_file = results_dir / f"maximus_{tag}_metrics_samples_{ts}.csv"
@@ -330,7 +339,7 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
     with open(summary_file, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=[
             "run_id", "benchmark", "sf", "query", "storage", "n_reps",
-            "min_ms", "avg_ms", "elapsed_s",
+            "min_ms", "query_time_ms", "avg_ms", "elapsed_s",
             "num_samples", "num_steady_samples",
             "avg_power_w", "max_power_w", "max_mem_mb",
             "avg_gpu_util", "max_gpu_util", "energy_j",

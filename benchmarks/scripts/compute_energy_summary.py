@@ -87,8 +87,14 @@ def load_maximus_summary(path: Path) -> list[dict]:
     with open(path) as f:
         reader = csv.DictReader(f)
         for row in reader:
+            # Use query_time_ms (high precision from elapsed/n_reps) when available,
+            # fall back to min_ms (integer, lossy for sub-ms queries)
+            query_time_ms = float(row.get("query_time_ms", 0) or 0)
             min_ms = float(row.get("min_ms", 0) or 0)
-            min_s = min_ms / 1000.0
+            if query_time_ms > 0:
+                min_s = query_time_ms / 1000.0
+            else:
+                min_s = min_ms / 1000.0
             avg_power = float(row.get("avg_power_w", 0) or 0)
             avg_cpu_pkg = float(row.get("avg_cpu_pkg_w", 0) or 0)
 
