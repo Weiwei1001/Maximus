@@ -1,0 +1,104 @@
+
+======================================================================
+  FREQUENCY SWEEP — ALL BENCHMARKS
+  Configs: baseline, cpu_low, gpu_low, both_low
+  Benchmarks: tpch, h2o, clickbench
+  Target time: 10s per query
+  Resume: False
+  Started: 2026-03-07 11:55:26.182395
+======================================================================
+
+
+======================================================================
+  CONFIG 1/4: baseline
+  CPU=100%, no_turbo=0, GPU=auto
+  ETA: unknown
+======================================================================
+  [FREQ] CPU: max_perf=100%, no_turbo=0, cur=800MHz | GPU: auto
+
+  --- Maximus metrics for baseline ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_maximus_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/baseline --target-time 10
+
+======================================================================
+  FREQUENCY SWEEP — ALL BENCHMARKS
+  Configs: baseline, cpu_low, gpu_low, both_low
+  Benchmarks: tpch, h2o, clickbench
+  Target time: 10s per query
+  Resume: False
+  Started: 2026-03-07 11:55:35.381659
+======================================================================
+
+
+======================================================================
+  CONFIG 1/4: baseline
+  CPU=100%, no_turbo=0, GPU=auto
+  ETA: unknown
+======================================================================
+  [FREQ] CPU: max_perf=100%, no_turbo=0, cur=3885MHz | GPU: auto
+
+  --- Maximus metrics for baseline ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_maximus_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/baseline --target-time 10
+  Maximus: OK in 69.1min
+
+  --- Sirius metrics for baseline ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_sirius_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/baseline --target-time 10
+  Sirius: OK in 29.4min
+  Cooling 10s...
+
+======================================================================
+  CONFIG 2/4: cpu_low
+  CPU=18%, no_turbo=1, GPU=auto
+  ETA: 4:56:08.449606
+======================================================================
+  [FREQ] CPU: max_perf=18%, no_turbo=1, cur=800MHz | GPU: auto
+
+  --- Maximus metrics for cpu_low ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_maximus_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/cpu_low --target-time 10
+  Maximus: OK in 79.3min
+
+  --- Sirius metrics for cpu_low ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_sirius_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/cpu_low --target-time 10
+  Sirius: OK in 56.2min
+  Cooling 10s...
+
+======================================================================
+  CONFIG 3/4: gpu_low
+  CPU=100%, no_turbo=0, GPU=180MHz
+  ETA: 3:54:26.275824
+======================================================================
+  [FREQ] CPU: max_perf=100%, no_turbo=0, cur=4096MHz | GPU: 180MHz
+
+  --- Maximus metrics for gpu_low ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_maximus_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/gpu_low --target-time 10
+  Maximus: FAIL in 120.0min
+
+  --- Sirius metrics for gpu_low ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_sirius_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/gpu_low --target-time 10
+  Sirius: OK in 11.1min
+  Cooling 10s...
+
+======================================================================
+  CONFIG 4/4: both_low
+  CPU=18%, no_turbo=1, GPU=180MHz
+  ETA: 2:01:55.008894
+======================================================================
+  [FREQ] CPU: max_perf=18%, no_turbo=1, cur=800MHz | GPU: 180MHz
+
+  --- Maximus metrics for both_low ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_maximus_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/both_low --target-time 10
+  Maximus: OK in 12.8min
+
+  --- Sirius metrics for both_low ---
+  [RUN] /usr/bin/python /home/xzw/gpu_db/benchmarks/scripts/run_sirius_metrics.py tpch h2o clickbench --results-dir /home/xzw/gpu_db/results/freq_sweep/both_low --target-time 10
+  Sirius: OK in 34.8min
+  Cooling 10s...
+  [FREQ] Restored defaults
+
+======================================================================
+  FREQUENCY SWEEP COMPLETE
+  Total time: 6:53:31
+  Results: /home/xzw/gpu_db/results/freq_sweep/
+  Finished: 2026-03-07 18:49:06.399909
+======================================================================
+
+  Aggregating results...

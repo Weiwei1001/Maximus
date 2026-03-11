@@ -1,0 +1,5 @@
+config,cpu_mhz,gpu_clk_mhz,timing_status,timing_min_s,timing_avg_s,metrics_status,metrics_min_s,metrics_avg_s,avg_gpu_w,max_gpu_w,avg_gpu_util,avg_sm_clk,avg_cpu_w,avg_cpu_dram_w,gpu_energy_j,cpu_energy_j,max_mem_mb
+baseline,4400,auto,OK,0.0390,0.0398,OK,0.0390,0.0400,142.5,192.3,77,2910,108.5,1.8,5.56,4.23,15823
+cpu_low,800,auto,OK,0.0390,0.0398,OK,0.0390,0.0400,151.1,197.2,92,2722,108.2,1.8,5.89,4.22,15819
+gpu_low,4400,180,OK,0.7240,0.7252,OK,0.7240,0.7260,32.3,33.3,100,180,106.7,1.8,23.42,77.22,15823
+both_low,800,180,OK,0.7240,0.7247,OK,0.7240,0.7256,28.3,33.3,60,180,106.9,1.8,20.51,77.38,15823

@@ -1,0 +1,11 @@
+run_id,benchmark,sf,query,n_reps,min_s,avg_s,elapsed_s,num_samples,num_steady_samples,avg_power_w,max_power_w,max_mem_mb,avg_gpu_util,max_gpu_util,gpu_energy_j,avg_cpu_pkg_w,avg_cpu_dram_w,cpu_energy_j,status
+h2o_sf2gb_q1,h2o,2gb,q1,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q10,h2o,2gb,q10,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q2,h2o,2gb,q2,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q3,h2o,2gb,q3,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q4,h2o,2gb,q4,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q5,h2o,2gb,q5,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q6,h2o,2gb,q6,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q7,h2o,2gb,q7,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q8,h2o,2gb,q8,0,,,,0,0,,,,,,,,,,FAIL
+h2o_sf2gb_q9,h2o,2gb,q9,0,,,,0,0,,,,,,,,,,FAIL

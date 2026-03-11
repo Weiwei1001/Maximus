@@ -1,0 +1,1 @@
+run_id,sf,query,time_offset_ms,power_w,gpu_util_pct,mem_used_mb,cpu_pkg_power_w,cpu_dram_power_w
