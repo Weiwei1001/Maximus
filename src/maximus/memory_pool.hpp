@@ -115,7 +115,7 @@ public:
         }
 
         // std::scoped_lock lock{mutex_};
-        void* buf = pool().allocate_async(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment), cudf::get_default_stream());
+        void* buf = pool().allocate(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment));
         if (!buf) {
             return arrow::Status::OutOfMemory("Cannot allocate pinned memory.");
         }
@@ -146,7 +146,7 @@ public:
         assert(buffer);
         void* p = reinterpret_cast<void*>(buffer);
         assert(p);
-        pool().deallocate_async(p, static_cast<std::size_t>(size), static_cast<std::size_t>(alignment), cudf::get_default_stream());
+        pool().deallocate(p, static_cast<std::size_t>(size), static_cast<std::size_t>(alignment));
 
         if (p) {
             assert(bytes_allocated_.load() >= size);

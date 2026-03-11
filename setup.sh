@@ -197,16 +197,7 @@ log "Step 6.5: Applying cuDF 24.12 compatibility patches..."
 
 # Fix 1: RMM header path — now handled by __has_include in context.hpp (no patch needed)
 
-# Fix 2: allocate_sync/deallocate_sync removed in RMM 24.12 -> use async
-sed -i 's|pool()\.allocate_sync(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment))|pool().allocate_async(static_cast<std::size_t>(size), static_cast<std::size_t>(alignment), cudf::get_default_stream())|' \
-    "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"
-sed -i 's|pool()\.deallocate_sync(p, static_cast<std::size_t>(size), static_cast<std::size_t>(alignment))|pool().deallocate_async(p, static_cast<std::size_t>(size), static_cast<std::size_t>(alignment), cudf::get_default_stream())|' \
-    "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"
-# Add cudf stream include if not present
-if ! grep -q "cudf/utilities/default_stream.hpp" "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"; then
-    sed -i '/#include.*arrow\/memory_pool.h/a #include <cudf/utilities/default_stream.hpp>' \
-        "$MAXIMUS_DIR/src/maximus/memory_pool.hpp"
-fi
+# Fix 2: allocate/deallocate — now uses generic pool().allocate() that works with all RMM versions (no patch needed)
 
 # Fix 3: cudf/join/join.hpp -> cudf/join.hpp (header reorganized in cuDF 24.12)
 sed -i 's|#include <cudf/join/join\.hpp>|#include <cudf/join.hpp>|' \
