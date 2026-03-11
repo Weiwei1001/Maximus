@@ -150,6 +150,17 @@ run_step "C2_freq_sweep" \
     --benchmarks tpch h2o \
     --resume
 
+# ══════════════════════════════════════════════════════════════════════════
+#  Energy Summary: aggregate Category A metrics into unified energy report
+# ══════════════════════════════════════════════════════════════════════════
+
+echo ""
+echo "======== ENERGY SUMMARY ========"
+
+run_step "energy_summary" \
+    python3 compute_energy_summary.py --latest --results-dir "$RESULTS_DIR" \
+    --output "$RESULTS_DIR/energy_summary.csv"
+
 echo ""
 echo "========================================================================"
 echo "  ALL BENCHMARKS COMPLETE ($MODE MODE)"
