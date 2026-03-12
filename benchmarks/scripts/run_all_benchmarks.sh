@@ -285,7 +285,7 @@ run_step "B2_maximus_cpu_metrics" \
 # B3: Sirius CPU-data timing + metrics (measured together)
 if has_sirius; then
     run_step "B3_sirius_cpu_data" \
-        python3 run_sirius_cpu_data.py $TEST_FLAG --n-reps 50 --results-dir "$RESULTS_DIR" \
+        python3 run_sirius_cpu_data.py $TEST_FLAG --n-reps 10 --results-dir "$RESULTS_DIR" \
         $ALL_BENCH
 else
     echo "  [SKIP] B3: Sirius CPU-data: binary not found"

@@ -61,7 +61,7 @@ def parse_maxbench_output(output: str) -> dict:
     m = re.search(r"Loading times over repetitions \[ms\]:\s*(.*)", output)
     if m:
         ts = m.group(1).strip().rstrip(",")
-        result["load_times_ms"] = [int(t.strip()) for t in ts.split(",") if t.strip()]
+        result["load_times_ms"] = [float(t.strip()) for t in ts.split(",") if t.strip()]
 
     current_query = None
     for line in output.split("\n"):
@@ -71,7 +71,7 @@ def parse_maxbench_output(output: str) -> dict:
         tm = re.match(r"- MAXIMUS TIMINGS \[ms\]:\s*(.*)", line.strip())
         if tm and current_query:
             ts = tm.group(1).strip().rstrip(",")
-            times = [int(t.strip()) for t in ts.split(",") if t.strip()]
+            times = [float(t.strip()) for t in ts.split(",") if t.strip()]
             result["query_times"][current_query] = times
 
     # Fallback: parse "gpu,maximus,qN,t1,t2,..." summary lines
@@ -80,7 +80,7 @@ def parse_maxbench_output(output: str) -> dict:
             parts = line.strip().split(",")
             if len(parts) >= 4:
                 qname = parts[2]
-                times = [int(t) for t in parts[3:] if t.strip()]
+                times = [float(t) for t in parts[3:] if t.strip()]
                 if qname not in result["query_times"]:
                     result["query_times"][qname] = times
     return result

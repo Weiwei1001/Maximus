@@ -100,7 +100,7 @@ def parse_timing(output, query):
     match = re.search(pattern, output)
     if match:
         times_str = match.group(1).rstrip(",")
-        return [int(t) for t in times_str.split(",") if t.strip()]
+        return [float(t) for t in times_str.split(",") if t.strip()]
     return []
 
 

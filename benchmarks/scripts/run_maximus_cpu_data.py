@@ -112,7 +112,7 @@ def parse_maxbench_output(output):
             parts = line.strip().split(",")
             if len(parts) >= 4:
                 qname = parts[2]
-                times = [int(t) for t in parts[3:] if t.strip()]
+                times = [float(t) for t in parts[3:] if t.strip()]
                 result["query_times"][qname] = times
     # Also parse MAXIMUS TIMINGS
     current_query = None
@@ -123,7 +123,7 @@ def parse_maxbench_output(output):
         tm = re.match(r"- MAXIMUS TIMINGS \[ms\]:\s*(.*)", line.strip())
         if tm and current_query:
             ts = tm.group(1).strip().rstrip(",")
-            times = [int(t.strip()) for t in ts.split(",") if t.strip()]
+            times = [float(t.strip()) for t in ts.split(",") if t.strip()]
             if current_query not in result["query_times"]:
                 result["query_times"][current_query] = times
     return result
