@@ -60,8 +60,11 @@ N_PASSES = 3
 BATCH_SIZE = 10       # queries per batch (avoids OOM)
 QUERY_TIMEOUT_S = 60  # per-query timeout; >60s = FALLBACK
 
-# Sirius-supported benchmarks only (no microbench)
-_SIRIUS_BENCHMARKS = {"tpch", "h2o", "clickbench"}
+# Sirius-supported benchmarks (standard + microbench)
+_SIRIUS_BENCHMARKS = {
+    "tpch", "h2o", "clickbench",
+    "microbench_tpch", "microbench_h2o", "microbench_clickbench",
+}
 
 RE_RUN_TIME = re.compile(r"Run Time \(s\):\s*real\s+([\d.]+)", re.IGNORECASE)
 RE_MARKER = re.compile(r"===MARKER (\S+)===")

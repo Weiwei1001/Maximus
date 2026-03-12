@@ -543,10 +543,14 @@ def sirius_db_path(benchmark: str, sf: int | str) -> Path:
 def sirius_query_dir(benchmark: str) -> Path:
     """Return the directory containing Sirius SQL query files.
 
-    Example: sirius_query_dir("tpch") -> {MAXIMUS_DIR}/tests/tpch_sql/queries/1/
+    Example: sirius_query_dir("tpch")           -> {MAXIMUS_DIR}/tests/tpch_sql/queries/1/
+             sirius_query_dir("microbench_tpch") -> {MAXIMUS_DIR}/tests/microbench_tpch_sql/queries/1/
     """
-    base = _base_benchmark_name(benchmark)
-    dir_name = "click_sql" if base == "clickbench" else f"{base}_sql"
+    if benchmark.startswith("microbench_"):
+        dir_name = f"{benchmark}_sql"
+    else:
+        base = _base_benchmark_name(benchmark)
+        dir_name = "click_sql" if base == "clickbench" else f"{base}_sql"
     return MAXIMUS_DIR / "tests" / dir_name / "queries" / "1"
 
 

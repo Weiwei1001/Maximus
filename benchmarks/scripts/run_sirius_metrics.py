@@ -65,8 +65,11 @@ TARGET_TIME_S = 60
 MIN_REPS = 3
 CALIBRATION_REPS = 3  # run 3 reps in calibration to separate buffer_init from query time
 
-# Sirius-supported benchmarks only (no microbench)
-_SIRIUS_BENCHMARKS = {"tpch", "h2o", "clickbench"}
+# Sirius-supported benchmarks (standard + microbench)
+_SIRIUS_BENCHMARKS = {
+    "tpch", "h2o", "clickbench",
+    "microbench_tpch", "microbench_h2o", "microbench_clickbench",
+}
 
 RE_RUN_TIME = re.compile(r"Run Time \(s\):\s*real\s+([\d.]+)", re.IGNORECASE)
 

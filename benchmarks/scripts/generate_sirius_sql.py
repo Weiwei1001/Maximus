@@ -28,31 +28,31 @@ CLICK_BUFFER = 'call gpu_buffer_init("10 GB", "10 GB");'
 # Each entry is (filename, [list of gpu_processing calls])
 # Most queries have a single gpu_processing call; q11 has two (threshold + main).
 TPCH_QUERIES = [
-    ("q01.sql", [
+    ("q1.sql", [
         'call gpu_processing("SELECT l_returnflag, l_linestatus, sum(l_quantity) AS sum_qty, sum(l_extendedprice) AS sum_base_price, sum(l_extendedprice * (1 - l_discount)) AS sum_disc_price, sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) AS sum_charge, avg(l_quantity) AS avg_qty, avg(l_extendedprice) AS avg_price, avg(l_discount) AS avg_disc, count(*) AS count_order FROM lineitem WHERE l_shipdate <= CAST(\'1998-09-02\' AS date) GROUP BY l_returnflag, l_linestatus ORDER BY l_returnflag, l_linestatus;");',
     ]),
-    ("q02.sql", [
+    ("q2.sql", [
         'call gpu_processing("SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment FROM part, supplier, partsupp, nation, region WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = 15 AND p_type LIKE \'%BRASS\' AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = \'EUROPE\' AND ps_supplycost = ( SELECT min(ps_supplycost) FROM partsupp, supplier, nation, region WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = \'EUROPE\') ORDER BY s_acctbal DESC, n_name, s_name, p_partkey LIMIT 100;");',
     ]),
-    ("q03.sql", [
+    ("q3.sql", [
         'call gpu_processing("SELECT l_orderkey, sum(l_extendedprice * (1 - l_discount)) AS revenue, o_orderdate, o_shippriority FROM customer, orders, lineitem WHERE c_mktsegment = \'BUILDING\' AND c_custkey = o_custkey AND l_orderkey = o_orderkey AND o_orderdate < CAST(\'1995-03-15\' AS date) AND l_shipdate > CAST(\'1995-03-15\' AS date) GROUP BY l_orderkey, o_orderdate, o_shippriority ORDER BY revenue DESC, o_orderdate LIMIT 10;");',
     ]),
-    ("q04.sql", [
+    ("q4.sql", [
         'call gpu_processing("SELECT o_orderpriority, count(*) AS order_count FROM orders WHERE o_orderdate >= CAST(\'1993-07-01\' AS date) AND o_orderdate < CAST(\'1993-10-01\' AS date) AND EXISTS ( SELECT * FROM lineitem WHERE l_orderkey = o_orderkey AND l_commitdate < l_receiptdate) GROUP BY o_orderpriority ORDER BY o_orderpriority;");',
     ]),
-    ("q05.sql", [
+    ("q5.sql", [
         'call gpu_processing("SELECT n_name, sum(l_extendedprice * (1 - l_discount)) AS revenue FROM customer, orders, lineitem, supplier, nation, region WHERE c_custkey = o_custkey AND l_orderkey = o_orderkey AND l_suppkey = s_suppkey AND c_nationkey = s_nationkey AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey AND r_name = \'ASIA\' AND o_orderdate >= CAST(\'1994-01-01\' AS date) AND o_orderdate < CAST(\'1995-01-01\' AS date) GROUP BY n_name ORDER BY revenue DESC;");',
     ]),
-    ("q06.sql", [
+    ("q6.sql", [
         'call gpu_processing("SELECT sum(l_extendedprice * l_discount) AS revenue FROM lineitem WHERE l_shipdate >= CAST(\'1994-01-01\' AS date) AND l_shipdate < CAST(\'1995-01-01\' AS date) AND l_discount BETWEEN 0.05 AND 0.07 AND l_quantity < 24;");',
     ]),
-    ("q07.sql", [
+    ("q7.sql", [
         'call gpu_processing("SELECT supp_nation, cust_nation, l_year, sum(volume) AS revenue FROM ( SELECT n1.n_name AS supp_nation, n2.n_name AS cust_nation, extract(year FROM l_shipdate) AS l_year, l_extendedprice * (1 - l_discount) AS volume FROM supplier, lineitem, orders, customer, nation n1, nation n2 WHERE s_suppkey = l_suppkey AND o_orderkey = l_orderkey AND c_custkey = o_custkey AND s_nationkey = n1.n_nationkey AND c_nationkey = n2.n_nationkey AND ((n1.n_name = \'FRANCE\' AND n2.n_name = \'GERMANY\') OR (n1.n_name = \'GERMANY\' AND n2.n_name = \'FRANCE\')) AND l_shipdate BETWEEN CAST(\'1995-01-01\' AS date) AND CAST(\'1996-12-31\' AS date)) AS shipping GROUP BY supp_nation, cust_nation, l_year ORDER BY supp_nation, cust_nation, l_year;");',
     ]),
-    ("q08.sql", [
+    ("q8.sql", [
         'call gpu_processing("SELECT o_year, sum( CASE WHEN nation = \'BRAZIL\' THEN volume ELSE 0 END) / sum(volume) AS mkt_share FROM ( SELECT extract(year FROM o_orderdate) AS o_year, l_extendedprice * (1 - l_discount) AS volume, n2.n_name AS nation FROM part, supplier, lineitem, orders, customer, nation n1, nation n2, region WHERE p_partkey = l_partkey AND s_suppkey = l_suppkey AND l_orderkey = o_orderkey AND o_custkey = c_custkey AND c_nationkey = n1.n_nationkey AND n1.n_regionkey = r_regionkey AND r_name = \'AMERICA\' AND s_nationkey = n2.n_nationkey AND o_orderdate BETWEEN CAST(\'1995-01-01\' AS date) AND CAST(\'1996-12-31\' AS date) AND p_type = \'ECONOMY ANODIZED STEEL\') AS all_nations GROUP BY o_year ORDER BY o_year;");',
     ]),
-    ("q09.sql", [
+    ("q9.sql", [
         'call gpu_processing("SELECT nation, o_year, sum(amount) AS sum_profit FROM ( SELECT n_name AS nation, extract(year FROM o_orderdate) AS o_year, l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity AS amount FROM part, supplier, lineitem, partsupp, orders, nation WHERE s_suppkey = l_suppkey AND ps_suppkey = l_suppkey AND ps_partkey = l_partkey AND p_partkey = l_partkey AND o_orderkey = l_orderkey AND s_nationkey = n_nationkey AND p_name LIKE \'%green%\') AS profit GROUP BY nation, o_year ORDER BY nation, o_year DESC;");',
     ]),
     ("q10.sql", [
@@ -278,6 +278,35 @@ def write_queries(output_dir: str, subdir: str, buffer_init: str, queries: list)
         print(f"  {subdir}/queries/1/{fname}")
 
 
+def load_microbench_queries(microbench_dir: str, benchmark: str) -> list:
+    """Read microbench SQL files from microbench/{benchmark}/ and wrap in gpu_processing().
+
+    Each .sql file (excluding _all_*) becomes one Sirius query file.
+    The query name is derived from the filename prefix (e.g., w1_002).
+    """
+    src_dir = os.path.join(microbench_dir, benchmark)
+    if not os.path.isdir(src_dir):
+        return []
+    queries = []
+    for sql_file in sorted(os.listdir(src_dir)):
+        if not sql_file.endswith(".sql") or sql_file.startswith("_"):
+            continue
+        # Extract query name: w1_002_orders_table_count__sum.sql -> w1_002
+        parts = sql_file.replace(".sql", "").split("_", 2)
+        qname = "_".join(parts[:2]) if len(parts) >= 2 else parts[0]
+        filepath = os.path.join(src_dir, sql_file)
+        with open(filepath) as f:
+            lines = f.read().strip().splitlines()
+        # Extract actual SQL (skip comment lines)
+        sql_lines = [l.strip() for l in lines if l.strip() and not l.strip().startswith("--")]
+        sql_text = " ".join(sql_lines)
+        # Escape single quotes for gpu_processing wrapper
+        sql_escaped = sql_text.replace("'", "\\'")
+        gpu_line = f"call gpu_processing(\"{sql_escaped}\");"
+        queries.append((f"{qname}.sql", [gpu_line]))
+    return queries
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate Sirius GPU SQL files")
     parser.add_argument("--output-dir", default="/workspace",
@@ -285,18 +314,43 @@ def main():
     args = parser.parse_args()
 
     out = args.output_dir
+    # Locate microbench source directory (relative to this script's repo root)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.join(script_dir, "..", "..")
+    microbench_dir = os.path.join(repo_root, "microbench")
+
     print("Generating Sirius GPU query SQL files...")
 
+    total = 0
+
+    # Standard benchmarks
     print(f"\n  TPC-H ({len(TPCH_QUERIES)} queries):")
     write_queries(out, "tpch_sql", TPCH_BUFFER, TPCH_QUERIES)
+    total += len(TPCH_QUERIES)
 
     print(f"\n  H2O ({len(H2O_QUERIES)} queries):")
     write_queries(out, "h2o_sql", H2O_BUFFER, H2O_QUERIES)
+    total += len(H2O_QUERIES)
 
     print(f"\n  ClickBench ({len(CLICK_QUERIES)} queries):")
     write_queries(out, "click_sql", CLICK_BUFFER, CLICK_QUERIES)
+    total += len(CLICK_QUERIES)
 
-    total = len(TPCH_QUERIES) + len(H2O_QUERIES) + len(CLICK_QUERIES)
+    # Microbenchmarks (read from microbench/ source directory)
+    MICROBENCH_MAP = {
+        "tpch": ("microbench_tpch_sql", TPCH_BUFFER),
+        "h2o": ("microbench_h2o_sql", H2O_BUFFER),
+        "clickbench": ("microbench_clickbench_sql", CLICK_BUFFER),
+    }
+    for bench, (subdir, buf_init) in MICROBENCH_MAP.items():
+        mb_queries = load_microbench_queries(microbench_dir, bench)
+        if mb_queries:
+            print(f"\n  Microbench {bench} ({len(mb_queries)} queries):")
+            write_queries(out, subdir, buf_init, mb_queries)
+            total += len(mb_queries)
+        else:
+            print(f"\n  Microbench {bench}: no SQL files found in {microbench_dir}/{bench}/")
+
     print(f"\nDone: {total} SQL files generated in {out}/")
 
 

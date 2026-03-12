@@ -546,7 +546,7 @@ def main():
     # Auto-detect GPU hardware
     _GPU_INFO = detect_gpu()
     GPU_ID = str(_GPU_INFO["index"])
-    DEFAULT_POWER_LIMITS = gpu_power_levels(_GPU_INFO, n=6)
+    DEFAULT_POWER_LIMITS = gpu_power_levels(_GPU_INFO, n=3)
     DEFAULT_SM_CLOCKS = gpu_sm_clock_levels(_GPU_INFO, n=5)
     print(f"  [HW] Detected GPU #{GPU_ID}: {_GPU_INFO['name']}")
     print(f"  [HW] Power levels: {DEFAULT_POWER_LIMITS}")

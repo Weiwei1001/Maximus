@@ -61,8 +61,11 @@ GPU_ID = str(_gpu_info["index"])
 BUFFER_INIT = buffer_init_sql(_gpu_info["vram_mb"])
 N_REPS = 50  # 1st = CPU data, rest = GPU cached; enough reps for steady-state power
 
-# Sirius-supported benchmarks only (no microbench)
-_SIRIUS_BENCHMARKS = {"tpch", "h2o", "clickbench"}
+# Sirius-supported benchmarks (standard + microbench)
+_SIRIUS_BENCHMARKS = {
+    "tpch", "h2o", "clickbench",
+    "microbench_tpch", "microbench_h2o", "microbench_clickbench",
+}
 
 RE_RUN_TIME = re.compile(r"Run Time \(s\):\s*real\s+([\d.]+)", re.IGNORECASE)
 
