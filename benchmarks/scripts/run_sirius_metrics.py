@@ -4,15 +4,15 @@ Sirius (DuckDB GPU extension) steady-state metrics measurement.
 
 Measures GPU and CPU power consumption for each query under sustained load.
 Methodology:
-  1. Each query runs in its own DuckDB process with gpu_buffer_init
-  2. Calibration: 1 pass to measure base latency
-  3. n_reps calculated so total execution >= TARGET_TIME_S (default 10s)
+  1. Reads per-query timing from a prior timing CSV (run_sirius_benchmark.py output)
+  2. Calculates n_reps so total execution >= TARGET_TIME_S (default 20s)
+  3. Each query runs in its own DuckDB process with gpu_buffer_init
   4. nvidia-smi + RAPL sampled at 50ms intervals during sustained execution
   5. Steady-state detected via GPU utilization threshold
 
 Usage:
     python run_sirius_metrics.py [tpch] [h2o] [clickbench]
-    python run_sirius_metrics.py --target-time 10 --results-dir ./results tpch
+    python run_sirius_metrics.py --target-time 20 --results-dir ./results tpch
 
 Output:
     - sirius_*_metrics_summary.csv: per-query metrics
@@ -61,9 +61,8 @@ _gpu_info = detect_gpu()
 GPU_ID = str(_gpu_info["index"])
 BUFFER_INIT = buffer_init_sql(_gpu_info["vram_mb"])
 QUERY_TIMEOUT_S = 120
-TARGET_TIME_S = 60
+TARGET_TIME_S = 20
 MIN_REPS = 3
-CALIBRATION_REPS = 3  # run 3 reps in calibration to separate buffer_init from query time
 
 # Sirius-supported benchmarks (standard + microbench)
 _SIRIUS_BENCHMARKS = {
@@ -103,6 +102,34 @@ def load_queries(query_dir: Path):
         if gpu_lines:
             queries.append((qname, gpu_lines))
     return queries
+
+
+def load_timing_csv(csv_path: Path) -> dict[tuple[str, str, str], float]:
+    """Load per-query timing from a sirius_benchmark.csv file.
+
+    Returns {(benchmark, sf, query): wall_time_s} for OK queries.
+    """
+    timing = {}
+    if not csv_path.exists():
+        return timing
+    with open(csv_path, newline="") as f:
+        for row in csv.DictReader(f):
+            if row.get("status") != "OK":
+                continue
+            try:
+                t = float(row["wall_time_s"])
+            except (KeyError, ValueError):
+                continue
+            key = (row["benchmark"], str(row["sf"]), row["query"])
+            timing[key] = t
+    return timing
+
+
+def find_timing_csv(results_dir: Path) -> Path | None:
+    """Find the most recent sirius_benchmark.csv in results_dir."""
+    candidates = sorted(results_dir.glob("sirius_benchmark*.csv"),
+                        key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates[0] if candidates else None
 
 
 def build_metrics_sql(qname, gpu_lines, n_reps, buffer_init=BUFFER_INIT):
@@ -188,6 +215,9 @@ def main():
     parser.add_argument("--results-dir", type=str, default=str(DEFAULT_RESULTS_DIR))
     parser.add_argument("--target-time", type=float, default=TARGET_TIME_S)
     parser.add_argument("--buffer-init", type=str, default=BUFFER_INIT)
+    parser.add_argument("--timing-csv", type=str, default=None,
+                        help="Path to sirius_benchmark.csv from a prior timing run. "
+                             "If not given, auto-searches results-dir.")
     parser.add_argument("--test", action="store_true",
                         help="Test mode: use reduced query lists for quick validation")
     args = parser.parse_args()
@@ -203,6 +233,17 @@ def main():
 
     target_time_s = args.target_time
     buffer_init = args.buffer_init
+
+    # Load prior timing results
+    if args.timing_csv:
+        timing_csv_path = Path(args.timing_csv)
+    else:
+        timing_csv_path = find_timing_csv(results_dir)
+    prior_timing = load_timing_csv(timing_csv_path) if timing_csv_path else {}
+    if prior_timing:
+        print(f"  Loaded {len(prior_timing)} timing entries from {timing_csv_path}")
+    else:
+        print(f"  WARNING: No prior timing CSV found — will run calibration as fallback")
 
     # Build dynamic benchmark config from hw_detect
     bench_config = get_benchmark_config(_gpu_info["vram_mb"], test_mode=args.test)
@@ -241,58 +282,54 @@ def main():
             print(f"  DB: {db_path}")
             print(f"{'=' * 70}")
 
-            # Phase 1: Calibration - run CALIBRATION_REPS reps to separate
-            # buffer_init time from per-query time
-            print(f"\n--- Phase 1: Calibration ({CALIBRATION_REPS} reps each) ---")
+            # Calculate n_reps from prior timing CSV (or fallback calibration)
+            print(f"\n--- Calculate n_reps (target={target_time_s}s) ---")
             calibration = {}
             for qname, gpu_lines in queries:
-                print(f"  {qname}...", end=" ", flush=True)
-                stdout, elapsed, rc = run_sirius_query(
-                    duckdb_bin, db_path, qname, gpu_lines, CALIBRATION_REPS,
-                    buffer_init, QUERY_TIMEOUT_S)
-                times = parse_query_times(stdout)
-                has_fallback = "fallback" in stdout.lower()
-
-                if rc == -1:
-                    calibration[qname] = {"time_s": -1, "query_time_s": -1, "status": "TIMEOUT"}
-                    print("TIMEOUT")
-                elif not times or has_fallback:
-                    calibration[qname] = {"time_s": -1, "query_time_s": -1,
-                                          "status": "FALLBACK" if has_fallback else "FAIL"}
-                    print(f"{'FALLBACK' if has_fallback else 'FAIL'}")
-                else:
-                    # times[0] = buffer_init, times[1] = 1st query (with data transfer),
-                    # times[2:] = cached queries (GPU-only compute)
-                    total = sum(times)
-                    query_times = times[1:]  # exclude buffer_init
-                    if len(query_times) >= 2:
-                        # Use min of cached runs (times[2:]) as per-query time
-                        cached_times = query_times[1:]
-                        per_query = min(cached_times) if cached_times else query_times[0]
-                    else:
-                        per_query = query_times[0] if query_times else total
+                key = (bench_name, str(sf), qname)
+                prior_t = prior_timing.get(key)
+                if prior_t is not None and prior_t > 0:
+                    n_reps = max(MIN_REPS, math.ceil(target_time_s / prior_t))
                     calibration[qname] = {
-                        "time_s": total,
-                        "query_time_s": per_query,
+                        "query_time_s": prior_t,
+                        "n_reps": n_reps,
                         "status": "OK",
                     }
-                    print(f"total={total:.3f}s, per_query={per_query:.4f}s "
-                          f"(1st={query_times[0]:.4f}s)")
-
-            # Phase 2: Calculate n_reps based on PER-QUERY time (not total incl. buffer_init)
-            print(f"\n--- Phase 2: Calculate n_reps (target={target_time_s}s) ---")
-            for qname, _ in queries:
-                cal = calibration[qname]
-                if cal["query_time_s"] > 0 and cal["status"] == "OK":
-                    cal["n_reps"] = max(MIN_REPS, math.ceil(target_time_s / cal["query_time_s"]))
+                    est_s = n_reps * prior_t
+                    print(f"  {qname}: {prior_t:.4f}s x {n_reps} reps = {est_s:.1f}s (from timing CSV)")
                 else:
-                    cal["n_reps"] = 0  # skip failed queries
-                est_s = cal["n_reps"] * max(cal["query_time_s"], 0)
-                print(f"  {qname}: {cal['query_time_s']:.4f}s x {cal['n_reps']} reps = {est_s:.1f}s "
-                      f"({cal['status']})")
+                    # Fallback: run a single calibration rep
+                    print(f"  {qname}: no prior timing, calibrating...", end=" ", flush=True)
+                    stdout, elapsed, rc = run_sirius_query(
+                        duckdb_bin, db_path, qname, gpu_lines, 3,
+                        buffer_init, QUERY_TIMEOUT_S)
+                    times = parse_query_times(stdout)
+                    has_fallback = "fallback" in stdout.lower()
 
-            # Phase 3: Metrics run with nvidia-smi + RAPL sampling
-            print(f"\n--- Phase 3: Metrics run with power sampling ---")
+                    if rc == -1:
+                        calibration[qname] = {"query_time_s": -1, "n_reps": 0, "status": "TIMEOUT"}
+                        print("TIMEOUT")
+                    elif not times or has_fallback:
+                        calibration[qname] = {"query_time_s": -1, "n_reps": 0,
+                                              "status": "FALLBACK" if has_fallback else "FAIL"}
+                        print(f"{'FALLBACK' if has_fallback else 'FAIL'}")
+                    else:
+                        query_times = times[1:]  # exclude buffer_init
+                        if len(query_times) >= 2:
+                            per_query = min(query_times[1:]) if query_times[1:] else query_times[0]
+                        else:
+                            per_query = query_times[0] if query_times else sum(times)
+                        n_reps = max(MIN_REPS, math.ceil(target_time_s / per_query)) if per_query > 0 else MIN_REPS
+                        calibration[qname] = {
+                            "query_time_s": per_query,
+                            "n_reps": n_reps,
+                            "status": "OK",
+                        }
+                        est_s = n_reps * per_query
+                        print(f"{per_query:.4f}s x {n_reps} reps = {est_s:.1f}s (calibrated)")
+
+            # Metrics run with nvidia-smi + RAPL sampling
+            print(f"\n--- Metrics run with power sampling ---")
             all_samples = []
             summaries = []
 

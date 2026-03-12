@@ -259,7 +259,7 @@ run_step "A3_maximus_metrics" \
 # A4: Sirius metrics (standard SQL only)
 if has_sirius; then
     run_step "A4_sirius_metrics" \
-        python3 run_sirius_metrics.py $TEST_FLAG --target-time 60 --results-dir "$RESULTS_DIR" \
+        python3 run_sirius_metrics.py $TEST_FLAG --target-time 20 --results-dir "$RESULTS_DIR" \
         $ALL_BENCH
 else
     echo "  [SKIP] A4: Sirius metrics: binary not found"
