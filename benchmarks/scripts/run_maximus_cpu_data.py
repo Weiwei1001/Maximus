@@ -44,6 +44,20 @@ TARGET_TIME_S = 10
 MIN_REPS = 3
 CALIBRATION_REPS = 3
 
+
+def load_timing_from_csv(csv_path, benchmark, sf):
+    """Load per-query min_ms from B1 timing CSV, keyed by query name."""
+    result = {}
+    with open(csv_path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if (row["benchmark"] == benchmark
+                    and str(row["sf"]) == str(sf)
+                    and row["status"] == "OK"
+                    and row["min_ms"]):
+                result[row["query"]] = float(row["min_ms"])
+    return result
+
 # RAPL
 RAPL_PKG_PATHS = []
 RAPL_DRAM_PATHS = []
@@ -168,6 +182,8 @@ def main():
     parser.add_argument("--results-dir", type=str, default=str(MAXIMUS_DIR / "results"))
     parser.add_argument("--target-time", type=float, default=TARGET_TIME_S)
     parser.add_argument("--timing-only", action="store_true", help="Skip metrics, only timing")
+    parser.add_argument("--timing-csv", type=str, default=None,
+                        help="Path to B1 timing CSV (skip calibration, metrics only)")
     parser.add_argument("--test", action="store_true",
                         help="Quick test with 3 queries per benchmark")
     args = parser.parse_args()
@@ -210,40 +226,54 @@ def main():
             print(f"{'=' * 70}")
 
             # --- TIMING: run all queries together ---
-            print(f"\n--- Timing ({CALIBRATION_REPS} reps, -s cpu) ---")
-            timeout = max(300, 120 * len(queries))
-            output, rc = run_maxbench(bench_name, queries, CALIBRATION_REPS,
-                                      data_path, storage="cpu", timeout=timeout)
-            parsed = parse_maxbench_output(output)
+            # When --timing-csv is provided, skip the timing run and load from CSV
+            timing_from_csv = None
+            if args.timing_csv and os.path.exists(args.timing_csv):
+                timing_from_csv = load_timing_from_csv(args.timing_csv, bench_name, sf)
 
-            # Retry missing individually
-            if len(parsed["query_times"]) < len(queries) // 2:
-                print(f"  Batch incomplete ({len(parsed['query_times'])}/{len(queries)}), retrying...")
+            if timing_from_csv and not args.timing_only:
+                print(f"\n--- Using pre-computed timing from B1 CSV ---")
+                parsed = {"query_times": {}}
                 for q in queries:
-                    if q not in parsed["query_times"]:
-                        o2, _ = run_maxbench_single(bench_name, q, CALIBRATION_REPS,
-                                                     data_path, storage="cpu", timeout=120)
-                        parsed["query_times"].update(parse_maxbench_output(o2)["query_times"])
+                    if q in timing_from_csv:
+                        print(f"  {q}: {timing_from_csv[q]}ms (from timing CSV)")
+                    else:
+                        print(f"  {q}: not found in timing CSV (skip)")
+            else:
+                print(f"\n--- Timing ({CALIBRATION_REPS} reps, -s cpu) ---")
+                timeout = max(300, 120 * len(queries))
+                output, rc = run_maxbench(bench_name, queries, CALIBRATION_REPS,
+                                          data_path, storage="cpu", timeout=timeout)
+                parsed = parse_maxbench_output(output)
 
-            ok = 0
-            for q in queries:
-                times = parsed["query_times"].get(q, [])
-                if times:
-                    status = "OK"
-                    ok += 1
-                    print(f"  {q}: min={min(times)}ms avg={sum(times)/len(times):.1f}ms [{status}]")
-                else:
-                    status = "FAIL"
-                    print(f"  {q}: NO DATA [{status}]")
-                all_timing_rows.append({
-                    "benchmark": bench_name, "sf": sf, "query": q,
-                    "storage": "cpu", "n_reps": len(times),
-                    "min_ms": min(times) if times else "",
-                    "avg_ms": round(sum(times)/len(times), 2) if times else "",
-                    "max_ms": max(times) if times else "",
-                    "status": status,
-                })
-            print(f"  --- {ok}/{len(queries)} OK")
+                # Retry missing individually
+                if len(parsed["query_times"]) < len(queries) // 2:
+                    print(f"  Batch incomplete ({len(parsed['query_times'])}/{len(queries)}), retrying...")
+                    for q in queries:
+                        if q not in parsed["query_times"]:
+                            o2, _ = run_maxbench_single(bench_name, q, CALIBRATION_REPS,
+                                                         data_path, storage="cpu", timeout=120)
+                            parsed["query_times"].update(parse_maxbench_output(o2)["query_times"])
+
+                ok = 0
+                for q in queries:
+                    times = parsed["query_times"].get(q, [])
+                    if times:
+                        status = "OK"
+                        ok += 1
+                        print(f"  {q}: min={min(times)}ms avg={sum(times)/len(times):.1f}ms [{status}]")
+                    else:
+                        status = "FAIL"
+                        print(f"  {q}: NO DATA [{status}]")
+                    all_timing_rows.append({
+                        "benchmark": bench_name, "sf": sf, "query": q,
+                        "storage": "cpu", "n_reps": len(times),
+                        "min_ms": min(times) if times else "",
+                        "avg_ms": round(sum(times)/len(times), 2) if times else "",
+                        "max_ms": max(times) if times else "",
+                        "status": status,
+                    })
+                print(f"  --- {ok}/{len(queries)} OK")
 
             if args.timing_only:
                 continue
@@ -251,12 +281,18 @@ def main():
             # --- METRICS: per-query with power sampling ---
             print(f"\n--- Metrics with power sampling (-s cpu) ---")
             for q in queries:
-                cal_times = parsed["query_times"].get(q, [])
-                if not cal_times:
-                    print(f"  {q}: SKIP (no timing data)")
-                    continue
-
-                min_ms = min(cal_times)
+                # Use timing CSV data if available, otherwise use calibration run
+                if timing_from_csv:
+                    if q not in timing_from_csv:
+                        print(f"  {q}: SKIP (not in timing CSV)")
+                        continue
+                    min_ms = timing_from_csv[q]
+                else:
+                    cal_times = parsed["query_times"].get(q, [])
+                    if not cal_times:
+                        print(f"  {q}: SKIP (no timing data)")
+                        continue
+                    min_ms = min(cal_times)
                 if min_ms > 0:
                     n_reps = max(MIN_REPS, math.ceil(args.target_time * 1000 / min_ms))
                 else:

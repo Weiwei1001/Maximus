@@ -63,6 +63,20 @@ CALIBRATION_REPS = 3
 TIMEOUT = 300
 
 
+def load_timing_from_csv(csv_path, benchmark, sf):
+    """Load per-query min_ms from A1 timing CSV, keyed by query name."""
+    result = {}
+    with open(csv_path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if (row["benchmark"] == benchmark
+                    and str(row["sf"]) == str(sf)
+                    and row["status"] == "OK"
+                    and row["min_ms"]):
+                result[row["query"]] = float(row["min_ms"])
+    return result
+
+
 def get_env():
     env = os.environ.copy()
     ld = env.get("LD_LIBRARY_PATH", "")
@@ -165,7 +179,7 @@ def sample_gpu_metrics(stop_event, samples, interval=0.05):
 
 
 def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
-                              results_dir, storage="gpu"):
+                              results_dir, storage="gpu", timing_data=None):
     """Run full metrics measurement for one (benchmark, sf) combination."""
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     tag = f"{benchmark}_sf{sf}"
@@ -177,25 +191,35 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
     print(f"{'=' * 70}")
 
     # ── Phase 1: Calibration ──────────────────────────────────────────────
-    # If -s cpu, each rep includes CPU->GPU transfer (data is NOT cached
-    # between reps). If -s gpu OOMs (e.g. SF=20 ClickBench), query is skipped.
-    print(f"\n--- Phase 1: Calibration ({CALIBRATION_REPS} reps, -s {storage}) ---")
     calibration = {}
-    for q in queries:
-        print(f"  {q}...", end=" ", flush=True)
-        output, rc = run_maxbench(benchmark, q, CALIBRATION_REPS, data_path,
-                                  storage=storage)
-        if rc < 0 or "out_of_memory" in output.lower():
-            calibration[q] = {"min_ms": 0, "storage": "oom"}
-            print("OOM (skip)")
-        else:
-            times = parse_timing(output, q)
-            if times:
-                calibration[q] = {"min_ms": min(times), "storage": "gpu"}
-                print(f"{min(times)}ms")
+    if timing_data:
+        print(f"\n--- Phase 1: Using pre-computed timing from A1/B1 ---")
+        for q in queries:
+            if q in timing_data:
+                calibration[q] = {"min_ms": timing_data[q], "storage": storage}
+                print(f"  {q}: {timing_data[q]}ms (from timing CSV)")
             else:
                 calibration[q] = {"min_ms": 0, "storage": "fail"}
-                print("FAIL")
+                print(f"  {q}: not found in timing CSV (skip)")
+    else:
+        # If -s cpu, each rep includes CPU->GPU transfer (data is NOT cached
+        # between reps). If -s gpu OOMs (e.g. SF=20 ClickBench), query is skipped.
+        print(f"\n--- Phase 1: Calibration ({CALIBRATION_REPS} reps, -s {storage}) ---")
+        for q in queries:
+            print(f"  {q}...", end=" ", flush=True)
+            output, rc = run_maxbench(benchmark, q, CALIBRATION_REPS, data_path,
+                                      storage=storage)
+            if rc < 0 or "out_of_memory" in output.lower():
+                calibration[q] = {"min_ms": 0, "storage": "oom"}
+                print("OOM (skip)")
+            else:
+                times = parse_timing(output, q)
+                if times:
+                    calibration[q] = {"min_ms": min(times), "storage": storage}
+                    print(f"{min(times)}ms")
+                else:
+                    calibration[q] = {"min_ms": 0, "storage": "fail"}
+                    print("FAIL")
 
     # ── Phase 2: Calculate n_reps ─────────────────────────────────────────
     print(f"\n--- Phase 2: Calculate n_reps ---")
@@ -368,6 +392,8 @@ def main():
     parser.add_argument("--storage", type=str, default="gpu",
                         choices=["gpu", "cpu"],
                         help="Storage device for tables (default: gpu)")
+    parser.add_argument("--timing-csv", type=str, default=None,
+                        help="Path to A1 timing CSV (skip calibration phase)")
     parser.add_argument("--test", action="store_true",
                         help="Quick test with 3 queries per benchmark")
     args = parser.parse_args()
@@ -409,9 +435,15 @@ def main():
             if not data_path.exists():
                 print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
                 continue
+            td = None
+            if args.timing_csv and os.path.exists(args.timing_csv):
+                td = load_timing_from_csv(args.timing_csv, bench_name, sf)
+                if not td:
+                    print(f"  [WARN] No timing data in CSV for {bench_name} SF={sf}, will calibrate")
             run_metrics_for_benchmark(
                 bench_name, sf, data_path, cfg["queries"],
-                args.target_time, results_dir, storage=args.storage)
+                args.target_time, results_dir, storage=args.storage,
+                timing_data=td)
 
     print(f"\n{'=' * 70}")
     print(f"  ALL DONE — {datetime.now()}")

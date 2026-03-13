@@ -251,9 +251,10 @@ else
     echo "  [SKIP] A2: Sirius not built"
 fi
 
-# A3: Maximus metrics (standard + microbench)
+# A3: Maximus metrics (standard + microbench) — reuse A1 timing to skip calibration
 run_step "A3_maximus_metrics" \
     python3 run_maximus_metrics.py $TEST_FLAG --target-time 10 --results-dir "$RESULTS_DIR" \
+    --timing-csv "$RESULTS_DIR/maximus_benchmark.csv" \
     $ALL_BENCH
 
 # A4: Sirius metrics (standard SQL only)
@@ -277,9 +278,10 @@ run_step "B1_maximus_cpu_timing" \
     python3 run_maximus_cpu_data.py $TEST_FLAG --timing-only --results-dir "$RESULTS_DIR" \
     $ALL_BENCH
 
-# B2: Maximus CPU-data metrics (standard + microbench)
+# B2: Maximus CPU-data metrics (standard + microbench) — reuse B1 timing to skip calibration
 run_step "B2_maximus_cpu_metrics" \
     python3 run_maximus_cpu_data.py $TEST_FLAG --target-time 10 --results-dir "$RESULTS_DIR" \
+    --timing-csv "$RESULTS_DIR/maximus_cpu_data_timing.csv" \
     $ALL_BENCH
 
 # B3: Sirius CPU-data timing + metrics (measured together)
