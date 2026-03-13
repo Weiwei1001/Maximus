@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iomanip>
 #include <iostream>
 #include <maximus/context.hpp>
 #include <maximus/database.hpp>
@@ -72,28 +73,32 @@ void write_result_to_file(const std::shared_ptr<maximus::MaximusContext>& ctx,
 
 struct timing_stats {
     timing_stats() = default;
-    timing_stats(std::vector<std::vector<int64_t>>& timings,
+    timing_stats(std::vector<std::vector<double>>& timings,
                  std::vector<std::string> queries,
                  std::string engine,
                  maximus::DeviceType device) {
         std::string device_string = device == maximus::DeviceType::CPU ? "cpu" : "gpu";
         std::stringstream csv_results_stream;
+        csv_results_stream << std::fixed << std::setprecision(3);
         for (int i = 0; i < timings.size(); ++i) {
             csv_results_stream << device_string << "," << engine << "," << queries[i] << ",";
             min.push_back(*std::min_element(timings[i].begin(), timings[i].end()));
             max.push_back(*std::max_element(timings[i].begin(), timings[i].end()));
-            avg.push_back(std::accumulate(timings[i].begin(), timings[i].end(), 0) /
+            avg.push_back(std::accumulate(timings[i].begin(), timings[i].end(), 0.0) /
                           timings[i].size());
 
             std::string timings_flattened = "\t";
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(3);
             for (int j = 0; j < timings[i].size(); ++j) {
-                timings_flattened += std::to_string(timings[i][j]);
+                oss << timings[i][j];
                 if (j != timings[i].size() - 1) {
-                    timings_flattened += ", \t";
+                    oss << ", \t";
                 }
                 csv_results_stream << timings[i][j] << ",";
             }
             csv_results_stream << "\n";
+            timings_flattened += oss.str();
 
             flattened.push_back(timings_flattened);
         }
@@ -101,9 +106,9 @@ struct timing_stats {
     }
 
     // maps queries to their min, max, and avg timings as well as a flattened string containing all the timings
-    std::vector<int64_t> min;
-    std::vector<int64_t> max;
-    std::vector<int64_t> avg;
+    std::vector<double> min;
+    std::vector<double> max;
+    std::vector<double> avg;
     std::vector<std::string> flattened;
     std::string csv_results;
 };

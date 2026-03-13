@@ -1,0 +1,585 @@
+======================================================================
+  MAXIMUS GPU STEADY-STATE METRICS
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:34:06.060516
+======================================================================
+
+======================================================================
+  METRICS: TPCH SF=1
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:34:06.060610
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 11.0ms
+  q3... 2.0ms
+  q6... 1.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 11.0ms x 910 reps = 10.0s (gpu)
+  q3: 2.0ms x 5000 reps = 10.0s (gpu)
+  q6: 1.0ms x 10000 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (910 reps, -s gpu)... 11.000ms, 17.6s, GPU:175W CPU:0W, 100%util, 40817MB, GPU_E:1.9232J CPU_E:0.0000J [OK]
+  q3 (5000 reps, -s gpu)... 2.000ms, 34.7s, GPU:184W CPU:0W, 100%util, 40817MB, GPU_E:0.3687J CPU_E:0.0000J [OK]
+  q6 (10000 reps, -s gpu)... 1.000ms, 42.3s, GPU:193W CPU:0W, 100%util, 40811MB, GPU_E:0.1935J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_tpch_sf1_metrics_samples_20260312_183406.csv (1061 samples)
+  Summary: /workspace/gpu_db/results/maximus_tpch_sf1_metrics_summary_20260312_183406.csv (3 queries)
+
+======================================================================
+  METRICS: TPCH SF=5
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:35:54.681659
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 52.0ms
+  q3... 7.0ms
+  q6... 2.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 52.0ms x 193 reps = 10.0s (gpu)
+  q3: 7.0ms x 1429 reps = 10.0s (gpu)
+  q6: 2.0ms x 5000 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (193 reps, -s gpu)... 50.000ms, 17.6s, GPU:183W CPU:0W, 100%util, 40817MB, GPU_E:9.1542J CPU_E:0.0000J [OK]
+  q3 (1429 reps, -s gpu)... 7.000ms, 34.7s, GPU:227W CPU:0W, 100%util, 40855MB, GPU_E:1.5919J CPU_E:0.0000J [OK]
+  q6 (5000 reps, -s gpu)... 2.000ms, 73.3s, GPU:241W CPU:0W, 100%util, 40811MB, GPU_E:0.4825J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_tpch_sf5_metrics_samples_20260312_183554.csv (1399 samples)
+  Summary: /workspace/gpu_db/results/maximus_tpch_sf5_metrics_summary_20260312_183554.csv (3 queries)
+
+======================================================================
+  METRICS: TPCH SF=10
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:38:16.872887
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 103.0ms
+  q3... 13.0ms
+  q6... 5.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 103.0ms x 98 reps = 10.1s (gpu)
+  q3: 13.0ms x 770 reps = 10.0s (gpu)
+  q6: 5.0ms x 2000 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (98 reps, -s gpu)... 100.000ms, 18.5s, GPU:181W CPU:0W, 100%util, 40817MB, GPU_E:18.0758J CPU_E:0.0000J [OK]
+  q3 (770 reps, -s gpu)... 13.000ms, 35.9s, GPU:236W CPU:0W, 100%util, 57003MB, GPU_E:3.0673J CPU_E:0.0000J [OK]
+  q6 (2000 reps, -s gpu)... 5.000ms, 57.5s, GPU:240W CPU:0W, 100%util, 40811MB, GPU_E:1.2007J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_tpch_sf10_metrics_samples_20260312_183816.csv (1234 samples)
+  Summary: /workspace/gpu_db/results/maximus_tpch_sf10_metrics_summary_20260312_183816.csv (3 queries)
+
+======================================================================
+  METRICS: TPCH SF=20
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:40:29.272943
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... OOM (skip)
+  q3... OOM (skip)
+  q6... OOM (skip)
+
+--- Phase 2: Calculate n_reps ---
+  q1: 0ms x 100 reps = 0.1s (oom)
+  q3: 0ms x 100 reps = 0.1s (oom)
+  q6: 0ms x 100 reps = 0.1s (oom)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1: SKIP (oom)
+  q3: SKIP (oom)
+  q6: SKIP (oom)
+
+  Samples: /workspace/gpu_db/results/maximus_tpch_sf20_metrics_samples_20260312_184029.csv (0 samples)
+  Summary: /workspace/gpu_db/results/maximus_tpch_sf20_metrics_summary_20260312_184029.csv (0 queries)
+
+======================================================================
+  METRICS: H2O SF=1gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:40:57.406608
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 14.0ms
+  q3... 103.0ms
+  q5... 10.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 14.0ms x 715 reps = 10.0s (gpu)
+  q3: 103.0ms x 98 reps = 10.1s (gpu)
+  q5: 10.0ms x 1000 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (715 reps, -s gpu)... 14.000ms, 18.7s, GPU:172W CPU:0W, 100%util, 40813MB, GPU_E:2.4130J CPU_E:0.0000J [OK]
+  q3 (98 reps, -s gpu)... 102.000ms, 16.2s, GPU:134W CPU:0W, 100%util, 40819MB, GPU_E:13.7025J CPU_E:0.0000J [OK]
+  q5 (1000 reps, -s gpu)... 9.000ms, 19.9s, GPU:209W CPU:0W, 100%util, 40817MB, GPU_E:1.8802J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_h2o_sf1gb_metrics_samples_20260312_184057.csv (591 samples)
+  Summary: /workspace/gpu_db/results/maximus_h2o_sf1gb_metrics_summary_20260312_184057.csv (3 queries)
+
+======================================================================
+  METRICS: H2O SF=2gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:42:08.335410
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 28.0ms
+  q3... 156.0ms
+  q5... 18.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 28.0ms x 358 reps = 10.0s (gpu)
+  q3: 156.0ms x 65 reps = 10.1s (gpu)
+  q5: 18.0ms x 556 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (358 reps, -s gpu)... 28.000ms, 18.9s, GPU:173W CPU:0W, 100%util, 40813MB, GPU_E:4.8437J CPU_E:0.0000J [OK]
+  q3 (65 reps, -s gpu)... 149.000ms, 16.2s, GPU:149W CPU:0W, 100%util, 40819MB, GPU_E:22.1844J CPU_E:0.0000J [OK]
+  q5 (556 reps, -s gpu)... 18.000ms, 21.6s, GPU:213W CPU:0W, 100%util, 40817MB, GPU_E:3.8343J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_h2o_sf2gb_metrics_samples_20260312_184208.csv (615 samples)
+  Summary: /workspace/gpu_db/results/maximus_h2o_sf2gb_metrics_summary_20260312_184208.csv (3 queries)
+
+======================================================================
+  METRICS: H2O SF=3gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:43:21.295314
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 42.0ms
+  q3... 170.0ms
+  q5... 27.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 42.0ms x 239 reps = 10.0s (gpu)
+  q3: 170.0ms x 59 reps = 10.0s (gpu)
+  q5: 27.0ms x 371 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (239 reps, -s gpu)... 41.000ms, 19.4s, GPU:176W CPU:0W, 100%util, 40813MB, GPU_E:7.2062J CPU_E:0.0000J [OK]
+  q3 (59 reps, -s gpu)... 166.000ms, 16.6s, GPU:161W CPU:0W, 100%util, 40819MB, GPU_E:26.6726J CPU_E:0.0000J [OK]
+  q5 (371 reps, -s gpu)... 27.000ms, 21.5s, GPU:215W CPU:0W, 100%util, 40817MB, GPU_E:5.8008J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_h2o_sf3gb_metrics_samples_20260312_184321.csv (616 samples)
+  Summary: /workspace/gpu_db/results/maximus_h2o_sf3gb_metrics_summary_20260312_184321.csv (3 queries)
+
+======================================================================
+  METRICS: H2O SF=4gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:44:36.240480
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 56.0ms
+  q3... 200.0ms
+  q5... 36.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 56.0ms x 179 reps = 10.0s (gpu)
+  q3: 200.0ms x 50 reps = 10.0s (gpu)
+  q5: 36.0ms x 278 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (179 reps, -s gpu)... 55.000ms, 19.5s, GPU:173W CPU:0W, 100%util, 40813MB, GPU_E:9.5220J CPU_E:0.0000J [OK]
+  q3 (50 reps, -s gpu)... 189.000ms, 16.6s, GPU:167W CPU:0W, 100%util, 40819MB, GPU_E:31.6301J CPU_E:0.0000J [OK]
+  q5 (278 reps, -s gpu)... 36.000ms, 21.8s, GPU:212W CPU:0W, 100%util, 40817MB, GPU_E:7.6247J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_h2o_sf4gb_metrics_samples_20260312_184436.csv (621 samples)
+  Summary: /workspace/gpu_db/results/maximus_h2o_sf4gb_metrics_summary_20260312_184436.csv (3 queries)
+
+======================================================================
+  METRICS: CLICKBENCH SF=1
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:45:53.378457
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 0.0ms
+  q6... 1.0ms
+  q20... 22.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 0.0ms x 100 reps = 0.1s (gpu)
+  q6: 1.0ms x 10000 reps = 10.0s (gpu)
+  q20: 22.0ms x 455 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (100 reps, -s gpu)... 50.949ms, 5.1s, GPU:117W CPU:0W, 100%util, 40811MB, GPU_E:5.9514J CPU_E:0.0000J [OK]
+  q6 (10000 reps, -s gpu)... 5.007ms, 50.1s, GPU:153W CPU:0W, 100%util, 40811MB, GPU_E:0.7663J CPU_E:0.0000J [OK]
+  q20 (455 reps, -s gpu)... 17.000ms, 14.5s, GPU:189W CPU:0W, 100%util, 40811MB, GPU_E:3.2163J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_clickbench_sf1_metrics_samples_20260312_184553.csv (752 samples)
+  Summary: /workspace/gpu_db/results/maximus_clickbench_sf1_metrics_summary_20260312_184553.csv (3 queries)
+
+======================================================================
+  METRICS: CLICKBENCH SF=5
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:47:16.784171
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 0.0ms
+  q6... 3.0ms
+  q20... 61.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 0.0ms x 100 reps = 0.1s (gpu)
+  q6: 3.0ms x 3334 reps = 10.0s (gpu)
+  q20: 61.0ms x 164 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (100 reps, -s gpu)... 62.359ms, 6.2s, GPU:113W CPU:0W, 100%util, 40811MB, GPU_E:7.0506J CPU_E:0.0000J [OK]
+  q6 (3334 reps, -s gpu)... 3.000ms, 53.0s, GPU:194W CPU:0W, 100%util, 40811MB, GPU_E:0.5815J CPU_E:0.0000J [OK]
+  q20 (164 reps, -s gpu)... 61.000ms, 17.0s, GPU:242W CPU:0W, 100%util, 40811MB, GPU_E:14.7634J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_clickbench_sf5_metrics_samples_20260312_184716.csv (824 samples)
+  Summary: /workspace/gpu_db/results/maximus_clickbench_sf5_metrics_summary_20260312_184716.csv (3 queries)
+
+======================================================================
+  METRICS: CLICKBENCH SF=10
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:48:48.553122
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 0.0ms
+  q6... 6.0ms
+  q20... 107.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 0.0ms x 100 reps = 0.1s (gpu)
+  q6: 6.0ms x 1667 reps = 10.0s (gpu)
+  q20: 107.0ms x 94 reps = 10.1s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (100 reps, -s gpu)... 80.612ms, 8.1s, GPU:173W CPU:0W, 100%util, 40811MB, GPU_E:13.9478J CPU_E:0.0000J [OK]
+  q6 (1667 reps, -s gpu)... 6.000ms, 49.7s, GPU:201W CPU:0W, 100%util, 40811MB, GPU_E:1.2041J CPU_E:0.0000J [OK]
+  q20 (94 reps, -s gpu)... 107.000ms, 17.9s, GPU:259W CPU:0W, 100%util, 40811MB, GPU_E:27.7481J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_clickbench_sf10_metrics_samples_20260312_184848.csv (819 samples)
+  Summary: /workspace/gpu_db/results/maximus_clickbench_sf10_metrics_summary_20260312_184848.csv (3 queries)
+
+======================================================================
+  METRICS: CLICKBENCH SF=20
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:50:22.317985
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  q1... 1.0ms
+  q6... 13.0ms
+  q20... 185.0ms
+
+--- Phase 2: Calculate n_reps ---
+  q1: 1.0ms x 10000 reps = 10.0s (gpu)
+  q6: 13.0ms x 770 reps = 10.0s (gpu)
+  q20: 185.0ms x 55 reps = 10.2s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  q1 (10000 reps, -s gpu)... 35.957ms, 359.6s, GPU:246W CPU:0W, 100%util, 56959MB, GPU_E:8.8528J CPU_E:0.0000J [OK]
+  q6 (770 reps, -s gpu)... 13.000ms, 43.5s, GPU:191W CPU:0W, 100%util, 56959MB, GPU_E:2.4892J CPU_E:0.0000J [OK]
+  q20 (55 reps, -s gpu)... 184.000ms, 19.1s, GPU:215W CPU:0W, 100%util, 56957MB, GPU_E:39.4839J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_clickbench_sf20_metrics_samples_20260312_185022.csv (4566 samples)
+  Summary: /workspace/gpu_db/results/maximus_clickbench_sf20_metrics_summary_20260312_185022.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=1
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:57:46.922587
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_002... 0.0ms
+  w3_001... 0.0ms
+  w5a_029... 1.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_002: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w5a_029: 1.0ms x 10000 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_002 (100 reps, -s gpu)... 65.289ms, 6.5s, GPU:100W CPU:0W, 100%util, 40811MB, GPU_E:6.5320J CPU_E:0.0000J [OK]
+  w3_001 (100 reps, -s gpu)... 48.955ms, 4.9s, GPU:86W CPU:0W, 100%util, 40815MB, GPU_E:4.1974J CPU_E:0.0000J [OK]
+  w5a_029 (10000 reps, -s gpu)... 1.000ms, 31.1s, GPU:176W CPU:0W, 100%util, 40815MB, GPU_E:0.1761J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_tpch_sf1_metrics_samples_20260312_185746.csv (425 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_tpch_sf1_metrics_summary_20260312_185746.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=5
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:58:43.159103
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_002... 2.0ms
+  w3_001... 0.0ms
+  w5a_029... 7.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_002: 2.0ms x 5000 reps = 10.0s (gpu)
+  w3_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w5a_029: 7.0ms x 1429 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_002 (5000 reps, -s gpu)... 2.000ms, 32.1s, GPU:160W CPU:0W, 100%util, 40811MB, GPU_E:0.3201J CPU_E:0.0000J [OK]
+  w3_001 (100 reps, -s gpu)... 53.220ms, 5.3s, GPU:115W CPU:0W, 100%util, 40815MB, GPU_E:6.1112J CPU_E:0.0000J [OK]
+  w5a_029 (1429 reps, -s gpu)... 7.000ms, 19.7s, GPU:202W CPU:0W, 100%util, 40815MB, GPU_E:1.4166J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_tpch_sf5_metrics_samples_20260312_185843.csv (629 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_tpch_sf5_metrics_summary_20260312_185843.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=10
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 18:59:56.136109
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_002... 5.0ms
+  w3_001... 1.0ms
+  w5a_029... 15.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_002: 5.0ms x 2000 reps = 10.0s (gpu)
+  w3_001: 1.0ms x 10000 reps = 10.0s (gpu)
+  w5a_029: 15.0ms x 667 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_002 (2000 reps, -s gpu)... 5.000ms, 26.4s, GPU:162W CPU:0W, 100%util, 40811MB, GPU_E:0.8105J CPU_E:0.0000J [OK]
+  w3_001 (10000 reps, -s gpu)... 1.000ms, 25.9s, GPU:172W CPU:0W, 100%util, 40815MB, GPU_E:0.1720J CPU_E:0.0000J [OK]
+  w5a_029 (667 reps, -s gpu)... 14.000ms, 19.6s, GPU:211W CPU:0W, 100%util, 40815MB, GPU_E:2.9538J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_tpch_sf10_metrics_samples_20260312_185956.csv (794 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_tpch_sf10_metrics_summary_20260312_185956.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=20
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:01:26.458412
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_002... 9.0ms
+  w3_001... 1.0ms
+  w5a_029... 31.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_002: 9.0ms x 1112 reps = 10.0s (gpu)
+  w3_001: 1.0ms x 10000 reps = 10.0s (gpu)
+  w5a_029: 31.0ms x 323 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_002 (1112 reps, -s gpu)... 9.000ms, 29.2s, GPU:154W CPU:0W, 100%util, 56959MB, GPU_E:1.3832J CPU_E:0.0000J [OK]
+  w3_001 (10000 reps, -s gpu)... 1.000ms, 42.0s, GPU:177W CPU:0W, 100%util, 56963MB, GPU_E:0.1770J CPU_E:0.0000J [OK]
+  w5a_029 (323 reps, -s gpu)... 31.000ms, 22.0s, GPU:187W CPU:0W, 100%util, 56963MB, GPU_E:5.8033J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_tpch_sf20_metrics_samples_20260312_190126.csv (1043 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_tpch_sf20_metrics_summary_20260312_190126.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=1gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:03:25.085343
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_016... 14.0ms
+  w6_022... 35.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_016: 14.0ms x 715 reps = 10.0s (gpu)
+  w6_022: 35.0ms x 286 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 52.700ms, 5.3s, GPU:145W CPU:0W, 100%util, 40811MB, GPU_E:7.6414J CPU_E:0.0000J [OK]
+  w3_016 (715 reps, -s gpu)... 14.000ms, 18.5s, GPU:170W CPU:0W, 100%util, 40813MB, GPU_E:2.3842J CPU_E:0.0000J [OK]
+  w6_022 (286 reps, -s gpu)... 35.000ms, 16.3s, GPU:267W CPU:0W, 100%util, 40809MB, GPU_E:9.3327J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_h2o_sf1gb_metrics_samples_20260312_190325.csv (428 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_h2o_sf1gb_metrics_summary_20260312_190325.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=2gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:04:19.260257
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_016... 27.0ms
+  w6_022... 71.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_016: 27.0ms x 371 reps = 10.0s (gpu)
+  w6_022: 71.0ms x 141 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 61.215ms, 6.1s, GPU:175W CPU:0W, 100%util, 40811MB, GPU_E:10.7261J CPU_E:0.0000J [OK]
+  w3_016 (371 reps, -s gpu)... 27.000ms, 19.2s, GPU:172W CPU:0W, 100%util, 40813MB, GPU_E:4.6366J CPU_E:0.0000J [OK]
+  w6_022 (141 reps, -s gpu)... 70.000ms, 16.7s, GPU:263W CPU:0W, 100%util, 40809MB, GPU_E:18.4237J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_h2o_sf2gb_metrics_samples_20260312_190419.csv (443 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_h2o_sf2gb_metrics_summary_20260312_190419.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=3gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:05:17.204883
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_016... 41.0ms
+  w6_022... 106.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_016: 41.0ms x 244 reps = 10.0s (gpu)
+  w6_022: 106.0ms x 95 reps = 10.1s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 70.516ms, 7.1s, GPU:185W CPU:0W, 100%util, 40811MB, GPU_E:13.0274J CPU_E:0.0000J [OK]
+  w3_016 (244 reps, -s gpu)... 41.000ms, 19.4s, GPU:172W CPU:0W, 100%util, 40813MB, GPU_E:7.0584J CPU_E:0.0000J [OK]
+  w6_022 (95 reps, -s gpu)... 106.000ms, 17.0s, GPU:260W CPU:0W, 100%util, 40809MB, GPU_E:27.5397J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_h2o_sf3gb_metrics_samples_20260312_190517.csv (472 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_h2o_sf3gb_metrics_summary_20260312_190517.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=4gb
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:06:17.719274
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_016... 55.0ms
+  w6_022... 142.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_016: 55.0ms x 182 reps = 10.0s (gpu)
+  w6_022: 142.0ms x 71 reps = 10.1s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 80.649ms, 8.1s, GPU:176W CPU:0W, 100%util, 40811MB, GPU_E:14.1854J CPU_E:0.0000J [OK]
+  w3_016 (182 reps, -s gpu)... 55.000ms, 20.0s, GPU:172W CPU:0W, 100%util, 40813MB, GPU_E:9.4552J CPU_E:0.0000J [OK]
+  w6_022 (71 reps, -s gpu)... 141.000ms, 17.6s, GPU:258W CPU:0W, 100%util, 40809MB, GPU_E:36.4441J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_h2o_sf4gb_metrics_samples_20260312_190617.csv (498 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_h2o_sf4gb_metrics_summary_20260312_190617.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_CLICKBENCH SF=1
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:07:21.752435
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_011... 0.0ms
+  w6_016... 0.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_011: 0.0ms x 100 reps = 0.1s (gpu)
+  w6_016: 0.0ms x 100 reps = 0.1s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 48.397ms, 4.8s, GPU:113W CPU:0W, 100%util, 40811MB, GPU_E:5.4880J CPU_E:0.0000J [OK]
+  w3_011 (100 reps, -s gpu)... 48.623ms, 4.9s, GPU:105W CPU:0W, 100%util, 40813MB, GPU_E:5.0829J CPU_E:0.0000J [OK]
+  w6_016 (100 reps, -s gpu)... 47.564ms, 4.8s, GPU:111W CPU:0W, 100%util, 40809MB, GPU_E:5.2822J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_clickbench_sf1_metrics_samples_20260312_190721.csv (143 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_clickbench_sf1_metrics_summary_20260312_190721.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_CLICKBENCH SF=5
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:07:49.380734
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_011... 0.0ms
+  w6_016... 1.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_011: 0.0ms x 100 reps = 0.1s (gpu)
+  w6_016: 1.0ms x 10000 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 61.604ms, 6.2s, GPU:161W CPU:0W, 100%util, 40811MB, GPU_E:9.8926J CPU_E:0.0000J [OK]
+  w3_011 (100 reps, -s gpu)... 59.186ms, 5.9s, GPU:165W CPU:0W, 100%util, 40813MB, GPU_E:9.7443J CPU_E:0.0000J [OK]
+  w6_016 (10000 reps, -s gpu)... 1.000ms, 119.9s, GPU:231W CPU:0W, 100%util, 40809MB, GPU_E:0.2313J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_clickbench_sf5_metrics_samples_20260312_190749.csv (1417 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_clickbench_sf5_metrics_summary_20260312_190749.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_CLICKBENCH SF=10
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:10:16.153157
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_011... 1.0ms
+  w6_016... 2.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_011: 1.0ms x 10000 reps = 10.0s (gpu)
+  w6_016: 2.0ms x 5000 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 74.849ms, 7.5s, GPU:185W CPU:0W, 100%util, 40811MB, GPU_E:13.8361J CPU_E:0.0000J [OK]
+  w3_011 (10000 reps, -s gpu)... 1.000ms, 206.3s, GPU:235W CPU:0W, 100%util, 40813MB, GPU_E:0.2355J CPU_E:0.0000J [OK]
+  w6_016 (5000 reps, -s gpu)... 1.000ms, 108.6s, GPU:244W CPU:0W, 100%util, 40809MB, GPU_E:0.2438J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_clickbench_sf10_metrics_samples_20260312_191016.csv (3575 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_clickbench_sf10_metrics_summary_20260312_191016.csv (3 queries)
+
+======================================================================
+  METRICS: MICROBENCH_CLICKBENCH SF=20
+  Target: 10.0s sustained execution per query
+  Started: 2026-03-12 19:15:55.346003
+======================================================================
+
+--- Phase 1: Calibration (3 reps, -s gpu) ---
+  w1_001... 0.0ms
+  w3_011... 2.0ms
+  w6_016... 3.0ms
+
+--- Phase 2: Calculate n_reps ---
+  w1_001: 0.0ms x 100 reps = 0.1s (gpu)
+  w3_011: 2.0ms x 5000 reps = 10.0s (gpu)
+  w6_016: 3.0ms x 3334 reps = 10.0s (gpu)
+
+--- Phase 3: Metrics run with nvidia-smi sampling ---
+  w1_001 (100 reps, -s gpu)... 103.790ms, 10.4s, GPU:154W CPU:0W, 100%util, 56959MB, GPU_E:15.9373J CPU_E:0.0000J [OK]
+  w3_011 (5000 reps, -s gpu)... 2.000ms, 189.1s, GPU:242W CPU:0W, 100%util, 56961MB, GPU_E:0.4838J CPU_E:0.0000J [OK]
+  w6_016 (3334 reps, -s gpu)... 3.000ms, 131.9s, GPU:250W CPU:0W, 100%util, 56957MB, GPU_E:0.7494J CPU_E:0.0000J [OK]
+
+  Samples: /workspace/gpu_db/results/maximus_microbench_clickbench_sf20_metrics_samples_20260312_191555.csv (3632 samples)
+  Summary: /workspace/gpu_db/results/maximus_microbench_clickbench_sf20_metrics_summary_20260312_191555.csv (3 queries)
+
+======================================================================
+  ALL DONE — 2026-03-12 19:21:47.737918
+======================================================================

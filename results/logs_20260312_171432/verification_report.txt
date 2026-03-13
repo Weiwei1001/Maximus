@@ -1,0 +1,653 @@
+================================================================================
+  BENCHMARK VERIFICATION REPORT
+  New results:  ../../results/logs_20260312_171432
+  Baseline:     ../../results/baseline
+  Threshold:    ±20.0%
+================================================================================
+
+================================================================================
+  LATENCY COMPARISON (min_ms)
+================================================================================
+
+  MAXIMUS (cpu) H2O SF=1gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               70.0ms     70.0ms    +0.0%
+  q3              276.0ms    276.0ms    +0.0%
+  q5              100.0ms    100.0ms    +0.0%
+
+  MAXIMUS (cpu) H2O SF=2gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              146.0ms    146.0ms    +0.0%
+  q3              390.0ms    390.0ms    +0.0%
+  q5              171.0ms    171.0ms    +0.0%
+
+  MAXIMUS (cpu) H2O SF=3gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              222.0ms    222.0ms    +0.0%
+  q3              542.0ms    542.0ms    +0.0%
+  q5              291.0ms    291.0ms    +0.0%
+
+  MAXIMUS (cpu) H2O SF=4gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              283.0ms    283.0ms    +0.0%
+  q3              851.0ms    851.0ms    +0.0%
+  q5              344.0ms    344.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_H2O SF=1gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001           43.0ms     43.0ms    +0.0%
+  w3_016           83.0ms     83.0ms    +0.0%
+  w6_022          109.0ms    109.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_H2O SF=2gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001           30.0ms     30.0ms    +0.0%
+  w3_016          142.0ms    142.0ms    +0.0%
+  w6_022          219.0ms    219.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_H2O SF=3gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001           50.0ms     50.0ms    +0.0%
+  w3_016          220.0ms    220.0ms    +0.0%
+  w6_022          348.0ms    348.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_H2O SF=4gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001           57.0ms     57.0ms    +0.0%
+  w3_016          274.0ms    274.0ms    +0.0%
+  w6_022          404.0ms    404.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_TPCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002            1.0ms      1.0ms    +0.0%
+  w3_001            0.0ms      0.0ms    +0.0%
+  w5a_029           4.0ms      4.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_TPCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002           27.0ms     27.0ms    +0.0%
+  w3_001            3.0ms      3.0ms    +0.0%
+  w5a_029          54.0ms     54.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_TPCH SF=20
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002           36.0ms     36.0ms    +0.0%
+  w3_001            6.0ms      6.0ms    +0.0%
+  w5a_029          91.0ms     91.0ms    +0.0%
+
+  MAXIMUS (cpu) MICROBENCH_TPCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002            6.0ms      6.0ms    +0.0%
+  w3_001            2.0ms      2.0ms    +0.0%
+  w5a_029          16.0ms     16.0ms    +0.0%
+
+  MAXIMUS (cpu) TPCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               30.0ms     30.0ms    +0.0%
+  q3               16.0ms     16.0ms    +0.0%
+  q6               11.0ms     11.0ms    +0.0%
+
+  MAXIMUS (cpu) TPCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              738.0ms    738.0ms    +0.0%
+  q3              131.0ms    131.0ms    +0.0%
+  q6              106.0ms    106.0ms    +0.0%
+
+  MAXIMUS (cpu) TPCH SF=20
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              530.0ms    530.0ms    +0.0%
+  q3              259.0ms    259.0ms    +0.0%
+  q6              198.0ms    198.0ms    +0.0%
+
+  MAXIMUS (cpu) TPCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              142.0ms    142.0ms    +0.0%
+  q3               72.0ms     72.0ms    +0.0%
+  q6               51.0ms     51.0ms    +0.0%
+
+  MAXIMUS (gpu) CLICKBENCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1                0.0ms      0.0ms    +0.0%
+  q20              18.0ms     18.0ms    +0.0%
+  q6                0.0ms      0.0ms    +0.0%
+
+  MAXIMUS (gpu) CLICKBENCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1                0.0ms      0.0ms    +0.0%
+  q20             107.0ms    107.0ms    +0.0%
+  q6                6.0ms      6.0ms    +0.0%
+
+  MAXIMUS (gpu) CLICKBENCH SF=20
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1                0.0ms      0.0ms    +0.0%
+  q20             185.0ms    185.0ms    +0.0%
+  q6               13.0ms     13.0ms    +0.0%
+
+  MAXIMUS (gpu) CLICKBENCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1                0.0ms      0.0ms    +0.0%
+  q20              61.0ms     61.0ms    +0.0%
+  q6                3.0ms      3.0ms    +0.0%
+
+  MAXIMUS (gpu) H2O SF=1gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               14.0ms     14.0ms    +0.0%
+  q3              113.0ms    113.0ms    +0.0%
+  q5                9.0ms      9.0ms    +0.0%
+
+  MAXIMUS (gpu) H2O SF=2gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               28.0ms     28.0ms    +0.0%
+  q3              141.0ms    141.0ms    +0.0%
+  q5               18.0ms     18.0ms    +0.0%
+
+  MAXIMUS (gpu) H2O SF=3gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               41.0ms     41.0ms    +0.0%
+  q3              178.0ms    178.0ms    +0.0%
+  q5               28.0ms     28.0ms    +0.0%
+
+  MAXIMUS (gpu) H2O SF=4gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               55.0ms     55.0ms    +0.0%
+  q3              204.0ms    204.0ms    +0.0%
+  q5               36.0ms     36.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_CLICKBENCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_011            0.0ms      0.0ms    +0.0%
+  w6_016            0.0ms      0.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_CLICKBENCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_011            1.0ms      1.0ms    +0.0%
+  w6_016            1.0ms      1.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_CLICKBENCH SF=20
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_011            2.0ms      2.0ms    +0.0%
+  w6_016            3.0ms      3.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_CLICKBENCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_011            0.0ms      0.0ms    +0.0%
+  w6_016            1.0ms      1.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_H2O SF=1gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_016           14.0ms     14.0ms    +0.0%
+  w6_022           35.0ms     35.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_H2O SF=2gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_016           28.0ms     28.0ms    +0.0%
+  w6_022           70.0ms     70.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_H2O SF=3gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_016           41.0ms     41.0ms    +0.0%
+  w6_022          106.0ms    106.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_H2O SF=4gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            0.0ms      0.0ms    +0.0%
+  w3_016           55.0ms     55.0ms    +0.0%
+  w6_022          141.0ms    141.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_TPCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002            0.0ms      0.0ms    +0.0%
+  w3_001            0.0ms      0.0ms    +0.0%
+  w5a_029           1.0ms      1.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_TPCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002            5.0ms      5.0ms    +0.0%
+  w3_001            1.0ms      1.0ms    +0.0%
+  w5a_029          14.0ms     14.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_TPCH SF=20
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002            9.0ms      9.0ms    +0.0%
+  w3_001            1.0ms      1.0ms    +0.0%
+  w5a_029          31.0ms     31.0ms    +0.0%
+
+  MAXIMUS (gpu) MICROBENCH_TPCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002            2.0ms      2.0ms    +0.0%
+  w3_001            0.0ms      0.0ms    +0.0%
+  w5a_029           7.0ms      7.0ms    +0.0%
+
+  MAXIMUS (gpu) TPCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               11.0ms     11.0ms    +0.0%
+  q3                2.0ms      2.0ms    +0.0%
+  q6                1.0ms      1.0ms    +0.0%
+
+  MAXIMUS (gpu) TPCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              103.0ms    103.0ms    +0.0%
+  q3               13.0ms     13.0ms    +0.0%
+  q6                5.0ms      5.0ms    +0.0%
+
+  MAXIMUS (gpu) TPCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1               52.0ms     52.0ms    +0.0%
+  q3                7.0ms      7.0ms    +0.0%
+  q6                2.0ms      2.0ms    +0.0%
+
+  SIRIUS (gpu) H2O SF=1gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              533.0ms    533.0ms    +0.0%
+  q3             1455.0ms   1455.0ms    +0.0%
+  q5              316.0ms    316.0ms    +0.0%
+
+  SIRIUS (gpu) H2O SF=2gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              979.0ms    979.0ms    +0.0%
+  q3             2920.0ms   2920.0ms    +0.0%
+  q5              696.0ms    696.0ms    +0.0%
+
+  SIRIUS (gpu) H2O SF=3gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             1393.0ms   1393.0ms    +0.0%
+  q3             3771.0ms   3771.0ms    +0.0%
+  q5              900.0ms    900.0ms    +0.0%
+
+  SIRIUS (gpu) H2O SF=4gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             1913.0ms   1913.0ms    +0.0%
+  q3             4884.0ms   4884.0ms    +0.0%
+  q5             1222.0ms   1222.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_H2O SF=1gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            3.0ms      3.0ms    +0.0%
+  w3_016          582.0ms    582.0ms    +0.0%
+  w6_022          503.0ms    503.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_H2O SF=2gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            4.0ms      4.0ms    +0.0%
+  w3_016         1056.0ms   1056.0ms    +0.0%
+  w6_022          939.0ms    939.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_H2O SF=3gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            5.0ms      5.0ms    +0.0%
+  w3_016         1506.0ms   1506.0ms    +0.0%
+  w6_022         1177.0ms   1177.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_H2O SF=4gb
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001            9.0ms      9.0ms    +0.0%
+  w3_016         1899.0ms   1899.0ms    +0.0%
+  w6_022         1498.0ms   1498.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_TPCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002           73.0ms     73.0ms    +0.0%
+  w3_001           36.0ms     36.0ms    +0.0%
+  w5a_029          36.0ms     36.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_TPCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002          186.0ms    186.0ms    +0.0%
+  w3_001           58.0ms     58.0ms    +0.0%
+  w5a_029         136.0ms    136.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_TPCH SF=20
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002          299.0ms    299.0ms    +0.0%
+  w3_001           84.0ms     84.0ms    +0.0%
+  w5a_029         291.0ms    291.0ms    +0.0%
+
+  SIRIUS (gpu) MICROBENCH_TPCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002          126.0ms    126.0ms    +0.0%
+  w3_001           44.0ms     44.0ms    +0.0%
+  w5a_029          73.0ms     73.0ms    +0.0%
+
+  SIRIUS (gpu) TPCH SF=1
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1              337.0ms    337.0ms    +0.0%
+  q3               83.0ms     83.0ms    +0.0%
+  q6               14.0ms     14.0ms    +0.0%
+
+  SIRIUS (gpu) TPCH SF=10
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             2146.0ms   2146.0ms    +0.0%
+  q3              642.0ms    642.0ms    +0.0%
+  q6               12.0ms     12.0ms    +0.0%
+
+  SIRIUS (gpu) TPCH SF=20
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             4056.0ms   4056.0ms    +0.0%
+  q3             1386.0ms   1386.0ms    +0.0%
+  q6               17.0ms     17.0ms    +0.0%
+
+  SIRIUS (gpu) TPCH SF=5
+  Query              New      Base     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             1083.0ms   1083.0ms    +0.0%
+  q3              335.0ms    335.0ms    +0.0%
+  q6               13.0ms     13.0ms    +0.0%
+
+================================================================================
+  ENERGY COMPARISON (gpu_energy_j)
+================================================================================
+
+  MAXIMUS CLICKBENCH SF=1
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             5.9514J   5.9514J    +0.0%
+  q20            3.2163J   3.2163J    +0.0%
+  q6             0.7663J   0.7663J    +0.0%
+
+  MAXIMUS CLICKBENCH SF=10
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1            13.9478J  13.9478J    +0.0%
+  q20           27.7481J  27.7481J    +0.0%
+  q6             1.2041J   1.2041J    +0.0%
+
+  MAXIMUS CLICKBENCH SF=20
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             8.8528J   8.8528J    +0.0%
+  q20           39.4839J  39.4839J    +0.0%
+  q6             2.4892J   2.4892J    +0.0%
+
+  MAXIMUS CLICKBENCH SF=5
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             7.0506J   7.0506J    +0.0%
+  q20           14.7634J  14.7634J    +0.0%
+  q6             0.5815J   0.5815J    +0.0%
+
+  MAXIMUS H2O SF=1gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             2.4130J   2.4130J    +0.0%
+  q3            13.7025J  13.7025J    +0.0%
+  q5             1.8802J   1.8802J    +0.0%
+
+  MAXIMUS H2O SF=2gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             4.8437J   4.8437J    +0.0%
+  q3            22.1844J  22.1844J    +0.0%
+  q5             3.8343J   3.8343J    +0.0%
+
+  MAXIMUS H2O SF=3gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             7.2062J   7.2062J    +0.0%
+  q3            26.6726J  26.6726J    +0.0%
+  q5             5.8008J   5.8008J    +0.0%
+
+  MAXIMUS H2O SF=4gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             9.5220J   9.5220J    +0.0%
+  q3            31.6301J  31.6301J    +0.0%
+  q5             7.6247J   7.6247J    +0.0%
+
+  MAXIMUS MICROBENCH_CLICKBENCH SF=1
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001         5.4880J   5.4880J    +0.0%
+  w3_011         5.0829J   5.0829J    +0.0%
+  w6_016         5.2822J   5.2822J    +0.0%
+
+  MAXIMUS MICROBENCH_CLICKBENCH SF=10
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001        13.8361J  13.8361J    +0.0%
+  w3_011         0.2355J   0.2355J    +0.0%
+  w6_016         0.2438J   0.2438J    +0.0%
+
+  MAXIMUS MICROBENCH_CLICKBENCH SF=20
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001        15.9373J  15.9373J    +0.0%
+  w3_011         0.4838J   0.4838J    +0.0%
+  w6_016         0.7494J   0.7494J    +0.0%
+
+  MAXIMUS MICROBENCH_CLICKBENCH SF=5
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001         9.8926J   9.8926J    +0.0%
+  w3_011         9.7443J   9.7443J    +0.0%
+  w6_016         0.2313J   0.2313J    +0.0%
+
+  MAXIMUS MICROBENCH_H2O SF=1gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001         7.6414J   7.6414J    +0.0%
+  w3_016         2.3842J   2.3842J    +0.0%
+  w6_022         9.3327J   9.3327J    +0.0%
+
+  MAXIMUS MICROBENCH_H2O SF=2gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001        10.7261J  10.7261J    +0.0%
+  w3_016         4.6366J   4.6366J    +0.0%
+  w6_022        18.4237J  18.4237J    +0.0%
+
+  MAXIMUS MICROBENCH_H2O SF=3gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001        13.0274J  13.0274J    +0.0%
+  w3_016         7.0584J   7.0584J    +0.0%
+  w6_022        27.5397J  27.5397J    +0.0%
+
+  MAXIMUS MICROBENCH_H2O SF=4gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_001        14.1854J  14.1854J    +0.0%
+  w3_016         9.4552J   9.4552J    +0.0%
+  w6_022        36.4441J  36.4441J    +0.0%
+
+  MAXIMUS MICROBENCH_TPCH SF=1
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         6.5320J   6.5320J    +0.0%
+  w3_001         4.1974J   4.1974J    +0.0%
+  w5a_029        0.1761J   0.1761J    +0.0%
+
+  MAXIMUS MICROBENCH_TPCH SF=10
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         0.8105J   0.8105J    +0.0%
+  w3_001         0.1720J   0.1720J    +0.0%
+  w5a_029        2.9538J   2.9538J    +0.0%
+
+  MAXIMUS MICROBENCH_TPCH SF=20
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         1.3832J   1.3832J    +0.0%
+  w3_001         0.1770J   0.1770J    +0.0%
+  w5a_029        5.8033J   5.8033J    +0.0%
+
+  MAXIMUS MICROBENCH_TPCH SF=5
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         0.3201J   0.3201J    +0.0%
+  w3_001         6.1112J   6.1112J    +0.0%
+  w5a_029        1.4166J   1.4166J    +0.0%
+
+  MAXIMUS TPCH SF=1
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             1.9232J   1.9232J    +0.0%
+  q3             0.3687J   0.3687J    +0.0%
+  q6             0.1935J   0.1935J    +0.0%
+
+  MAXIMUS TPCH SF=10
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1            18.0758J  18.0758J    +0.0%
+  q3             3.0673J   3.0673J    +0.0%
+  q6             1.2007J   1.2007J    +0.0%
+
+  MAXIMUS TPCH SF=5
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             9.1542J   9.1542J    +0.0%
+  q3             1.5919J   1.5919J    +0.0%
+  q6             0.4825J   0.4825J    +0.0%
+
+  SIRIUS H2O SF=1gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             1.2000J   1.2000J    +0.0%
+  q3            12.5000J  12.5000J    +0.0%
+  q5             0.9000J   0.9000J    +0.0%
+
+  SIRIUS H2O SF=2gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             2.6000J   2.6000J    +0.0%
+  q3            16.6000J  16.6000J    +0.0%
+  q5             1.9000J   1.9000J    +0.0%
+
+  SIRIUS H2O SF=3gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             4.0000J   4.0000J    +0.0%
+  q3            21.4000J  21.4000J    +0.0%
+  q5             3.0000J   3.0000J    +0.0%
+
+  SIRIUS H2O SF=4gb
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             5.7000J   5.7000J    +0.0%
+  q3            23.7000J  23.7000J    +0.0%
+  q5             4.2000J   4.2000J    +0.0%
+
+  SIRIUS MICROBENCH_TPCH SF=1
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         0.0000J   0.0000J    +0.0%
+  w3_001         0.1000J   0.1000J    +0.0%
+  w5a_029        0.2000J   0.2000J    +0.0%
+
+  SIRIUS MICROBENCH_TPCH SF=10
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         0.0000J   0.0000J    +0.0%
+  w3_001         0.1000J   0.1000J    +0.0%
+  w5a_029        1.2000J   1.2000J    +0.0%
+
+  SIRIUS MICROBENCH_TPCH SF=20
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         0.1000J   0.1000J    +0.0%
+  w3_001         0.1000J   0.1000J    +0.0%
+  w5a_029        2.7000J   2.7000J    +0.0%
+
+  SIRIUS MICROBENCH_TPCH SF=5
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  w1_002         0.0000J   0.0000J    +0.0%
+  w3_001         0.1000J   0.1000J    +0.0%
+  w5a_029        0.6000J   0.6000J    +0.0%
+
+  SIRIUS TPCH SF=1
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             1.5000J   1.5000J    +0.0%
+  q3             0.4000J   0.4000J    +0.0%
+  q6             0.1000J   0.1000J    +0.0%
+
+  SIRIUS TPCH SF=10
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1            15.3000J  15.3000J    +0.0%
+  q3             1.1000J   1.1000J    +0.0%
+  q6             0.2000J   0.2000J    +0.0%
+
+  SIRIUS TPCH SF=20
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1            32.0000J  32.0000J    +0.0%
+  q3             2.0000J   2.0000J    +0.0%
+  q6             0.4000J   0.4000J    +0.0%
+
+  SIRIUS TPCH SF=5
+  Query          NewE(J)  BaseE(J)     Diff  Status
+  -----------  --------- --------- --------  ------------
+  q1             6.7000J   6.7000J    +0.0%
+  q3             0.7000J   0.7000J    +0.0%
+  q6             0.1000J   0.1000J    +0.0%
+
+================================================================================
+  SUMMARY
+================================================================================
+  Latency: 165 compared, 0 warnings (>20.0% diff), 0 new
+  Energy:  105 compared, 0 warnings (>20.0% diff)
+
+  ✓ ALL RESULTS WITHIN ±20.0% OF BASELINE
+================================================================================

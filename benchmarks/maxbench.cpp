@@ -107,14 +107,14 @@ int main(int argc, char** argv) {
     std::vector<std::shared_ptr<maximus::Schema>> table_schemas = get_table_schemas(benchmark);
 
     // preload all the tables, if you don't want to include I/O in the benchmarks
-    std::vector<int64_t> timings_io(n_reps_storage, 0);
+    std::vector<double> timings_io(n_reps_storage, 0.0);
     for (int i = 0; i < n_reps_storage; ++i) {
         context->barrier();
         auto start = std::chrono::high_resolution_clock::now();
         load_tables(db, tables, table_schemas, storage_device);
         context->barrier();
         auto end      = std::chrono::high_resolution_clock::now();
-        timings_io[i] = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        timings_io[i] = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
     }
 
     std::cout << "===================================" << std::endl;
@@ -148,10 +148,10 @@ int main(int argc, char** argv) {
     std::cout << "---> Tables as single chunk:   "
               << (context->tables_initially_as_single_chunk ? "YES" : "NO") << "\n";
 
-    std::vector<std::vector<int64_t>> timings_maximus(queries.size(),
-                                                      std::vector<int64_t>(n_reps, 0));
-    std::vector<std::vector<int64_t>> timings_acero(queries.size(),
-                                                    std::vector<int64_t>(n_reps, 0));
+    std::vector<std::vector<double>> timings_maximus(queries.size(),
+                                                    std::vector<double>(n_reps, 0.0));
+    std::vector<std::vector<double>> timings_acero(queries.size(),
+                                                   std::vector<double>(n_reps, 0.0));
 
     std::vector<maximus::TablePtr> maximus_result_tables(queries.size());
     std::vector<maximus::TablePtr> acero_result_tables(queries.size());
@@ -207,8 +207,8 @@ int main(int argc, char** argv) {
                     // discard the first run as it is a warm-up
                     // if (i > 0) {
                     timings_acero[query_idx][i] =
-                        std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time)
-                            .count();
+                        std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time)
+                            .count() / 1000.0;
                     // }
 
                     // if this is the last repetition, store the result
@@ -233,8 +233,8 @@ int main(int argc, char** argv) {
                 // discard the first run as it is a warm-up
                 // if (i > 0) {
                 timings_maximus[query_idx][i] =
-                    std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time)
-                        .count();
+                    std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time)
+                        .count() / 1000.0;
                 // }
                 // if this is the last repetition, store the result
                 if (i == n_reps - 1) {

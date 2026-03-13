@@ -316,6 +316,22 @@ run_step "energy_summary" \
     python3 compute_energy_summary.py --latest --results-dir "$RESULTS_DIR" \
     --output "$RESULTS_DIR/energy_summary.csv"
 
+# ══════════════════════════════════════════════════════════════════════════
+#  Verification: compare results against baseline
+# ══════════════════════════════════════════════════════════════════════════
+
+echo ""
+echo "======== VERIFICATION: Compare against baseline ========"
+
+BASELINE_DIR="$RESULTS_DIR/baseline"
+if [ -f "$BASELINE_DIR/baseline_latency.csv" ]; then
+    run_step "verify_results" \
+        python3 verify_results.py --log-dir "$LOG_DIR" --baseline-dir "$BASELINE_DIR"
+else
+    echo "  [SKIP] No baseline found at $BASELINE_DIR"
+    echo "  To create a baseline, copy test_latency.csv and test_energy.csv to $BASELINE_DIR/"
+fi
+
 echo ""
 echo "========================================================================"
 echo "  ALL BENCHMARKS COMPLETE ($MODE MODE)"

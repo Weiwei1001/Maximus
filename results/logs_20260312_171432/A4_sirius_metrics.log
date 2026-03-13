@@ -1,0 +1,313 @@
+======================================================================
+  SIRIUS GPU STEADY-STATE METRICS
+  GPU: NVIDIA A100-SXM4-80GB (index 0, 81920 MiB)
+  Target: 60.0s sustained execution per query
+  Started: 2026-03-12 19:21:47.878435
+======================================================================
+
+======================================================================
+  METRICS: TPCH SF=1 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf1.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=36.734s, per_query=0.0200s (1st=0.3190s)
+  q3... total=36.757s, per_query=0.0060s (1st=0.2620s)
+  q6... total=36.759s, per_query=0.0020s (1st=0.1700s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.0200s x 3000 reps = 60.0s (OK)
+  q3: 0.0060s x 10000 reps = 60.0s (OK)
+  q6: 0.0020s x 30000 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (3000 reps/pass, target=60.0s)... 0.020s, 73.9s (1 passes), GPU:76W CPU:0W, 100%util, 81149MB, GPU_E:1.5J CPU_E:0.0J [OK]
+  q3 (10000 reps/pass, target=60.0s)... 0.006s, 111.1s (2 passes), GPU:67W CPU:0W, 100%util, 81145MB, GPU_E:0.4J CPU_E:0.0J [OK]
+  q6 (30000 reps/pass, target=60.0s)... 0.002s, 63.0s (1 passes), GPU:68W CPU:0W, 100%util, 81145MB, GPU_E:0.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf1_metrics_samples_20260312_192147.csv (2541 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf1_metrics_summary_20260312_192147.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=5 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf5.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=37.571s, per_query=0.0650s (1st=1.1910s)
+  q3... total=37.738s, per_query=0.0170s (1st=1.3230s)
+  q6... total=36.677s, per_query=0.0030s (1st=0.6620s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.0650s x 924 reps = 60.1s (OK)
+  q3: 0.0170s x 3530 reps = 60.0s (OK)
+  q6: 0.0030s x 20000 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (924 reps/pass, target=60.0s)... 0.064s, 79.6s (1 passes), GPU:105W CPU:0W, 100%util, 81153MB, GPU_E:6.7J CPU_E:0.0J [OK]
+  q3 (3530 reps/pass, target=60.0s)... 0.010s, 107.5s (2 passes), GPU:69W CPU:0W, 100%util, 81143MB, GPU_E:0.7J CPU_E:0.0J [OK]
+  q6 (20000 reps/pass, target=60.0s)... 0.002s, 106.8s (2 passes), GPU:68W CPU:0W, 100%util, 81153MB, GPU_E:0.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf5_metrics_samples_20260312_192830.csv (3096 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf5_metrics_summary_20260312_192830.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=10 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf10.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=39.700s, per_query=0.1250s (1st=2.8640s)
+  q3... total=37.604s, per_query=0.0160s (1st=1.2620s)
+  q6... total=37.735s, per_query=0.0040s (1st=0.9890s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.1250s x 480 reps = 60.0s (OK)
+  q3: 0.0160s x 3750 reps = 60.0s (OK)
+  q6: 0.0040s x 15000 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (480 reps/pass, target=60.0s)... 0.123s, 103.5s (1 passes), GPU:125W CPU:0W, 100%util, 81153MB, GPU_E:15.3J CPU_E:0.0J [OK]
+  q3 (3750 reps/pass, target=60.0s)... 0.015s, 105.9s (2 passes), GPU:71W CPU:0W, 100%util, 81149MB, GPU_E:1.1J CPU_E:0.0J [OK]
+  q6 (15000 reps/pass, target=60.0s)... 0.003s, 105.2s (2 passes), GPU:71W CPU:0W, 100%util, 81135MB, GPU_E:0.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf10_metrics_samples_20260312_193612.csv (3207 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf10_metrics_summary_20260312_193612.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=20 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf20.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=39.925s, per_query=0.2470s (1st=3.7570s)
+  q3... total=37.878s, per_query=0.0270s (1st=2.2510s)
+  q6... total=36.934s, per_query=0.0050s (1st=1.7520s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.2470s x 243 reps = 60.0s (OK)
+  q3: 0.0270s x 2223 reps = 60.0s (OK)
+  q6: 0.0050s x 12000 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (243 reps/pass, target=60.0s)... 0.243s, 114.1s (1 passes), GPU:132W CPU:0W, 100%util, 80965MB, GPU_E:32.0J CPU_E:0.0J [OK]
+  q3 (2223 reps/pass, target=60.0s)... 0.026s, 110.8s (2 passes), GPU:76W CPU:0W, 100%util, 81149MB, GPU_E:2.0J CPU_E:0.0J [OK]
+  q6 (12000 reps/pass, target=60.0s)... 0.005s, 107.4s (2 passes), GPU:74W CPU:0W, 100%util, 81143MB, GPU_E:0.4J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf20_metrics_samples_20260312_194407.csv (3367 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf20_metrics_summary_20260312_194407.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=1gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_1gb.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=35.550s, per_query=0.0200s (1st=0.5320s)
+  q3... total=37.168s, per_query=0.1540s (1st=1.6930s)
+  q5... total=36.176s, per_query=0.0160s (1st=0.7160s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.0200s x 3000 reps = 60.0s (OK)
+  q3: 0.1540s x 390 reps = 60.1s (OK)
+  q5: 0.0160s x 3750 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (3000 reps/pass, target=60.0s)... 0.016s, 112.7s (2 passes), GPU:76W CPU:0W, 100%util, 81153MB, GPU_E:1.2J CPU_E:0.0J [OK]
+  q3 (390 reps/pass, target=60.0s)... 0.129s, 113.7s (1 passes), GPU:97W CPU:0W, 100%util, 81151MB, GPU_E:12.5J CPU_E:0.0J [OK]
+  q5 (3750 reps/pass, target=60.0s)... 0.012s, 115.1s (2 passes), GPU:78W CPU:0W, 100%util, 81149MB, GPU_E:0.9J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf1gb_metrics_samples_20260312_195215.csv (3563 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf1gb_metrics_summary_20260312_195215.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=2gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_2gb.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=37.382s, per_query=0.0320s (1st=1.0420s)
+  q3... total=39.656s, per_query=0.1750s (1st=2.9610s)
+  q5... total=37.996s, per_query=0.0250s (1st=1.3860s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.0320s x 1875 reps = 60.0s (OK)
+  q3: 0.1750s x 343 reps = 60.0s (OK)
+  q5: 0.0250s x 2400 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (1875 reps/pass, target=60.0s)... 0.031s, 65.1s (1 passes), GPU:83W CPU:0W, 100%util, 81153MB, GPU_E:2.6J CPU_E:0.0J [OK]
+  q3 (343 reps/pass, target=60.0s)... 0.165s, 124.5s (1 passes), GPU:100W CPU:0W, 100%util, 81091MB, GPU_E:16.6J CPU_E:0.0J [OK]
+  q5 (2400 reps/pass, target=60.0s)... 0.022s, 62.7s (1 passes), GPU:87W CPU:0W, 100%util, 81153MB, GPU_E:1.9J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf2gb_metrics_samples_20260312_200028.csv (2787 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf2gb_metrics_summary_20260312_200028.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=3gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_3gb.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=39.291s, per_query=0.0480s (1st=2.6190s)
+  q3... total=41.331s, per_query=0.2170s (1st=4.4200s)
+  q5... total=38.602s, per_query=0.0330s (1st=2.1900s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.0480s x 1250 reps = 60.0s (OK)
+  q3: 0.2170s x 277 reps = 60.1s (OK)
+  q5: 0.0330s x 1819 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (1250 reps/pass, target=60.0s)... 0.045s, 71.9s (1 passes), GPU:89W CPU:0W, 100%util, 81153MB, GPU_E:4.0J CPU_E:0.0J [OK]
+  q3 (277 reps/pass, target=60.0s)... 0.211s, 129.3s (1 passes), GPU:101W CPU:0W, 100%util, 81009MB, GPU_E:21.4J CPU_E:0.0J [OK]
+  q5 (1819 reps/pass, target=60.0s)... 0.032s, 67.6s (1 passes), GPU:93W CPU:0W, 100%util, 81153MB, GPU_E:3.0J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf3gb_metrics_samples_20260312_200719.csv (2999 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf3gb_metrics_summary_20260312_200719.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=4gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_4gb.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  q1... total=38.264s, per_query=0.0610s (1st=1.9490s)
+  q3... total=42.806s, per_query=0.2490s (1st=5.6260s)
+  q5... total=39.159s, per_query=0.0430s (1st=2.7910s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  q1: 0.0610s x 984 reps = 60.0s (OK)
+  q3: 0.2490s x 241 reps = 60.0s (OK)
+  q5: 0.0430s x 1396 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  q1 (984 reps/pass, target=60.0s)... 0.060s, 77.6s (1 passes), GPU:94W CPU:0W, 100%util, 81149MB, GPU_E:5.7J CPU_E:0.0J [OK]
+  q3 (241 reps/pass, target=60.0s)... 0.223s, 125.0s (1 passes), GPU:106W CPU:0W, 100%util, 80963MB, GPU_E:23.7J CPU_E:0.0J [OK]
+  q5 (1396 reps/pass, target=60.0s)... 0.042s, 74.4s (1 passes), GPU:99W CPU:0W, 100%util, 81149MB, GPU_E:4.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf4gb_metrics_samples_20260312_201440.csv (3072 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf4gb_metrics_summary_20260312_201440.csv (3 queries)
+  --- 3/3 OK
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=1 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf1.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  w1_002... total=37.033s, per_query=0.0010s (1st=0.0860s)
+  w3_001... total=36.522s, per_query=0.0020s (1st=0.0930s)
+  w5a_029... total=36.825s, per_query=0.0050s (1st=0.1130s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  w1_002: 0.0010s x 60000 reps = 60.0s (OK)
+  w3_001: 0.0020s x 30000 reps = 60.0s (OK)
+  w5a_029: 0.0050s x 12000 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  w1_002 (60000 reps/pass, target=60.0s)... 0.000s, 104.5s (2 passes), GPU:67W CPU:0W, 100%util, 81131MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (30000 reps/pass, target=60.0s)... 0.001s, 105.0s (2 passes), GPU:67W CPU:0W, 100%util, 81127MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (12000 reps/pass, target=60.0s)... 0.003s, 105.7s (2 passes), GPU:67W CPU:0W, 100%util, 81149MB, GPU_E:0.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf1_metrics_samples_20260312_202203.csv (3409 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf1_metrics_summary_20260312_202203.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=5 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf5.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  w1_002... total=36.855s, per_query=0.0010s (1st=0.1470s)
+  w3_001... total=37.169s, per_query=0.0020s (1st=0.1170s)
+  w5a_029... total=36.787s, per_query=0.0110s (1st=0.2240s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  w1_002: 0.0010s x 60000 reps = 60.0s (OK)
+  w3_001: 0.0020s x 30000 reps = 60.0s (OK)
+  w5a_029: 0.0110s x 5455 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  w1_002 (60000 reps/pass, target=60.0s)... 0.000s, 105.2s (2 passes), GPU:67W CPU:0W, 100%util, 81141MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (30000 reps/pass, target=60.0s)... 0.001s, 106.0s (2 passes), GPU:67W CPU:0W, 100%util, 81149MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (5455 reps/pass, target=60.0s)... 0.009s, 108.1s (2 passes), GPU:71W CPU:0W, 100%util, 81147MB, GPU_E:0.6J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf5_metrics_samples_20260312_202952.csv (3461 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf5_metrics_summary_20260312_202952.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=10 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf10.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  w1_002... total=37.030s, per_query=0.0010s (1st=0.1910s)
+  w3_001... total=36.464s, per_query=0.0020s (1st=0.1380s)
+  w5a_029... total=37.338s, per_query=0.0190s (1st=0.3120s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  w1_002: 0.0010s x 60000 reps = 60.0s (OK)
+  w3_001: 0.0020s x 30000 reps = 60.0s (OK)
+  w5a_029: 0.0190s x 3158 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  w1_002 (60000 reps/pass, target=60.0s)... 0.000s, 105.3s (2 passes), GPU:67W CPU:0W, 100%util, 81149MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (30000 reps/pass, target=60.0s)... 0.002s, 106.4s (2 passes), GPU:67W CPU:0W, 100%util, 81149MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (3158 reps/pass, target=60.0s)... 0.016s, 112.2s (2 passes), GPU:76W CPU:0W, 100%util, 81149MB, GPU_E:1.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf10_metrics_samples_20260312_203746.csv (3463 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf10_metrics_summary_20260312_203746.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=20 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf20.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  w1_002... total=36.873s, per_query=0.0010s (1st=0.2980s)
+  w3_001... total=36.993s, per_query=0.0030s (1st=0.1370s)
+  w5a_029... total=37.548s, per_query=0.0370s (1st=0.5740s)
+
+--- Phase 2: Calculate n_reps (target=60.0s) ---
+  w1_002: 0.0010s x 60000 reps = 60.0s (OK)
+  w3_001: 0.0030s x 20000 reps = 60.0s (OK)
+  w5a_029: 0.0370s x 1622 reps = 60.0s (OK)
+
+--- Phase 3: Metrics run with power sampling ---
+  w1_002 (60000 reps/pass, target=60.0s)... 0.001s, 106.9s (2 passes), GPU:67W CPU:0W, 100%util, 81111MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w3_001 (20000 reps/pass, target=60.0s)... 0.002s, 107.1s (2 passes), GPU:68W CPU:0W, 100%util, 81145MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (1622 reps/pass, target=60.0s)... 0.032s, 119.1s (2 passes), GPU:85W CPU:0W, 100%util, 81149MB, GPU_E:2.7J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf20_metrics_samples_20260312_204545.csv (3552 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf20_metrics_summary_20260312_204545.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=1gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_1gb.duckdb
+======================================================================
+
+--- Phase 1: Calibration (3 reps each) ---
+  w1_001... total=36.922s, per_query=0.0010s (1st=0.0030s)
+  w3_016... Traceback (most recent call last):
+  File "/workspace/gpu_db/benchmarks/scripts/run_sirius_metrics.py", line 472, in <module>
+    main()
+  File "/workspace/gpu_db/benchmarks/scripts/run_sirius_metrics.py", line 280, in main
+    f"(1st={query_times[0]:.4f}s)")
+            ~~~~~~~~~~~^^^
+IndexError: list index out of range
