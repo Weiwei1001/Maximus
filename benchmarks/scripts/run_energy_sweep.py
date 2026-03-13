@@ -182,22 +182,65 @@ def config_dir(results_dir: Path, power_limit_w: int, sm_clock_mhz: int) -> Path
     return results_dir / config_tag(power_limit_w, sm_clock_mhz)
 
 
-def config_has_results(cfg_dir: Path, engine: str, benchmarks: list[str]) -> bool:
-    """Check if a config directory already has summary CSVs for all requested benchmarks."""
+def config_has_results(cfg_dir: Path, engines: list[str]) -> bool:
+    """Check if a config directory already has results for all experiment steps.
+
+    Checks for A1 (maximus_benchmark.csv) and A3/A4 (metrics summaries).
+    """
     if not cfg_dir.exists():
         return False
-    pattern = f"{engine}_*_metrics_summary_*.csv"
-    existing = list(cfg_dir.glob(pattern))
-    return len(existing) > 0
+    if "maximus" in engines:
+        if not (cfg_dir / "maximus_benchmark.csv").exists():
+            return False
+        if not list(cfg_dir.glob("maximus_*_metrics_summary_*.csv")):
+            return False
+    if "sirius" in engines:
+        if not list(cfg_dir.glob("sirius_*_metrics_summary_*.csv")):
+            return False
+    return True
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  Subprocess Runners for Existing Metrics Scripts
 # ══════════════════════════════════════════════════════════════════════════════
 
+def run_maximus_timing(benchmarks: list[str], cfg_dir: Path,
+                       n_reps: int = 3, test_mode: bool = False) -> int:
+    """A1: Maximus GPU timing (run_maximus_benchmark.py). Returns exit code."""
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "run_maximus_benchmark.py"),
+        *benchmarks,
+        "--n-reps", str(n_reps),
+        "--results-dir", str(cfg_dir),
+    ]
+    if test_mode:
+        cmd.append("--test")
+    print(f"  [A1 MAXIMUS TIMING] {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)
+    return result.returncode
+
+
+def run_sirius_timing(benchmarks: list[str], cfg_dir: Path,
+                      test_mode: bool = False) -> int:
+    """A2: Sirius GPU timing (run_sirius_benchmark.py). Returns exit code."""
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "run_sirius_benchmark.py"),
+        *benchmarks,
+        "--results-dir", str(cfg_dir),
+    ]
+    if test_mode:
+        cmd.append("--test")
+    print(f"  [A2 SIRIUS TIMING] {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)
+    return result.returncode
+
+
 def run_maximus_metrics(benchmarks: list[str], cfg_dir: Path,
-                        target_time: float) -> int:
-    """Run run_maximus_metrics.py as a subprocess. Returns exit code."""
+                        target_time: float, timing_csv: str | None = None,
+                        test_mode: bool = False) -> int:
+    """A3: Maximus GPU metrics (run_maximus_metrics.py). Returns exit code."""
     cmd = [
         sys.executable,
         str(SCRIPT_DIR / "run_maximus_metrics.py"),
@@ -205,14 +248,18 @@ def run_maximus_metrics(benchmarks: list[str], cfg_dir: Path,
         "--results-dir", str(cfg_dir),
         "--target-time", str(target_time),
     ]
-    print(f"  [MAXIMUS] Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)  # 2 hour timeout
+    if timing_csv and os.path.exists(str(timing_csv)):
+        cmd.extend(["--timing-csv", str(timing_csv)])
+    if test_mode:
+        cmd.append("--test")
+    print(f"  [A3 MAXIMUS METRICS] {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)
     return result.returncode
 
 
 def run_sirius_metrics(benchmarks: list[str], cfg_dir: Path,
-                       target_time: float) -> int:
-    """Run run_sirius_metrics.py as a subprocess. Returns exit code."""
+                       target_time: float, test_mode: bool = False) -> int:
+    """A4: Sirius GPU metrics (run_sirius_metrics.py). Returns exit code."""
     cmd = [
         sys.executable,
         str(SCRIPT_DIR / "run_sirius_metrics.py"),
@@ -220,8 +267,64 @@ def run_sirius_metrics(benchmarks: list[str], cfg_dir: Path,
         "--results-dir", str(cfg_dir),
         "--target-time", str(target_time),
     ]
-    print(f"  [SIRIUS] Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)  # 2 hour timeout
+    if test_mode:
+        cmd.append("--test")
+    print(f"  [A4 SIRIUS METRICS] {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)
+    return result.returncode
+
+
+def run_maximus_cpu_timing(benchmarks: list[str], cfg_dir: Path,
+                           test_mode: bool = False) -> int:
+    """B1: Maximus CPU-data timing (run_maximus_cpu_data.py --timing-only). Returns exit code."""
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "run_maximus_cpu_data.py"),
+        *benchmarks,
+        "--timing-only",
+        "--results-dir", str(cfg_dir),
+    ]
+    if test_mode:
+        cmd.append("--test")
+    print(f"  [B1 MAXIMUS CPU TIMING] {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)
+    return result.returncode
+
+
+def run_maximus_cpu_metrics(benchmarks: list[str], cfg_dir: Path,
+                            target_time: float, timing_csv: str | None = None,
+                            test_mode: bool = False) -> int:
+    """B2: Maximus CPU-data metrics (run_maximus_cpu_data.py). Returns exit code."""
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "run_maximus_cpu_data.py"),
+        *benchmarks,
+        "--target-time", str(target_time),
+        "--results-dir", str(cfg_dir),
+    ]
+    if timing_csv and os.path.exists(str(timing_csv)):
+        cmd.extend(["--timing-csv", str(timing_csv)])
+    if test_mode:
+        cmd.append("--test")
+    print(f"  [B2 MAXIMUS CPU METRICS] {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)
+    return result.returncode
+
+
+def run_sirius_cpu_data(benchmarks: list[str], cfg_dir: Path,
+                        n_reps: int = 10, test_mode: bool = False) -> int:
+    """B3: Sirius CPU-data timing + metrics (run_sirius_cpu_data.py). Returns exit code."""
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "run_sirius_cpu_data.py"),
+        *benchmarks,
+        "--n-reps", str(n_reps),
+        "--results-dir", str(cfg_dir),
+    ]
+    if test_mode:
+        cmd.append("--test")
+    print(f"  [B3 SIRIUS CPU DATA] {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)
     return result.returncode
 
 
@@ -390,7 +493,7 @@ def print_best_configs(rows: list[dict]) -> None:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_sweep(args: argparse.Namespace) -> None:
-    """Main sweep loop: iterate (PL, CLK), set GPU config, run metrics."""
+    """Main sweep loop: iterate (PL, CLK), set GPU config, run full A+B pipeline."""
     results_dir = Path(args.results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -444,17 +547,11 @@ def run_sweep(args: argparse.Namespace) -> None:
             print(f"  Progress: {done}/{total_configs} done, ETA: {eta_str}")
         print(f"{'=' * 80}")
 
-        # Resume: check if all engines have results for this config
-        if resume:
-            all_done = True
-            for engine in engines:
-                if not config_has_results(cfg_d, engine, benchmarks):
-                    all_done = False
-                    break
-            if all_done:
-                print(f"  SKIP (resume): {tag} already has results")
-                skipped += 1
-                continue
+        # Resume: check if this config already has all results
+        if resume and config_has_results(cfg_d, engines):
+            print(f"  SKIP (resume): {tag} already has results")
+            skipped += 1
+            continue
 
         # Cool-down check
         wait_for_cooldown()
@@ -468,38 +565,67 @@ def run_sweep(args: argparse.Namespace) -> None:
         # Create config directory
         cfg_d.mkdir(parents=True, exist_ok=True)
 
-        # Run metrics for each engine
-        for engine in engines:
-            if resume and config_has_results(cfg_d, engine, benchmarks):
-                print(f"  SKIP (resume): {engine} already has results for {tag}")
-                continue
+        # Build benchmark list including microbench variants
+        bench_with_micro = list(benchmarks)
+        for b in list(benchmarks):
+            bench_with_micro.append(f"microbench_{b}")
 
-            # Determine which benchmarks to run for this engine
-            if engine == "maximus":
-                engine_bench_map = MAXIMUS_BENCHMARKS
-            else:
-                engine_bench_map = SIRIUS_BENCHMARKS
+        has_maximus = "maximus" in engines
+        has_sirius = "sirius" in engines
+        test_mode = args.test
 
-            bench_to_run = [b for b in benchmarks if b in engine_bench_map]
-            if not bench_to_run:
-                print(f"  SKIP: No configured benchmarks for {engine}")
-                continue
-
-            print(f"\n  --- Running {engine} metrics for {tag} ---")
+        def _run_step(step_name, func, *a, **kw):
+            print(f"\n  --- {step_name} for {tag} ---")
             try:
-                if engine == "maximus":
-                    rc = run_maximus_metrics(
-                        bench_to_run, cfg_d, args.maximus_target_time)
-                else:
-                    rc = run_sirius_metrics(
-                        bench_to_run, cfg_d, args.sirius_target_time)
-
+                rc = func(*a, **kw)
                 if rc != 0:
-                    print(f"  WARNING: {engine} metrics exited with code {rc}")
+                    print(f"  WARNING: {step_name} exited with code {rc}")
             except subprocess.TimeoutExpired:
-                print(f"  ERROR: {engine} metrics timed out for {tag}")
+                print(f"  ERROR: {step_name} timed out for {tag}")
             except Exception as e:
-                print(f"  ERROR: {engine} metrics failed for {tag}: {e}")
+                print(f"  ERROR: {step_name} failed for {tag}: {e}")
+
+        # ── Category A: Data on GPU ──────────────────────────────────────
+        # A1: Maximus GPU timing
+        if has_maximus:
+            _run_step("A1 Maximus timing", run_maximus_timing,
+                      bench_with_micro, cfg_d, n_reps=3, test_mode=test_mode)
+
+        # A2: Sirius GPU timing
+        if has_sirius:
+            _run_step("A2 Sirius timing", run_sirius_timing,
+                      bench_with_micro, cfg_d, test_mode=test_mode)
+
+        # A3: Maximus GPU metrics (reuse A1 timing CSV)
+        if has_maximus:
+            a1_csv = cfg_d / "maximus_benchmark.csv"
+            _run_step("A3 Maximus metrics", run_maximus_metrics,
+                      bench_with_micro, cfg_d, args.maximus_target_time,
+                      timing_csv=str(a1_csv), test_mode=test_mode)
+
+        # A4: Sirius GPU metrics
+        if has_sirius:
+            _run_step("A4 Sirius metrics", run_sirius_metrics,
+                      bench_with_micro, cfg_d, args.sirius_target_time,
+                      test_mode=test_mode)
+
+        # ── Category B: Data on CPU ──────────────────────────────────────
+        # B1: Maximus CPU-data timing
+        if has_maximus:
+            _run_step("B1 Maximus CPU timing", run_maximus_cpu_timing,
+                      bench_with_micro, cfg_d, test_mode=test_mode)
+
+        # B2: Maximus CPU-data metrics (reuse B1 timing CSV)
+        if has_maximus:
+            b1_csv = cfg_d / "maximus_cpu_data_timing.csv"
+            _run_step("B2 Maximus CPU metrics", run_maximus_cpu_metrics,
+                      bench_with_micro, cfg_d, args.maximus_target_time,
+                      timing_csv=str(b1_csv), test_mode=test_mode)
+
+        # B3: Sirius CPU-data timing + metrics
+        if has_sirius:
+            _run_step("B3 Sirius CPU data", run_sirius_cpu_data,
+                      bench_with_micro, cfg_d, n_reps=10, test_mode=test_mode)
 
         completed += 1
 
