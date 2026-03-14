@@ -42,6 +42,7 @@ BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 GPU_ID = str(gpu_info["index"])
 TARGET_TIME_S = 10
 MIN_REPS = 3
+MAX_REPS = 100       # cap to prevent memory leaks from too many reps
 CALIBRATION_REPS = 3
 
 
@@ -294,9 +295,9 @@ def main():
                         continue
                     min_ms = min(cal_times)
                 if min_ms > 0:
-                    n_reps = max(MIN_REPS, math.ceil(args.target_time * 1000 / min_ms))
+                    n_reps = min(MAX_REPS, max(MIN_REPS, math.ceil(args.target_time * 1000 / min_ms)))
                 else:
-                    n_reps = 100
+                    n_reps = MAX_REPS
                 print(f"  {q} ({n_reps} reps, -s cpu)...", end=" ", flush=True)
 
                 samples = []

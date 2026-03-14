@@ -63,6 +63,7 @@ BUFFER_INIT = buffer_init_sql(_gpu_info["vram_mb"])
 QUERY_TIMEOUT_S = 120
 TARGET_TIME_S = 20
 MIN_REPS = 3
+MAX_REPS = 100       # cap to prevent memory leaks from too many reps
 
 # Sirius-supported benchmarks (standard + microbench)
 _SIRIUS_BENCHMARKS = {
@@ -289,7 +290,7 @@ def main():
                 key = (bench_name, str(sf), qname)
                 prior_t = prior_timing.get(key)
                 if prior_t is not None and prior_t > 0:
-                    n_reps = max(MIN_REPS, math.ceil(target_time_s / prior_t))
+                    n_reps = min(MAX_REPS, max(MIN_REPS, math.ceil(target_time_s / prior_t)))
                     calibration[qname] = {
                         "query_time_s": prior_t,
                         "n_reps": n_reps,
@@ -319,7 +320,7 @@ def main():
                             per_query = min(query_times[1:]) if query_times[1:] else query_times[0]
                         else:
                             per_query = query_times[0] if query_times else sum(times)
-                        n_reps = max(MIN_REPS, math.ceil(target_time_s / per_query)) if per_query > 0 else MIN_REPS
+                        n_reps = min(MAX_REPS, max(MIN_REPS, math.ceil(target_time_s / per_query))) if per_query > 0 else MIN_REPS
                         calibration[qname] = {
                             "query_time_s": per_query,
                             "n_reps": n_reps,

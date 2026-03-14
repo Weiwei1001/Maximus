@@ -22,6 +22,18 @@ set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MAXIMUS_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Activate Python venv if available (needed for pip-installed cuDF/nvcomp)
+if [ -f "/venv/main/bin/activate" ] && [ -z "$VIRTUAL_ENV" ]; then
+    source /venv/main/bin/activate
+fi
+
+# Source environment (LD_LIBRARY_PATH for libnvcomp, libkvikio, etc.)
+_SAVED_SCRIPT_DIR="$SCRIPT_DIR"
+if [ -f "$MAXIMUS_DIR/setup_env.sh" ]; then
+    source "$MAXIMUS_DIR/setup_env.sh"
+fi
+SCRIPT_DIR="$_SAVED_SCRIPT_DIR"
 RESULTS_DIR="$MAXIMUS_DIR/results"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG_DIR="$RESULTS_DIR/logs_${TIMESTAMP}"

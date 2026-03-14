@@ -59,6 +59,7 @@ BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 
 TARGET_TIME_S = 10   # target sustained execution time per query
 MIN_REPS = 3         # minimum repetitions even for slow queries
+MAX_REPS = 100       # cap to prevent memory leaks from too many reps
 CALIBRATION_REPS = 3
 TIMEOUT = 300
 
@@ -226,10 +227,10 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
     for q in queries:
         cal = calibration[q]
         if cal["min_ms"] > 0:
-            cal["n_reps"] = max(MIN_REPS,
-                                math.ceil(target_time_s * 1000 / cal["min_ms"]))
+            cal["n_reps"] = min(MAX_REPS, max(MIN_REPS,
+                                math.ceil(target_time_s * 1000 / cal["min_ms"])))
         else:
-            cal["n_reps"] = 100  # default for sub-1ms queries
+            cal["n_reps"] = MAX_REPS  # default for sub-1ms queries
         est_s = cal["n_reps"] * max(cal["min_ms"], 1) / 1000
         print(f"  {q}: {cal['min_ms']}ms x {cal['n_reps']} reps = {est_s:.1f}s "
               f"({cal['storage']})")
