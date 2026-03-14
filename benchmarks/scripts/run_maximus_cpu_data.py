@@ -179,7 +179,7 @@ def sample_gpu_metrics(stop_event, samples, interval=0.05):
 
 def main():
     parser = argparse.ArgumentParser(description="Maximus data-on-CPU benchmark")
-    parser.add_argument("benchmarks", nargs="*", default=["tpch", "h2o"])
+    parser.add_argument("benchmarks", nargs="*", default=["tpch", "h2o", "clickbench"])
     parser.add_argument("--results-dir", type=str, default=str(MAXIMUS_DIR / "results"))
     parser.add_argument("--target-time", type=float, default=TARGET_TIME_S)
     parser.add_argument("--timing-only", action="store_true", help="Skip metrics, only timing")

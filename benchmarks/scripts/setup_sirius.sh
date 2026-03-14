@@ -209,7 +209,7 @@ done
 # ClickBench databases
 echo "  Generating ClickBench databases..."
 mkdir -p click_duckdb
-for sf in 1 2; do
+for sf in 1 2 10 20; do
     DB="click_duckdb/clickbench_${sf}.duckdb"
     if [ -f "$DB" ]; then
         echo "    $DB already exists, skipping"
