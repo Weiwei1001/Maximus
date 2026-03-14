@@ -1,0 +1,4 @@
+run_id,benchmark,sf,query,n_reps,min_s,avg_s,elapsed_s,num_samples,num_steady_samples,avg_power_w,max_power_w,max_mem_mb,avg_gpu_util,max_gpu_util,gpu_energy_j,avg_cpu_pkg_w,avg_cpu_dram_w,cpu_energy_j,status
+tpch_sf5_q1,tpch,5,q1,260,0.0640,0.0805,47.86,394,394,119.2,202.7,80989,40.2,100,7.63,0.0,0.0,0.00,OK
+tpch_sf5_q3,tpch,5,q3,1053,0.0140,0.0328,33.99,263,210,79.0,140.0,81149,10.2,100,1.11,0.0,0.0,0.00,OK
+tpch_sf5_q6,tpch,5,q6,5000,0.0030,0.0080,31.88,242,242,76.4,112.9,81135,7.5,100,0.23,0.0,0.0,0.00,OK

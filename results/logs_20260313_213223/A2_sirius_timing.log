@@ -1,0 +1,177 @@
+
+============================================================
+  TPCH SF=1 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.020s [OK]
+  q3: 0.006s [OK]
+  q6: 0.002s [OK]
+  --- 3/3 OK
+
+============================================================
+  TPCH SF=5 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.064s [OK]
+  q3: 0.011s [OK]
+  q6: 0.002s [OK]
+  --- 3/3 OK
+
+============================================================
+  TPCH SF=10 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.123s [OK]
+  q3: 0.016s [OK]
+  q6: 0.003s [OK]
+  --- 3/3 OK
+
+============================================================
+  TPCH SF=20 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.250s [OK]
+  q3: 0.028s [OK]
+  q6: 0.005s [OK]
+  --- 3/3 OK
+
+============================================================
+  H2O SF=1gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.017s [OK]
+  q3: 0.183s [OK]
+  q5: 0.013s [OK]
+  --- 3/3 OK
+
+============================================================
+  H2O SF=2gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.032s [OK]
+  q3: 0.210s [OK]
+  q5: 0.025s [OK]
+  --- 3/3 OK
+
+============================================================
+  H2O SF=3gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.046s [OK]
+  q3: 0.293s [OK]
+  q5: 0.034s [OK]
+  --- 3/3 OK
+
+============================================================
+  H2O SF=4gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  q1: 0.062s [OK]
+  q3: 0.239s [OK]
+  q5: 0.043s [OK]
+  --- 3/3 OK
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+============================================================
+  MICROBENCH_TPCH SF=1 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_002: 0.002s [OK]
+  w3_001: 0.002s [OK]
+  w5a_029: 0.006s [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_TPCH SF=5 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_002: 0.001s [OK]
+  w3_001: 0.001s [OK]
+  w5a_029: 0.010s [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_TPCH SF=10 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_002: 0.002s [OK]
+  w3_001: 0.003s [OK]
+  w5a_029: 0.021s [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_TPCH SF=20 (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_002: 0.001s [OK]
+  w3_001: 0.003s [OK]
+  w5a_029: 0.037s [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=1gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_001: 0.001s [OK]
+  w3_016: 0.016s [OK]
+  w6_022: 0.032s [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=2gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_001: 0.000s [OK]
+  w3_016: 0.031s [OK]
+  w6_022: 0.063s [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=3gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_001: 0.002s [OK]
+  w3_016: 0.047s [OK]
+  w6_022: 0.096s [OK]
+  --- 3/3 OK
+
+============================================================
+  MICROBENCH_H2O SF=4gb (3 queries)
+============================================================
+  Running (2 warmup + 1 timed pass per batch)...
+  w1_001: 0.001s [OK]
+  w3_016: 0.062s [OK]
+  w6_022: 0.132s [OK]
+  --- 3/3 OK
+[SKIP] microbench_clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] microbench_clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] microbench_clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] microbench_clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+============================================================
+  DONE (464s = 7.7min)
+  Results: /workspace/gpu_db/results/sirius_benchmark.csv
+============================================================
+  TPCH: 12/12 OK, 0 FALLBACK, 0 ERROR
+    SF=1: 3/3 OK
+    SF=5: 3/3 OK
+    SF=10: 3/3 OK
+    SF=20: 3/3 OK
+  H2O: 12/12 OK, 0 FALLBACK, 0 ERROR
+    SF=1gb: 3/3 OK
+    SF=2gb: 3/3 OK
+    SF=3gb: 3/3 OK
+    SF=4gb: 3/3 OK
+  MICROBENCH_TPCH: 12/12 OK, 0 FALLBACK, 0 ERROR
+    SF=1: 3/3 OK
+    SF=5: 3/3 OK
+    SF=10: 3/3 OK
+    SF=20: 3/3 OK
+  MICROBENCH_H2O: 12/12 OK, 0 FALLBACK, 0 ERROR
+    SF=1gb: 3/3 OK
+    SF=2gb: 3/3 OK
+    SF=3gb: 3/3 OK
+    SF=4gb: 3/3 OK

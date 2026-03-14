@@ -1,0 +1,41 @@
+  [HW] Detected GPU #0: NVIDIA A100-SXM4-80GB
+  [HW] Power levels: [100, 300, 500]
+  [HW] SM clock levels: [210, 510, 810, 1110, 1410]
+================================================================================
+  GPU ENERGY SWEEP
+  Power limits: [500]
+  SM clocks:    [1410]
+  Engines:      ['maximus', 'sirius']
+  Benchmarks:   ['tpch', 'h2o']
+  Results dir:  /workspace/gpu_db/results/energy_sweep
+  Resume:       True
+  Total configs: 1 (2 engine-configs)
+  Started: 2026-03-14 00:35:56.653198
+================================================================================
+  [GPU] Persistence mode enabled
+
+================================================================================
+  CONFIG 1/1: pl500w_clk1410mhz (PL=500W, CLK=1410MHz)
+================================================================================
+  [GPU] Setting power limit to 500W, SM clock to 1410MHz
+[hw_detect] WARNING: set power limit 500W failed: 
+  FAILED to set GPU config for pl500w_clk1410mhz, skipping
+
+================================================================================
+  AGGREGATING RESULTS
+================================================================================
+  No results found to aggregate.
+
+================================================================================
+  SWEEP COMPLETE
+  Total time:  0:00:00
+  Completed:   0/1
+  Skipped:     0
+  Failed:      1
+  Finished:    2026-03-14 00:35:56.834858
+================================================================================
+
+  [GPU] Restoring defaults: PL=500W, clocks=unlocked
+[hw_detect] WARNING: reset GPU clocks failed: 
+[hw_detect] WARNING: set power limit 500W failed: 
+  [GPU] Defaults restored

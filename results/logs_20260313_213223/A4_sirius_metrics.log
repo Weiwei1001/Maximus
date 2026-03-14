@@ -1,0 +1,323 @@
+  Loaded 48 timing entries from /workspace/gpu_db/results/sirius_benchmark.csv
+======================================================================
+  SIRIUS GPU STEADY-STATE METRICS
+  GPU: NVIDIA A100-SXM4-80GB (index 0, 81920 MiB)
+  Target: 20.0s sustained execution per query
+  Started: 2026-03-13 21:52:55.602656
+======================================================================
+
+======================================================================
+  METRICS: TPCH SF=1 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf1.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0200s x 100 reps = 2.0s (from timing CSV)
+  q3: 0.0060s x 100 reps = 0.6s (from timing CSV)
+  q6: 0.0020s x 100 reps = 0.2s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (100 reps/pass, target=20.0s)... 0.016s, 27.8s (1 passes), GPU:81W CPU:0W, 100%util, 80783MB, GPU_E:1.3J CPU_E:0.0J [OK]
+  q3 (100 reps/pass, target=20.0s)... 0.006s, 26.4s (1 passes), GPU:77W CPU:0W, 100%util, 81061MB, GPU_E:0.5J CPU_E:0.0J [OK]
+  q6 (100 reps/pass, target=20.0s)... 0.001s, 27.0s (1 passes), GPU:75W CPU:0W, 100%util, 80725MB, GPU_E:0.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf1_metrics_samples_20260313_215255.csv (618 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf1_metrics_summary_20260313_215255.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=5 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf5.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0640s x 100 reps = 6.4s (from timing CSV)
+  q3: 0.0110s x 100 reps = 1.1s (from timing CSV)
+  q6: 0.0020s x 100 reps = 0.2s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (100 reps/pass, target=20.0s)... 0.064s, 38.5s (1 passes), GPU:100W CPU:0W, 100%util, 80789MB, GPU_E:6.4J CPU_E:0.0J [OK]
+  q3 (100 reps/pass, target=20.0s)... 0.010s, 28.0s (1 passes), GPU:80W CPU:0W, 100%util, 81059MB, GPU_E:0.8J CPU_E:0.0J [OK]
+  q6 (100 reps/pass, target=20.0s)... 0.003s, 27.7s (1 passes), GPU:75W CPU:0W, 100%util, 80779MB, GPU_E:0.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf5_metrics_samples_20260313_215416.csv (697 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf5_metrics_summary_20260313_215416.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=10 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf10.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.1230s x 100 reps = 12.3s (from timing CSV)
+  q3: 0.0160s x 100 reps = 1.6s (from timing CSV)
+  q6: 0.0030s x 100 reps = 0.3s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (100 reps/pass, target=20.0s)... 0.124s, 40.9s (1 passes), GPU:113W CPU:0W, 100%util, 80789MB, GPU_E:14.0J CPU_E:0.0J [OK]
+  q3 (100 reps/pass, target=20.0s)... 0.015s, 26.1s (1 passes), GPU:87W CPU:0W, 100%util, 81067MB, GPU_E:1.3J CPU_E:0.0J [OK]
+  q6 (100 reps/pass, target=20.0s)... 0.003s, 24.5s (1 passes), GPU:78W CPU:0W, 100%util, 80765MB, GPU_E:0.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf10_metrics_samples_20260313_215551.csv (714 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf10_metrics_summary_20260313_215551.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=20 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf20.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.2500s x 80 reps = 20.0s (from timing CSV)
+  q3: 0.0280s x 100 reps = 2.8s (from timing CSV)
+  q6: 0.0050s x 100 reps = 0.5s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (80 reps/pass, target=20.0s)... 0.243s, 49.0s (1 passes), GPU:128W CPU:0W, 100%util, 80763MB, GPU_E:31.2J CPU_E:0.0J [OK]
+  q3 (100 reps/pass, target=20.0s)... 0.029s, 35.7s (1 passes), GPU:87W CPU:0W, 100%util, 81075MB, GPU_E:2.5J CPU_E:0.0J [OK]
+  q6 (100 reps/pass, target=20.0s)... 0.005s, 27.3s (1 passes), GPU:80W CPU:0W, 99%util, 80775MB, GPU_E:0.4J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf20_metrics_samples_20260313_215722.csv (892 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf20_metrics_summary_20260313_215722.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=1gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_1gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0170s x 100 reps = 1.7s (from timing CSV)
+  q3: 0.1830s x 100 reps = 18.3s (from timing CSV)
+  q5: 0.0130s x 100 reps = 1.3s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (100 reps/pass, target=20.0s)... 0.016s, 27.0s (1 passes), GPU:82W CPU:0W, 100%util, 80777MB, GPU_E:1.3J CPU_E:0.0J [OK]
+  q3 (100 reps/pass, target=20.0s)... 0.143s, 46.8s (1 passes), GPU:102W CPU:0W, 100%util, 80789MB, GPU_E:14.5J CPU_E:0.0J [OK]
+  q5 (100 reps/pass, target=20.0s)... 0.012s, 26.1s (1 passes), GPU:82W CPU:0W, 100%util, 80787MB, GPU_E:1.0J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf1gb_metrics_samples_20260313_215914.csv (797 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf1gb_metrics_summary_20260313_215914.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=2gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_2gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0320s x 100 reps = 3.2s (from timing CSV)
+  q3: 0.2100s x 96 reps = 20.2s (from timing CSV)
+  q5: 0.0250s x 100 reps = 2.5s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (100 reps/pass, target=20.0s)... 0.031s, 27.8s (1 passes), GPU:86W CPU:0W, 100%util, 80779MB, GPU_E:2.7J CPU_E:0.0J [OK]
+  q3 (96 reps/pass, target=20.0s)... 0.178s, 49.8s (1 passes), GPU:97W CPU:0W, 100%util, 80783MB, GPU_E:17.3J CPU_E:0.0J [OK]
+  q5 (100 reps/pass, target=20.0s)... 0.022s, 29.9s (1 passes), GPU:89W CPU:0W, 100%util, 80787MB, GPU_E:2.0J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf2gb_metrics_samples_20260313_220054.csv (859 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf2gb_metrics_summary_20260313_220054.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=3gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_3gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0460s x 100 reps = 4.6s (from timing CSV)
+  q3: 0.2930s x 69 reps = 20.2s (from timing CSV)
+  q5: 0.0340s x 100 reps = 3.4s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (100 reps/pass, target=20.0s)... 0.046s, 32.4s (1 passes), GPU:89W CPU:0W, 100%util, 80783MB, GPU_E:4.1J CPU_E:0.0J [OK]
+  q3 (69 reps/pass, target=20.0s)... 0.208s, 50.0s (1 passes), GPU:99W CPU:0W, 100%util, 80749MB, GPU_E:20.7J CPU_E:0.0J [OK]
+  q5 (100 reps/pass, target=20.0s)... 0.034s, 37.2s (1 passes), GPU:89W CPU:0W, 100%util, 80787MB, GPU_E:3.0J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf3gb_metrics_samples_20260313_220242.csv (926 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf3gb_metrics_summary_20260313_220242.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=4gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_4gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0620s x 100 reps = 6.2s (from timing CSV)
+  q3: 0.2390s x 84 reps = 20.1s (from timing CSV)
+  q5: 0.0430s x 100 reps = 4.3s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (100 reps/pass, target=20.0s)... 0.061s, 30.9s (1 passes), GPU:95W CPU:0W, 100%util, 80783MB, GPU_E:5.8J CPU_E:0.0J [OK]
+  q3 (84 reps/pass, target=20.0s)... 0.320s, 72.5s (1 passes), GPU:100W CPU:0W, 100%util, 80769MB, GPU_E:32.1J CPU_E:0.0J [OK]
+  q5 (100 reps/pass, target=20.0s)... 0.042s, 30.8s (1 passes), GPU:98W CPU:0W, 100%util, 80787MB, GPU_E:4.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf4gb_metrics_samples_20260313_220441.csv (1070 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf4gb_metrics_summary_20260313_220441.csv (3 queries)
+  --- 3/3 OK
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=1 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf1.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0020s x 100 reps = 0.2s (from timing CSV)
+  w3_001: 0.0020s x 100 reps = 0.2s (from timing CSV)
+  w5a_029: 0.0060s x 100 reps = 0.6s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (100 reps/pass, target=20.0s)... 0.001s, 24.8s (1 passes), GPU:74W CPU:0W, 100%util, 80745MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w3_001 (100 reps/pass, target=20.0s)... 0.002s, 25.8s (1 passes), GPU:74W CPU:0W, 100%util, 80761MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (100 reps/pass, target=20.0s)... 0.009s, 41.9s (1 passes), GPU:72W CPU:0W, 100%util, 80893MB, GPU_E:0.7J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf1_metrics_samples_20260313_220656.csv (662 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf1_metrics_summary_20260313_220656.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=5 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf5.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0010s x 100 reps = 0.1s (from timing CSV)
+  w3_001: 0.0010s x 100 reps = 0.1s (from timing CSV)
+  w5a_029: 0.0100s x 100 reps = 1.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (100 reps/pass, target=20.0s)... 0.001s, 27.6s (1 passes), GPU:74W CPU:0W, 100%util, 80779MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w3_001 (100 reps/pass, target=20.0s)... 0.001s, 28.2s (1 passes), GPU:74W CPU:0W, 100%util, 80739MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (100 reps/pass, target=20.0s)... 0.010s, 28.1s (1 passes), GPU:79W CPU:0W, 100%util, 80895MB, GPU_E:0.8J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf5_metrics_samples_20260313_220828.csv (612 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf5_metrics_summary_20260313_220828.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=10 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf10.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0020s x 100 reps = 0.2s (from timing CSV)
+  w3_001: 0.0030s x 100 reps = 0.3s (from timing CSV)
+  w5a_029: 0.0210s x 100 reps = 2.1s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (100 reps/pass, target=20.0s)... 0.001s, 25.1s (1 passes), GPU:74W CPU:0W, 100%util, 80749MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w3_001 (100 reps/pass, target=20.0s)... 0.001s, 25.0s (1 passes), GPU:75W CPU:0W, 100%util, 80759MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (100 reps/pass, target=20.0s)... 0.018s, 29.8s (1 passes), GPU:82W CPU:0W, 100%util, 80899MB, GPU_E:1.5J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf10_metrics_samples_20260313_220952.csv (618 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf10_metrics_summary_20260313_220952.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=20 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf20.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0010s x 100 reps = 0.1s (from timing CSV)
+  w3_001: 0.0030s x 100 reps = 0.3s (from timing CSV)
+  w5a_029: 0.0370s x 100 reps = 3.7s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (100 reps/pass, target=20.0s)... 0.000s, 25.5s (1 passes), GPU:75W CPU:0W, 100%util, 80775MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (100 reps/pass, target=20.0s)... 0.002s, 24.7s (1 passes), GPU:75W CPU:0W, 100%util, 80751MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (100 reps/pass, target=20.0s)... 0.032s, 29.8s (1 passes), GPU:93W CPU:0W, 100%util, 80905MB, GPU_E:3.0J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf20_metrics_samples_20260313_221112.csv (614 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf20_metrics_summary_20260313_221112.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=1gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_1gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: 0.0010s x 100 reps = 0.1s (from timing CSV)
+  w3_016: 0.0160s x 100 reps = 1.6s (from timing CSV)
+  w6_022: 0.0320s x 100 reps = 3.2s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (100 reps/pass, target=20.0s)... 0.000s, 23.8s (1 passes), GPU:75W CPU:0W, 100%util, 80647MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (100 reps/pass, target=20.0s)... 0.017s, 30.3s (1 passes), GPU:80W CPU:0W, 100%util, 80777MB, GPU_E:1.4J CPU_E:0.0J [OK]
+  w6_022 (100 reps/pass, target=20.0s)... 0.032s, 29.1s (1 passes), GPU:101W CPU:0W, 100%util, 80899MB, GPU_E:3.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf1gb_metrics_samples_20260313_221232.csv (649 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf1gb_metrics_summary_20260313_221232.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=2gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_2gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: no prior timing, calibrating... 0.0000s x 3 reps = 0.0s (calibrated)
+  w3_016: 0.0310s x 100 reps = 3.1s (from timing CSV)
+  w6_022: 0.0630s x 100 reps = 6.3s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (3 reps/pass, target=20.0s)... 0.000s, 24.0s (1 passes), GPU:75W CPU:0W, 100%util, 80647MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (100 reps/pass, target=20.0s)... 0.031s, 27.8s (1 passes), GPU:85W CPU:0W, 100%util, 80783MB, GPU_E:2.6J CPU_E:0.0J [OK]
+  w6_022 (100 reps/pass, target=20.0s)... 0.062s, 33.0s (1 passes), GPU:119W CPU:0W, 100%util, 80901MB, GPU_E:7.4J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf2gb_metrics_samples_20260313_221355.csv (677 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf2gb_metrics_summary_20260313_221355.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=3gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_3gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: 0.0020s x 100 reps = 0.2s (from timing CSV)
+  w3_016: 0.0470s x 100 reps = 4.7s (from timing CSV)
+  w6_022: 0.0960s x 100 reps = 9.6s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (100 reps/pass, target=20.0s)... 0.000s, 27.9s (1 passes), GPU:74W CPU:0W, 100%util, 80649MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (100 reps/pass, target=20.0s)... 0.046s, 37.9s (1 passes), GPU:89W CPU:0W, 100%util, 80783MB, GPU_E:4.1J CPU_E:0.0J [OK]
+  w6_022 (100 reps/pass, target=20.0s)... 0.095s, 45.1s (1 passes), GPU:137W CPU:0W, 100%util, 80903MB, GPU_E:13.0J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf3gb_metrics_samples_20260313_221546.csv (843 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf3gb_metrics_summary_20260313_221546.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=4gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_4gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: 0.0010s x 100 reps = 0.1s (from timing CSV)
+  w3_016: 0.0620s x 100 reps = 6.2s (from timing CSV)
+  w6_022: 0.1320s x 100 reps = 13.2s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (100 reps/pass, target=20.0s)... 0.000s, 26.6s (1 passes), GPU:75W CPU:0W, 100%util, 80649MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (100 reps/pass, target=20.0s)... 0.061s, 38.6s (1 passes), GPU:92W CPU:0W, 100%util, 80783MB, GPU_E:5.6J CPU_E:0.0J [OK]
+  w6_022 (100 reps/pass, target=20.0s)... 0.130s, 43.0s (1 passes), GPU:158W CPU:0W, 100%util, 80903MB, GPU_E:20.5J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf4gb_metrics_samples_20260313_221737.csv (843 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf4gb_metrics_summary_20260313_221737.csv (3 queries)
+  --- 3/3 OK
+[SKIP] microbench_clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] microbench_clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] microbench_clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] microbench_clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+======================================================================
+  ALL DONE — 2026-03-13 22:19:25.497520
+======================================================================

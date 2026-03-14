@@ -1,0 +1,590 @@
+======================================================================
+  ENERGY SUMMARY
+  Results dir: /workspace/gpu_db/results
+  Found 157 metrics summary files
+======================================================================
+  Loaded 1142 query results
+  After --latest filter: 453 query results
+
+  ==================================================================
+  Engine: MAXIMUS
+  ==================================================================
+
+  clickbench SF=1 (3 queries)
+    GPU Energy:       6.86 J  (avg 2.2875 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     6.86 J  (avg 2.2875 J/query)
+    Avg Power:       124.9 W
+    Avg GPU Util:     49.8 %
+    Avg Latency:     15.33 ms
+    Top queries by GPU energy:
+               q20: 5.2704 J  (176W × 30.0ms)
+                q6: 0.8189 J  (102W × 8.0ms)
+                q1: 0.7731 J  (97W × 8.0ms)
+
+  clickbench SF=10 (3 queries)
+    GPU Energy:      58.56 J  (avg 19.5214 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:    58.56 J  (avg 19.5214 J/query)
+    Avg Power:       178.2 W
+    Avg GPU Util:     70.3 %
+    Avg Latency:    105.33 ms
+    Top queries by GPU energy:
+                q6: 31.4260 J  (165W × 190.0ms)
+               q20: 25.3783 J  (223W × 114.0ms)
+                q1: 1.7599 J  (147W × 12.0ms)
+
+  clickbench SF=20 (3 queries)
+    GPU Energy:      45.96 J  (avg 15.3190 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:    45.96 J  (avg 15.3190 J/query)
+    Avg Power:       186.2 W
+    Avg GPU Util:     75.4 %
+    Avg Latency:     72.67 ms
+    Top queries by GPU energy:
+               q20: 41.5074 J  (216W × 192.0ms)
+                q6: 3.0807 J  (171W × 18.0ms)
+                q1: 1.3688 J  (171W × 8.0ms)
+
+  clickbench SF=5 (39 queries)
+    GPU Energy:     156.49 J  (avg 4.0125 J/query)
+    CPU Energy:      72.80 J  (avg 1.8667 J/query)
+    Total Energy:   229.29 J  (avg 5.8791 J/query)
+    Avg Power:       153.7 W
+    Avg GPU Util:     75.5 %
+    Avg Latency:     24.87 ms
+    Top queries by GPU energy:
+               q20: 43.1454 J  (237W × 182.0ms)
+               q32: 12.4000 J  (146W × 85.0ms)
+               q21: 11.3000 J  (245W × 46.0ms)
+               q22: 10.0000 J  (227W × 44.0ms)
+               q23: 9.9000 J  (216W × 46.0ms)
+
+  h2o SF=1gb (9 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:      40.70 J  (avg 4.5222 J/query)
+    Total Energy:    40.70 J  (avg 4.5222 J/query)
+    Avg Power:       149.7 W
+    Avg GPU Util:     54.0 %
+    Avg Latency:     88.23 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (71W × 75.8ms)
+                q2: 0.0000 J  (184W × 19.0ms)
+                q3: 0.0000 J  (87W × 318.7ms)
+                q4: 0.0000 J  (184W × 19.0ms)
+                q5: 0.0000 J  (71W × 88.5ms)
+
+  h2o SF=2gb (9 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:    -429.90 J  (avg -47.7667 J/query)
+    Total Energy:  -429.90 J  (avg -47.7667 J/query)
+    Avg Power:       149.9 W
+    Avg GPU Util:     55.2 %
+    Avg Latency:    172.95 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (70W × 149.8ms)
+                q2: 0.0000 J  (184W × 38.0ms)
+                q3: 0.0000 J  (87W × 473.3ms)
+                q4: 0.0000 J  (184W × 37.0ms)
+                q5: 0.0000 J  (71W × 179.5ms)
+
+  h2o SF=3gb (7 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:     689.80 J  (avg 98.5429 J/query)
+    Total Energy:   689.80 J  (avg 98.5429 J/query)
+    Avg Power:       139.5 W
+    Avg GPU Util:     47.1 %
+    Avg Latency:    896.81 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (77W × 217.9ms)
+                q2: 0.0000 J  (185W × 266.0ms)
+                q3: 0.0000 J  (78W × 679.0ms)
+                q4: 0.0000 J  (184W × 200.0ms)
+                q5: 0.0000 J  (77W × 259.7ms)
+
+  h2o SF=4gb (8 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:     518.70 J  (avg 64.8375 J/query)
+    Total Energy:   518.70 J  (avg 64.8375 J/query)
+    Avg Power:       104.3 W
+    Avg GPU Util:     27.8 %
+    Avg Latency:    753.52 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (77W × 300.0ms)
+                q2: 0.0000 J  (184W × 364.0ms)
+                q3: 0.0000 J  (75W × 840.1ms)
+                q4: 0.0000 J  (184W × 266.0ms)
+                q5: 0.0000 J  (75W × 358.1ms)
+
+  microbench_clickbench SF=1 (3 queries)
+    GPU Energy:       4.63 J  (avg 1.5447 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     4.63 J  (avg 1.5447 J/query)
+    Avg Power:       111.6 W
+    Avg GPU Util:     51.5 %
+    Avg Latency:     13.33 ms
+    Top queries by GPU energy:
+            w6_016: 2.3395 J  (130W × 18.0ms)
+            w3_011: 2.0946 J  (105W × 20.0ms)
+            w1_001: 0.2001 J  (100W × 2.0ms)
+
+  microbench_clickbench SF=10 (3 queries)
+    GPU Energy:       7.62 J  (avg 2.5414 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     7.62 J  (avg 2.5414 J/query)
+    Avg Power:       162.3 W
+    Avg GPU Util:     72.6 %
+    Avg Latency:     14.67 ms
+    Top queries by GPU energy:
+            w3_011: 5.6738 J  (183W × 31.0ms)
+            w6_016: 1.6405 J  (149W × 11.0ms)
+            w1_001: 0.3098 J  (155W × 2.0ms)
+
+  microbench_clickbench SF=20 (3 queries)
+    GPU Energy:       9.37 J  (avg 3.1224 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     9.37 J  (avg 3.1224 J/query)
+    Avg Power:       182.3 W
+    Avg GPU Util:     77.2 %
+    Avg Latency:     18.33 ms
+    Top queries by GPU energy:
+            w3_011: 5.0424 J  (163W × 31.0ms)
+            w6_016: 3.9122 J  (178W × 22.0ms)
+            w1_001: 0.4126 J  (206W × 2.0ms)
+
+  microbench_clickbench SF=5 (3 queries)
+    GPU Energy:       5.16 J  (avg 1.7192 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     5.16 J  (avg 1.7192 J/query)
+    Avg Power:       127.2 W
+    Avg GPU Util:     49.6 %
+    Avg Latency:     13.67 ms
+    Top queries by GPU energy:
+            w6_016: 2.7193 J  (136W × 20.0ms)
+            w3_011: 2.1761 J  (114W × 19.0ms)
+            w1_001: 0.2622 J  (131W × 2.0ms)
+
+  microbench_h2o SF=1gb (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        72.0 W
+    Avg GPU Util:      5.7 %
+    Avg Latency:     66.51 ms
+    Top queries by GPU energy:
+            w1_001: 0.0000 J  (70W × 15.3ms)
+            w3_016: 0.0000 J  (71W × 73.9ms)
+            w6_022: 0.0000 J  (76W × 110.4ms)
+
+  microbench_h2o SF=2gb (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        76.2 W
+    Avg GPU Util:      4.9 %
+    Avg Latency:    133.05 ms
+    Top queries by GPU energy:
+            w1_001: 0.0000 J  (70W × 30.8ms)
+            w3_016: 0.0000 J  (70W × 150.4ms)
+            w6_022: 0.0000 J  (88W × 217.9ms)
+
+  microbench_h2o SF=3gb (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        76.0 W
+    Avg GPU Util:      4.1 %
+    Avg Latency:    200.70 ms
+    Top queries by GPU energy:
+            w1_001: 0.0000 J  (70W × 45.5ms)
+            w3_016: 0.0000 J  (76W × 221.1ms)
+            w6_022: 0.0000 J  (82W × 335.5ms)
+
+  microbench_h2o SF=4gb (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        75.0 W
+    Avg GPU Util:      3.6 %
+    Avg Latency:    269.28 ms
+    Top queries by GPU energy:
+            w1_001: 0.0000 J  (70W × 62.5ms)
+            w3_016: 0.0000 J  (75W × 303.0ms)
+            w6_022: 0.0000 J  (81W × 442.3ms)
+
+  microbench_tpch SF=1 (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        74.9 W
+    Avg GPU Util:     15.6 %
+    Avg Latency:      2.52 ms
+    Top queries by GPU energy:
+            w1_002: 0.0000 J  (74W × 2.0ms)
+            w3_001: 0.0000 J  (75W × 0.8ms)
+           w5a_029: 0.0000 J  (76W × 4.8ms)
+
+  microbench_tpch SF=10 (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        70.6 W
+    Avg GPU Util:      3.5 %
+    Avg Latency:     24.19 ms
+    Top queries by GPU energy:
+            w1_002: 0.0000 J  (70W × 19.6ms)
+            w3_001: 0.0000 J  (70W × 4.1ms)
+           w5a_029: 0.0000 J  (72W × 48.9ms)
+
+  microbench_tpch SF=20 (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        72.0 W
+    Avg GPU Util:      5.6 %
+    Avg Latency:     47.53 ms
+    Top queries by GPU energy:
+            w1_002: 0.0000 J  (70W × 38.3ms)
+            w3_001: 0.0000 J  (73W × 7.8ms)
+           w5a_029: 0.0000 J  (73W × 96.5ms)
+
+  microbench_tpch SF=5 (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        75.9 W
+    Avg GPU Util:     32.5 %
+    Avg Latency:     10.55 ms
+    Top queries by GPU energy:
+            w1_002: 0.0000 J  (70W × 8.6ms)
+            w3_001: 0.0000 J  (86W × 2.3ms)
+           w5a_029: 0.0000 J  (71W × 20.8ms)
+
+  tpch SF=1 (22 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:      87.20 J  (avg 3.9636 J/query)
+    Total Energy:    87.20 J  (avg 3.9636 J/query)
+    Avg Power:        60.9 W
+    Avg GPU Util:      8.2 %
+    Avg Latency:     48.02 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (74W × 37.7ms)
+                q2: 0.0000 J  (52W × 5.0ms)
+                q3: 0.0000 J  (72W × 20.9ms)
+                q4: 0.0000 J  (52W × 13.0ms)
+                q5: 0.0000 J  (53W × 22.0ms)
+
+  tpch SF=10 (15 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:     273.40 J  (avg 18.2267 J/query)
+    Total Energy:   273.40 J  (avg 18.2267 J/query)
+    Avg Power:       158.8 W
+    Avg GPU Util:     60.4 %
+    Avg Latency:    390.53 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (78W × 353.9ms)
+                q2: 0.0000 J  (130W × 33.0ms)
+                q3: 0.0000 J  (72W × 195.9ms)
+                q4: 0.0000 J  (183W × 138.0ms)
+                q5: 0.0000 J  (184W × 216.0ms)
+
+  tpch SF=2 (22 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:     135.20 J  (avg 6.1455 J/query)
+    Total Energy:   135.20 J  (avg 6.1455 J/query)
+    Avg Power:        58.9 W
+    Avg GPU Util:      6.8 %
+    Avg Latency:     95.86 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (58W × 57.0ms)
+                q2: 0.0000 J  (56W × 9.0ms)
+                q3: 0.0000 J  (55W × 39.0ms)
+                q4: 0.0000 J  (55W × 25.0ms)
+                q5: 0.0000 J  (56W × 42.0ms)
+
+  tpch SF=20 (3 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.00 J  (avg 0.0000 J/query)
+    Avg Power:        72.2 W
+    Avg GPU Util:      2.4 %
+    Avg Latency:    463.29 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (74W × 704.2ms)
+                q3: 0.0000 J  (71W × 383.2ms)
+                q6: 0.0000 J  (71W × 302.5ms)
+
+  tpch SF=5 (20 queries)
+    GPU Energy:       0.00 J  (avg 0.0000 J/query)
+    CPU Energy:      57.90 J  (avg 2.8950 J/query)
+    Total Energy:    57.90 J  (avg 2.8950 J/query)
+    Avg Power:       111.7 W
+    Avg GPU Util:     39.3 %
+    Avg Latency:    231.06 ms
+    Top queries by GPU energy:
+                q1: 0.0000 J  (81W × 175.7ms)
+                q2: 0.0000 J  (54W × 18.0ms)
+                q3: 0.0000 J  (70W × 99.4ms)
+                q4: 0.0000 J  (54W × 63.0ms)
+                q5: 0.0000 J  (55W × 108.0ms)
+
+  ==================================================================
+  Engine: SIRIUS
+  ==================================================================
+
+  clickbench SF=10 (42 queries)
+    GPU Energy:      42.00 J  (avg 1.0000 J/query)
+    CPU Energy:    -171.51 J  (avg -4.0836 J/query)
+    Total Energy:  -129.51 J  (avg -3.0836 J/query)
+    Avg Power:       103.8 W
+    Avg GPU Util:     36.4 %
+    Avg Latency:      9.31 ms
+    Top queries by GPU energy:
+                q9: 9.2900 J  (119W × 78.0ms)
+                q8: 9.1300 J  (120W × 76.0ms)
+                q5: 4.0500 J  (92W × 44.0ms)
+               q22: 3.1300 J  (196W × 16.0ms)
+               q32: 1.6600 J  (72W × 23.0ms)
+
+  clickbench SF=20 (42 queries)
+    GPU Energy:      97.66 J  (avg 2.3252 J/query)
+    CPU Energy:     -34.18 J  (avg -0.8138 J/query)
+    Total Energy:    63.48 J  (avg 1.5114 J/query)
+    Avg Power:       119.4 W
+    Avg GPU Util:     45.4 %
+    Avg Latency:     17.71 ms
+    Top queries by GPU energy:
+                q9: 25.0200 J  (153W × 164.0ms)
+                q8: 24.7300 J  (153W × 162.0ms)
+                q5: 8.1300 J  (113W × 72.0ms)
+               q22: 6.3700 J  (205W × 31.0ms)
+               q32: 5.4300 J  (92W × 59.0ms)
+
+  h2o SF=1gb (10 queries)
+    GPU Energy:      19.04 J  (avg 1.9040 J/query)
+    CPU Energy:     -14.09 J  (avg -1.4090 J/query)
+    Total Energy:     4.95 J  (avg 0.4950 J/query)
+    Avg Power:        67.3 W
+    Avg GPU Util:      9.2 %
+    Avg Latency:     20.80 ms
+    Top queries by GPU energy:
+                q3: 14.5400 J  (102W × 143.0ms)
+                q1: 1.3100 J  (82W × 16.0ms)
+                q5: 0.9800 J  (82W × 12.0ms)
+                q9: 0.6900 J  (63W × 11.0ms)
+               q10: 0.4300 J  (62W × 7.0ms)
+
+  h2o SF=2gb (10 queries)
+    GPU Energy:      26.08 J  (avg 2.6080 J/query)
+    CPU Energy:       7.08 J  (avg 0.7080 J/query)
+    Total Energy:    33.16 J  (avg 3.3160 J/query)
+    Avg Power:        71.6 W
+    Avg GPU Util:     10.6 %
+    Avg Latency:     29.40 ms
+    Top queries by GPU energy:
+                q3: 17.3100 J  (97W × 178.0ms)
+                q1: 2.6500 J  (86W × 31.0ms)
+                q5: 1.9700 J  (89W × 22.0ms)
+                q9: 1.3500 J  (71W × 19.0ms)
+               q10: 0.8300 J  (69W × 12.0ms)
+
+  h2o SF=3gb (8 queries)
+    GPU Energy:      63.76 J  (avg 7.9700 J/query)
+    CPU Energy:      40.20 J  (avg 5.0250 J/query)
+    Total Energy:   103.96 J  (avg 12.9950 J/query)
+    Avg Power:        93.9 W
+    Avg GPU Util:     24.3 %
+    Avg Latency:     80.12 ms
+    Top queries by GPU energy:
+                q7: 23.1500 J  (105W × 221.0ms)
+                q3: 20.7000 J  (100W × 208.0ms)
+                q6: 5.5000 J  (106W × 52.0ms)
+                q1: 4.1100 J  (89W × 46.0ms)
+                q2: 3.0400 J  (95W × 32.0ms)
+
+  h2o SF=4gb (5 queries)
+    GPU Energy:      48.12 J  (avg 9.6240 J/query)
+    CPU Energy:       7.45 J  (avg 1.4900 J/query)
+    Total Energy:    55.57 J  (avg 11.1140 J/query)
+    Avg Power:        94.2 W
+    Avg GPU Util:     23.6 %
+    Avg Latency:     97.60 ms
+    Top queries by GPU energy:
+                q3: 32.1200 J  (100W × 320.0ms)
+                q1: 5.7800 J  (95W × 61.0ms)
+                q2: 4.4600 J  (104W × 43.0ms)
+                q5: 4.1300 J  (98W × 42.0ms)
+                q4: 1.6300 J  (74W × 22.0ms)
+
+  microbench_h2o SF=1gb (3 queries)
+    GPU Energy:       4.60 J  (avg 1.5333 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     4.60 J  (avg 1.5333 J/query)
+    Avg Power:        85.5 W
+    Avg GPU Util:     14.2 %
+    Avg Latency:     16.33 ms
+    Top queries by GPU energy:
+            w6_022: 3.2400 J  (101W × 32.0ms)
+            w3_016: 1.3600 J  (80W × 17.0ms)
+            w1_001: 0.0000 J  (75W × 0.0ms)
+
+  microbench_h2o SF=2gb (3 queries)
+    GPU Energy:      10.02 J  (avg 3.3400 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:    10.02 J  (avg 3.3400 J/query)
+    Avg Power:        93.1 W
+    Avg GPU Util:     17.4 %
+    Avg Latency:     31.00 ms
+    Top queries by GPU energy:
+            w6_022: 7.3800 J  (119W × 62.0ms)
+            w3_016: 2.6400 J  (85W × 31.0ms)
+            w1_001: 0.0000 J  (75W × 0.0ms)
+
+  microbench_h2o SF=3gb (3 queries)
+    GPU Energy:      17.10 J  (avg 5.7000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:    17.10 J  (avg 5.7000 J/query)
+    Avg Power:        99.8 W
+    Avg GPU Util:     21.8 %
+    Avg Latency:     47.00 ms
+    Top queries by GPU energy:
+            w6_022: 13.0100 J  (137W × 95.0ms)
+            w3_016: 4.0900 J  (89W × 46.0ms)
+            w1_001: 0.0000 J  (74W × 0.0ms)
+
+  microbench_h2o SF=4gb (3 queries)
+    GPU Energy:      26.10 J  (avg 8.7000 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:    26.10 J  (avg 8.7000 J/query)
+    Avg Power:       108.0 W
+    Avg GPU Util:     26.7 %
+    Avg Latency:     63.67 ms
+    Top queries by GPU energy:
+            w6_022: 20.5000 J  (158W × 130.0ms)
+            w3_016: 5.6000 J  (92W × 61.0ms)
+            w1_001: 0.0000 J  (74W × 0.0ms)
+
+  microbench_tpch SF=1 (3 queries)
+    GPU Energy:       0.87 J  (avg 0.2900 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.87 J  (avg 0.2900 J/query)
+    Avg Power:        73.6 W
+    Avg GPU Util:      6.8 %
+    Avg Latency:      4.00 ms
+    Top queries by GPU energy:
+           w5a_029: 0.6500 J  (72W × 9.0ms)
+            w3_001: 0.1500 J  (74W × 2.0ms)
+            w1_002: 0.0700 J  (74W × 1.0ms)
+
+  microbench_tpch SF=10 (3 queries)
+    GPU Energy:       1.62 J  (avg 0.5400 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     1.62 J  (avg 0.5400 J/query)
+    Avg Power:        76.9 W
+    Avg GPU Util:      9.4 %
+    Avg Latency:      6.67 ms
+    Top queries by GPU energy:
+           w5a_029: 1.4700 J  (82W × 18.0ms)
+            w3_001: 0.0800 J  (75W × 1.0ms)
+            w1_002: 0.0700 J  (74W × 1.0ms)
+
+  microbench_tpch SF=20 (3 queries)
+    GPU Energy:       3.12 J  (avg 1.0400 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     3.12 J  (avg 1.0400 J/query)
+    Avg Power:        80.8 W
+    Avg GPU Util:     10.7 %
+    Avg Latency:     11.33 ms
+    Top queries by GPU energy:
+           w5a_029: 2.9700 J  (93W × 32.0ms)
+            w3_001: 0.1500 J  (75W × 2.0ms)
+            w1_002: 0.0000 J  (75W × 0.0ms)
+
+  microbench_tpch SF=5 (3 queries)
+    GPU Energy:       0.93 J  (avg 0.3100 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:     0.93 J  (avg 0.3100 J/query)
+    Avg Power:        75.9 W
+    Avg GPU Util:      7.6 %
+    Avg Latency:      4.00 ms
+    Top queries by GPU energy:
+           w5a_029: 0.7900 J  (79W × 10.0ms)
+            w1_002: 0.0700 J  (74W × 1.0ms)
+            w3_001: 0.0700 J  (74W × 1.0ms)
+
+  tpch SF=1 (25 queries)
+    GPU Energy:       5.56 J  (avg 0.2224 J/query)
+    CPU Energy:       2.49 J  (avg 0.0996 J/query)
+    Total Energy:     8.05 J  (avg 0.3220 J/query)
+    Avg Power:        80.3 W
+    Avg GPU Util:     22.7 %
+    Avg Latency:      2.80 ms
+    Top queries by GPU energy:
+                q1: 1.3000 J  (81W × 16.0ms)
+               q18: 0.5000 J  (124W × 4.0ms)
+                q3: 0.4600 J  (77W × 6.0ms)
+               q21: 0.2800 J  (94W × 3.0ms)
+               q09: 0.2700 J  (89W × 3.0ms)
+
+  tpch SF=10 (24 queries)
+    GPU Energy:      37.99 J  (avg 1.5829 J/query)
+    CPU Energy:      18.37 J  (avg 0.7654 J/query)
+    Total Energy:    56.36 J  (avg 2.3483 J/query)
+    Avg Power:       138.2 W
+    Avg GPU Util:     51.5 %
+    Avg Latency:     12.62 ms
+    Top queries by GPU energy:
+                q1: 13.9800 J  (113W × 124.0ms)
+               q18: 5.3500 J  (184W × 29.0ms)
+               q13: 2.4400 J  (72W × 34.0ms)
+               q21: 1.9700 J  (164W × 12.0ms)
+               q06: 1.7800 J  (178W × 10.0ms)
+
+  tpch SF=2 (22 queries)
+    GPU Energy:       5.90 J  (avg 0.2682 J/query)
+    CPU Energy:     -12.00 J  (avg -0.5455 J/query)
+    Total Energy:    -6.10 J  (avg -0.2773 J/query)
+    Avg Power:        97.0 W
+    Avg GPU Util:     32.5 %
+    Avg Latency:      2.82 ms
+    Top queries by GPU energy:
+               q18: 1.0500 J  (150W × 7.0ms)
+               q21: 0.4500 J  (114W × 4.0ms)
+               q13: 0.3900 J  (56W × 7.0ms)
+               q02: 0.3400 J  (68W × 5.0ms)
+               q09: 0.3400 J  (114W × 3.0ms)
+
+  tpch SF=20 (3 queries)
+    GPU Energy:      34.11 J  (avg 11.3700 J/query)
+    CPU Energy:       0.00 J  (avg 0.0000 J/query)
+    Total Energy:    34.11 J  (avg 11.3700 J/query)
+    Avg Power:        98.4 W
+    Avg GPU Util:     24.6 %
+    Avg Latency:     92.33 ms
+    Top queries by GPU energy:
+                q1: 31.1800 J  (128W × 243.0ms)
+                q3: 2.5300 J  (87W × 29.0ms)
+                q6: 0.4000 J  (80W × 5.0ms)
+
+  tpch SF=5 (25 queries)
+    GPU Energy:      19.20 J  (avg 0.7680 J/query)
+    CPU Energy:       4.97 J  (avg 0.1988 J/query)
+    Total Energy:    24.17 J  (avg 0.9668 J/query)
+    Avg Power:       119.8 W
+    Avg GPU Util:     42.5 %
+    Avg Latency:      6.88 ms
+    Top queries by GPU energy:
+                q1: 6.4000 J  (100W × 64.0ms)
+               q18: 2.6000 J  (173W × 15.0ms)
+               q21: 1.0300 J  (147W × 7.0ms)
+               q13: 0.9300 J  (62W × 15.0ms)
+               q06: 0.8700 J  (174W × 5.0ms)
+
+  ==================================================================
+  GRAND TOTAL (439 queries)
+    GPU Energy:     758.43 J
+    CPU Energy:    1294.58 J
+    Total Energy:  2053.01 J
+  ==================================================================
+
+  Output CSV: /workspace/gpu_db/results/energy_summary.csv (453 rows)

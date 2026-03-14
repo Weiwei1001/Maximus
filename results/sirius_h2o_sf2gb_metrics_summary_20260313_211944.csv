@@ -1,0 +1,4 @@
+run_id,benchmark,sf,query,n_reps,min_s,avg_s,elapsed_s,num_samples,num_steady_samples,avg_power_w,max_power_w,max_mem_mb,avg_gpu_util,max_gpu_util,gpu_energy_j,avg_cpu_pkg_w,avg_cpu_dram_w,cpu_energy_j,status
+h2o_sf2gb_q1,h2o,2gb,q1,572,0.0320,0.0434,47.17,366,315,103.2,154.8,81147,36.1,100,3.30,0.0,0.0,0.00,OK
+h2o_sf2gb_q3,h2o,2gb,q3,74,0.2630,0.3254,58.40,469,469,90.6,201.6,80755,17.7,100,23.84,0.0,0.0,0.00,OK
+h2o_sf2gb_q5,h2o,2gb,q5,770,0.0230,0.0354,43.67,337,337,104.0,204.9,81147,26.1,100,2.39,0.0,0.0,0.00,OK
