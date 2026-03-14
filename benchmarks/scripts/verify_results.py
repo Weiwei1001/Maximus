@@ -27,7 +27,7 @@ RE_SECTION = re.compile(r'(?:METRICS:\s+)?(\S+)\s+SF=(\S+)')
 RE_MAXIMUS_TIMING = re.compile(
     r'(\S+): min=([\d.]+)ms avg=([\d.]+)ms \[(OK|FAIL)\]')
 RE_SIRIUS_TIMING = re.compile(
-    r'(\S+): ([\d.]+)s \[(OK|FALLBACK|ERROR)\]\s+\(passes: \[([^\]]+)\]\)')
+    r'(\S+): ([\d.]+)s \[(OK|FALLBACK|ERROR)\](?:\s+\(passes: \[([^\]]+)\]\))?')
 RE_MAXIMUS_METRICS = re.compile(
     r'(\S+) \(\d+ reps.*?\.\.\. ([\d.]+)ms, [\d.]+s, GPU:(\d+)W CPU:(\d+)W, '
     r'(\d+)%util, \d+MB, GPU_E:([\d.]+)J CPU_E:([\d.]+)J \[(OK|FAIL)\]')
@@ -73,11 +73,15 @@ def parse_latency_from_logs(log_dir: Path):
                 for m in RE_SIRIUS_TIMING.finditer(section):
                     query, time_s, status, passes_str = m.groups()
                     time_ms = float(time_s) * 1000
-                    passes = [float(x.strip()) * 1000 for x in passes_str.split(',')]
+                    if passes_str:
+                        passes = [float(x.strip()) * 1000 for x in passes_str.split(',')]
+                        min_ms = round(min(passes), 3)
+                    else:
+                        min_ms = round(time_ms, 3)
                     rows.append({
                         'engine': engine, 'storage': storage, 'benchmark': bench,
                         'sf': sf, 'query': query,
-                        'min_ms': round(min(passes), 3), 'avg_ms': round(time_ms, 3),
+                        'min_ms': min_ms, 'avg_ms': round(time_ms, 3),
                         'status': status,
                     })
             else:
