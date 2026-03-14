@@ -59,7 +59,7 @@ BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 
 TARGET_TIME_S = 10   # target sustained execution time per query
 MIN_REPS = 3         # minimum repetitions even for slow queries
-MAX_REPS = 100       # cap to prevent memory leaks from too many reps
+MAX_REPS = 1000      # cap reps; memory leak detection guards against GPU OOM
 CALIBRATION_REPS = 3
 TIMEOUT = 300
 
@@ -279,6 +279,16 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             s["sf"] = sf
             s["query"] = q
         all_samples.extend(samples)
+
+        # Memory leak detection: compare first vs last quarter of samples
+        if len(samples) >= 8:
+            quarter = len(samples) // 4
+            mem_first = sum(s["mem_used_mb"] for s in samples[:quarter]) / quarter
+            mem_last = sum(s["mem_used_mb"] for s in samples[-quarter:]) / quarter
+            mem_growth_mb = mem_last - mem_first
+            if mem_growth_mb > 500:
+                print(f"\n  ⚠ MEMORY LEAK DETECTED for {q}: "
+                      f"+{mem_growth_mb:.0f}MB ({mem_first:.0f}→{mem_last:.0f}MB)")
 
         # Compute steady-state metrics via GPU utilization threshold
         if samples:

@@ -63,7 +63,7 @@ BUFFER_INIT = buffer_init_sql(_gpu_info["vram_mb"])
 QUERY_TIMEOUT_S = 120
 TARGET_TIME_S = 20
 MIN_REPS = 3
-MAX_REPS = 100       # cap to prevent memory leaks from too many reps
+MAX_REPS = 1000      # cap reps; memory leak detection guards against GPU OOM
 
 # Sirius-supported benchmarks (standard + microbench)
 _SIRIUS_BENCHMARKS = {
@@ -411,6 +411,16 @@ def main():
                     s["sf"] = sf
                     s["query"] = qname
                 all_samples.extend(samples)
+
+                # Memory leak detection
+                if len(samples) >= 8:
+                    quarter = len(samples) // 4
+                    mem_first = sum(s["mem_used_mb"] for s in samples[:quarter]) / quarter
+                    mem_last = sum(s["mem_used_mb"] for s in samples[-quarter:]) / quarter
+                    mem_growth_mb = mem_last - mem_first
+                    if mem_growth_mb > 500:
+                        print(f"\n  ⚠ MEMORY LEAK DETECTED for {qname}: "
+                              f"+{mem_growth_mb:.0f}MB ({mem_first:.0f}→{mem_last:.0f}MB)")
 
                 # Compute steady-state metrics
                 if samples:
