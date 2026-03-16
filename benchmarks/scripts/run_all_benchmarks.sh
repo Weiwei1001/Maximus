@@ -161,6 +161,7 @@ if has_sirius; then
     # Generate Sirius SQL query files (standard + microbench, idempotent)
     if [ ! -d "$MAXIMUS_DIR/tests/tpch_sql/queries/1" ] || \
        [ ! -d "$MAXIMUS_DIR/tests/h2o_sql/queries/1" ] || \
+       [ ! -d "$MAXIMUS_DIR/tests/click_sql/queries/1" ] || \
        [ ! -d "$MAXIMUS_DIR/tests/microbench_tpch_sql/queries/1" ]; then
         echo "  [DATAGEN] Generating Sirius SQL query files..."
         python3 "$SCRIPT_DIR/generate_sirius_sql.py" \
@@ -205,6 +206,25 @@ conn.close()
 import duckdb
 conn = duckdb.connect('$DB')
 conn.execute(\"CREATE TABLE groupby AS SELECT * FROM read_csv_auto('${CSV_DIR}/groupby.csv')\")
+conn.close()
+" 2>&1 | tail -3
+        fi
+    done
+
+    # Generate DuckDB databases from CSV (ClickBench)
+    mkdir -p "$MAXIMUS_DIR/tests/click_duckdb"
+    for sf in $CB_SFS; do
+        DB="$MAXIMUS_DIR/tests/click_duckdb/clickbench_${sf}.duckdb"
+        CSV_DIR="$MAXIMUS_DIR/tests/clickbench/csv-${sf}"
+        if [ -f "$DB" ]; then
+            continue
+        fi
+        if [ -d "$CSV_DIR" ] && [ -f "$CSV_DIR/t.csv" ]; then
+            echo "  [DATAGEN] Creating clickbench_${sf}.duckdb..."
+            python3 -c "
+import duckdb
+conn = duckdb.connect('$DB')
+conn.execute(\"CREATE TABLE hits AS SELECT * FROM read_csv_auto('${CSV_DIR}/t.csv')\")
 conn.close()
 " 2>&1 | tail -3
         fi

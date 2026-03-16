@@ -293,7 +293,7 @@ WORKSPACE="$(dirname "$SCRIPT_DIR")"
 export LD_LIBRARY_PATH="$HOME/arrow_install/lib:$HOME/arrow_install/lib64:${LD_LIBRARY_PATH:-}"
 
 # cuDF (pip-installed) — auto-detect Python version
-PIP_BASE="$(python3 -c 'import site; print(site.getsitepackages()[0])' 2>/dev/null || echo '/usr/local/lib/python3.12/dist-packages')"
+PIP_BASE="$(python3 -c 'import site; print(site.getsitepackages()[0])' 2>/dev/null || python3 -c 'import sysconfig; print(sysconfig.get_path("purelib"))' 2>/dev/null || echo "/usr/local/lib/python$(python3 -c 'import sys;print(f\"{sys.version_info.major}.{sys.version_info.minor}\")')/dist-packages")"
 if [ -d "$PIP_BASE/nvidia/libnvcomp/lib64" ]; then
     export LD_LIBRARY_PATH="$PIP_BASE/nvidia/libnvcomp/lib64:$PIP_BASE/libkvikio/lib64:$LD_LIBRARY_PATH"
 fi
@@ -321,9 +321,9 @@ source "$MAXIMUS_DIR/setup_env.sh"
 # Step 9: Install Sirius (optional)
 # ─────────────────────────────────────────────────────────────────────────────
 if [ "$INSTALL_SIRIUS" = true ]; then
-    log "Step 9: Installing Sirius (DuckDB GPU extension)..."
+    log "Step 9: Building Sirius (DuckDB GPU extension)..."
     SIRIUS_DIR="$MAXIMUS_DIR/sirius"
-    bash "$MAXIMUS_DIR/scripts/install_sirius.sh" "$SIRIUS_DIR"
+    bash "$MAXIMUS_DIR/sirius_patches/build_sirius.sh"
     if [ -x "$SIRIUS_DIR/build/release/duckdb" ]; then
         log "  Sirius built successfully: $SIRIUS_DIR/build/release/duckdb"
     else

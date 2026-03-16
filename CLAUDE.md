@@ -84,9 +84,9 @@ Abstract base classes (`abstract_*.hpp`) define the interface. Implementations l
 
 | Benchmark | Scale Factors | Data Path |
 |-----------|--------------|-----------|
-| TPC-H | 1, 2, 10, 20 | `tests/tpch/csv-{sf}` |
+| TPC-H | 1, 5, 10, 20 | `tests/tpch/csv-{sf}` |
 | H2O | 1gb, 2gb, 3gb, 4gb | `tests/h2o/csv-{sf}` |
-| ClickBench | 10, 20, 50, 100 | `tests/clickbench/csv-{sf}` |
+| ClickBench | 1, 5, 10, 20 | `tests/clickbench/csv-{sf}` |
 
 ## Measurement Methodology
 

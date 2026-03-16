@@ -33,13 +33,13 @@ echo "=== TPC-H Data Generation ==="
 TPCH_DB_DIR="$DATA_DIR/tpch_duckdb"
 mkdir -p "$TPCH_DB_DIR"
 echo "Generating TPC-H DuckDB databases in $TPCH_DB_DIR..."
-python3 "$SCRIPT_DIR/generate_tpch.py" -o "$TPCH_DB_DIR" -sf 1 2 10 20 --no-run-query
+python3 "$SCRIPT_DIR/generate_tpch.py" -o "$TPCH_DB_DIR" -sf 1 5 10 20 --no-run-query
 
 # CSV data (for Maximus) - generated from DuckDB using dbgen + COPY
 TPCH_CSV_DIR="$DATA_DIR/tpch"
 mkdir -p "$TPCH_CSV_DIR"
 echo "Generating TPC-H CSV data in $TPCH_CSV_DIR..."
-for SF in 1 2 10 20; do
+for SF in 1 5 10 20; do
     CSV_SF_DIR="$TPCH_CSV_DIR/csv-$SF"
     if [ -d "$CSV_SF_DIR" ] && [ "$(ls "$CSV_SF_DIR"/*.csv 2>/dev/null | wc -l)" -gt 0 ]; then
         echo "  SF=$SF: CSV already exists, skipping"
@@ -90,9 +90,9 @@ if [ ! -f "$PARQUET_PATH" ]; then
 fi
 
 echo "Generating ClickBench CSV data..."
-python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DIR" --format csv --scales 10 20 50 100 --parquet-path "$PARQUET_PATH"
+python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DIR" --format csv --scales 1 5 10 20 --parquet-path "$PARQUET_PATH"
 echo "Generating ClickBench DuckDB databases..."
-python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DB_DIR" --format duckdb --scales 10 20 50 100 --parquet-path "$PARQUET_PATH"
+python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DB_DIR" --format duckdb --scales 1 5 10 20 --parquet-path "$PARQUET_PATH"
 
 # ── Summary ────────────────────────────────────────────────────────────────
 echo ""
@@ -101,13 +101,13 @@ echo "  Data Generation Complete"
 echo "=============================================="
 echo ""
 echo "TPC-H:"
-echo "  DuckDB: $TPCH_DB_DIR/tpch_sf{1,2,10,20}.duckdb"
-echo "  CSV:    $TPCH_CSV_DIR/csv-{1,2,10,20}/"
+echo "  DuckDB: $TPCH_DB_DIR/tpch_sf{1,5,10,20}.duckdb"
+echo "  CSV:    $TPCH_CSV_DIR/csv-{1,5,10,20}/"
 echo ""
 echo "H2O:"
 echo "  DuckDB: $H2O_DB_DIR/h2o_{1gb,2gb,3gb,4gb}.duckdb"
 echo "  CSV:    $H2O_DIR/csv-{1gb,2gb,3gb,4gb}/groupby.csv"
 echo ""
 echo "ClickBench:"
-echo "  DuckDB: $CB_DB_DIR/clickbench_{10,20,50,100}.duckdb"
-echo "  CSV:    $CB_DIR/csv-{1,2,10,20}/t.csv"
+echo "  DuckDB: $CB_DB_DIR/clickbench_{1,5,10,20}.duckdb"
+echo "  CSV:    $CB_DIR/csv-{1,5,10,20}/t.csv"
