@@ -43,6 +43,8 @@ nvcomp_DIR="$(find_cmake_dir "${PIP_BASE}/nvidia/libnvcomp" nvcomp)"
 rapids_logger_DIR="$(find_cmake_dir "${PIP_BASE}/rapids_logger" rapids_logger)"
 nvtx3_DIR="$(find_cmake_dir "${PIP_BASE}/librmm" nvtx3)"
 rmm_DIR="$(find_cmake_dir "${PIP_BASE}/librmm" rmm)"
+fmt_DIR="$(find_cmake_dir "${PIP_BASE}/librmm" fmt)"
+spdlog_DIR="$(find_cmake_dir "${PIP_BASE}/librmm" spdlog)"
 cuco_DIR="$(find_cmake_dir "${PIP_BASE}/libcudf" cuco)"
 
 # CCCL (Thrust/CUB/libcudacxx) - libcudf bundles it
@@ -84,6 +86,8 @@ cmake -DCMAKE_BUILD_TYPE=Release \
   -Drapids_logger_DIR="${rapids_logger_DIR}" \
   -Dnvtx3_DIR="${nvtx3_DIR}" \
   -Drmm_DIR="${rmm_DIR}" \
+  -Dfmt_DIR="${fmt_DIR}" \
+  -Dspdlog_DIR="${spdlog_DIR}" \
   -Dcuco_DIR="${cuco_DIR}" \
   -DCCCL_DIR="${CCCL_DIR}" \
   -DRMM_INCLUDE_DIR="${RMM_INCLUDE_DIR}" \
