@@ -35,10 +35,36 @@ cd "$REPO_DIR"
 git submodule update --init --recursive
 
 # ── 1. Install system deps (requires sudo/root) ──
-if ! dpkg -s libspdlog-dev libabsl-dev libnuma-dev libconfig++-dev >/dev/null 2>&1; then
-    echo "[build_sirius] Installing system dependencies..."
-    apt-get update -qq
-    apt-get install -y -qq libabsl-dev libnuma-dev libconfig++-dev >/dev/null
+echo "[build_sirius] Installing system dependencies..."
+apt-get update -qq
+apt-get install -y -qq libnuma-dev libconfig++-dev >/dev/null
+
+# Ensure CUDA 12.6 nvcc + dev packages (cuDF 26.x CCCL headers need >= 12.6)
+NVCC_VER=$(nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//')
+NVCC_MINOR=$(echo "$NVCC_VER" | cut -d. -f2)
+if [ "${NVCC_MINOR:-0}" -lt 6 ]; then
+    echo "[build_sirius] Installing CUDA 12.6 nvcc..."
+    apt-get install -y -qq cuda-nvcc-12-6 cuda-nvml-dev-12-6 libcurand-dev-12-6 cuda-cudart-dev-12-6 >/dev/null
+fi
+
+# Abseil >= 20230125 (for absl::any_invocable)
+if ! pkg-config --atleast-version=20230125 absl_any_invocable 2>/dev/null; then
+    if [ ! -f /usr/local/lib/cmake/absl/abslConfig.cmake ] || \
+       ! grep -q "20240722" /usr/local/lib/cmake/absl/abslConfigVersion.cmake 2>/dev/null; then
+        echo "[build_sirius] Building abseil-cpp 20240722..."
+        ABSL_TMP=$(mktemp -d)
+        git clone --depth 1 --branch 20240722.0 https://github.com/abseil/abseil-cpp.git "$ABSL_TMP/absl"
+        cmake -B "$ABSL_TMP/absl/build" -GNinja "$ABSL_TMP/absl" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DABSL_BUILD_TESTING=OFF \
+            -DCMAKE_CXX_STANDARD=17 >/dev/null
+        ninja -C "$ABSL_TMP/absl/build" >/dev/null
+        ninja -C "$ABSL_TMP/absl/build" install >/dev/null
+        rm -rf "$ABSL_TMP"
+        echo "[build_sirius] abseil installed."
+    fi
 fi
 
 # ── 2. Build spdlog from source with bundled fmt ──

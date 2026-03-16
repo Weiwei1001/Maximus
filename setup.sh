@@ -131,6 +131,16 @@ if [ "${CMAKE_NEEDED:-false}" = true ] || [ "${INSTALL_SIRIUS}" = true ]; then
 fi
 log "  CMake: $(cmake --version | head -1)"
 
+# Ensure nvcc >= 12.6 (cuDF 26.x CCCL headers require it)
+NVCC_VER=$(nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//')
+NVCC_MAJOR=$(echo "$NVCC_VER" | cut -d. -f1)
+NVCC_MINOR=$(echo "$NVCC_VER" | cut -d. -f2)
+if [ "${NVCC_MAJOR:-0}" -lt 12 ] || ([ "${NVCC_MAJOR}" = "12" ] && [ "${NVCC_MINOR:-0}" -lt 6 ]); then
+    log "  Upgrading nvcc to 12.6 (cuDF 26.x requires >= 12.6)..."
+    apt-get install -y -qq cuda-nvcc-12-6 cuda-nvml-dev-12-6 libcurand-dev-12-6 cuda-cudart-dev-12-6 >/dev/null
+    log "  nvcc upgraded to $(nvcc --version | grep release)"
+fi
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 3: Install Python dependencies
 # ─────────────────────────────────────────────────────────────────────────────
@@ -147,7 +157,7 @@ log "Step 4: Installing cuDF..."
 # Try pip first (simpler), fall back to conda
 if python3 -c "import cudf" 2>/dev/null; then
     log "  cuDF already installed"
-elif pip install cudf-cu12 libcudf-cu12 2>/dev/null; then
+elif pip install 'cudf-cu12==26.2.1' 'libcudf-cu12==26.2.1' 2>/dev/null; then
     log "  cuDF installed via pip"
 else
     log "  pip install failed, trying conda..."
@@ -193,18 +203,13 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 6.5: Patch source files for cuDF 24.12 API compatibility
 # ─────────────────────────────────────────────────────────────────────────────
-log "Step 6.5: Applying cuDF 24.12 compatibility patches..."
+log "Step 6.5: cuDF 26.2 compatibility (source files already patched)..."
 
-# Fix 1: RMM header path — now handled by __has_include in context.hpp (no patch needed)
-
-# Fix 2: allocate/deallocate — now uses generic pool().allocate() that works with all RMM versions (no patch needed)
-
-# Fix 3: cudf/join/join.hpp header path (already correct for cuDF 24.12, no patch needed)
-
-# Fix 4: filtered_join.hpp is needed for semi/anti joins (no patch needed)
-
-# Fix 5 & 6: No longer needed — source files have been updated directly
-# (semi/anti join uses filtered_join class, RMM allocate/deallocate use stream parameter)
+# cuDF 26.2 API compatibility is handled directly in source:
+#   - memory_pool.hpp: uses stream-first allocate/deallocate API
+#   - hash_join_operator: uses cudf/join/join.hpp + filtered_join class
+#   - configure script: includes fmt_DIR + spdlog_DIR for RMM cmake deps
+#   - CUDA 12.6+ nvcc required for CCCL template deduction in cuDF 26.x headers
 
 # Fix conda fmt/spdlog header version conflicts (base conda has fmt v9, env has v11)
 MINICONDA_DIR="${WORKSPACE}/miniconda3"
