@@ -1,0 +1,41 @@
+  [HW] Detected GPU #0: NVIDIA A100 80GB PCIe
+  [HW] Power levels: [150, 225, 300]
+  [HW] SM clock levels: [210, 510, 810, 1110, 1410]
+================================================================================
+  GPU ENERGY SWEEP
+  Power limits: [300]
+  SM clocks:    [1410]
+  Engines:      ['maximus', 'sirius']
+  Benchmarks:   ['tpch', 'h2o']
+  Results dir:  /workspace/gpu_db/results/energy_sweep
+  Resume:       True
+  Total configs: 1 (2 engine-configs)
+  Started: 2026-03-16 12:36:42.033466
+================================================================================
+  [GPU] Persistence mode enabled
+
+================================================================================
+  CONFIG 1/1: pl300w_clk1410mhz (PL=300W, CLK=1410MHz)
+================================================================================
+  [GPU] Setting power limit to 300W, SM clock to 1410MHz
+[hw_detect] WARNING: set power limit 300W failed: 
+  FAILED to set GPU config for pl300w_clk1410mhz, skipping
+
+================================================================================
+  AGGREGATING RESULTS
+================================================================================
+  No results found to aggregate.
+
+================================================================================
+  SWEEP COMPLETE
+  Total time:  0:00:00
+  Completed:   0/1
+  Skipped:     0
+  Failed:      1
+  Finished:    2026-03-16 12:36:42.128795
+================================================================================
+
+  [GPU] Restoring defaults: PL=300W, clocks=unlocked
+[hw_detect] WARNING: reset GPU clocks failed: 
+[hw_detect] WARNING: set power limit 300W failed: 
+  [GPU] Defaults restored

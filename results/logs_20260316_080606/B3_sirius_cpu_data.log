@@ -1,0 +1,247 @@
+======================================================================
+  SIRIUS DATA-ON-CPU BENCHMARK
+  GPU: NVIDIA A100 80GB PCIe (index 0, 81920 MiB)
+  Method: gpu_buffer_init() + 10 x gpu_processing()
+  Rep 1 = data-on-CPU (includes transfer), Rep 2+ = data-on-GPU
+  Started: 2026-03-16 11:57:48.842284
+======================================================================
+
+======================================================================
+  TPCH SF=1 (3 queries, 10 reps)
+======================================================================
+  q1... 1st=0.151s, min_sub=0.0040s, overhead=0.1470s (3675%), GPU:62W [OK]
+  q3... 1st=0.094s, min_sub=0.0030s, overhead=0.0910s (3033%), GPU:62W [OK]
+  q6... 1st=0.052s, min_sub=0.0000s, overhead=0.0520s (0%), GPU:62W [OK]
+  --- 3/3 OK
+
+======================================================================
+  TPCH SF=5 (3 queries, 10 reps)
+======================================================================
+  q1... 1st=0.866s, min_sub=0.0630s, overhead=0.8030s (1275%), GPU:63W [OK]
+  q3... 1st=0.509s, min_sub=0.0090s, overhead=0.5000s (5556%), GPU:62W [OK]
+  q6... 1st=0.411s, min_sub=0.0020s, overhead=0.4090s (20450%), GPU:61W [OK]
+  --- 3/3 OK
+
+======================================================================
+  TPCH SF=10 (3 queries, 10 reps)
+======================================================================
+  q1... 1st=1.957s, min_sub=0.1260s, overhead=1.8310s (1453%), GPU:64W [OK]
+  q3... 1st=1.237s, min_sub=0.0140s, overhead=1.2230s (8736%), GPU:62W [OK]
+  q6... 1st=0.986s, min_sub=0.0030s, overhead=0.9830s (32767%), GPU:61W [OK]
+  --- 3/3 OK
+
+======================================================================
+  TPCH SF=20 (3 queries, 10 reps)
+======================================================================
+  q1... 1st=3.453s, min_sub=0.2460s, overhead=3.2070s (1304%), GPU:66W [OK]
+  q3... 1st=2.160s, min_sub=0.0260s, overhead=2.1340s (8208%), GPU:62W [OK]
+  q6... 1st=1.585s, min_sub=0.0050s, overhead=1.5800s (31600%), GPU:61W [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=1gb (3 queries, 10 reps)
+======================================================================
+  q1... 1st=0.500s, min_sub=0.0160s, overhead=0.4840s (3025%), GPU:61W [OK]
+  q3... 1st=1.483s, min_sub=0.1190s, overhead=1.3640s (1146%), GPU:62W [OK]
+  q5... 1st=0.591s, min_sub=0.0120s, overhead=0.5790s (4825%), GPU:61W [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=2gb (3 queries, 10 reps)
+======================================================================
+  q1... 1st=0.806s, min_sub=0.0310s, overhead=0.7750s (2500%), GPU:62W [OK]
+  q3... 1st=2.548s, min_sub=0.1520s, overhead=2.3960s (1576%), GPU:63W [OK]
+  q5... 1st=1.114s, min_sub=0.0220s, overhead=1.0920s (4964%), GPU:62W [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=3gb (3 queries, 10 reps)
+======================================================================
+  q1... 1st=1.175s, min_sub=0.0460s, overhead=1.1290s (2454%), GPU:62W [OK]
+  q3... 1st=3.655s, min_sub=0.1890s, overhead=3.4660s (1834%), GPU:64W [OK]
+  q5... 1st=1.627s, min_sub=0.0320s, overhead=1.5950s (4984%), GPU:62W [OK]
+  --- 3/3 OK
+
+======================================================================
+  H2O SF=4gb (3 queries, 10 reps)
+======================================================================
+  q1... 1st=1.493s, min_sub=0.0600s, overhead=1.4330s (2388%), GPU:62W [OK]
+  q3... 1st=4.116s, min_sub=0.2120s, overhead=3.9040s (1842%), GPU:64W [OK]
+  q5... 1st=2.042s, min_sub=0.0420s, overhead=2.0000s (4762%), GPU:61W [OK]
+  --- 3/3 OK
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+======================================================================
+  MICROBENCH_TPCH SF=1 (3 queries, 10 reps)
+======================================================================
+  w1_002... 1st=0.049s, min_sub=0.0000s, overhead=0.0490s (0%), GPU:60W [OK]
+  w3_001... 1st=0.075s, min_sub=0.0010s, overhead=0.0740s (7400%), GPU:60W [OK]
+  w5a_029... 1st=0.078s, min_sub=0.0020s, overhead=0.0760s (3800%), GPU:60W [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_TPCH SF=5 (3 queries, 10 reps)
+======================================================================
+  w1_002... 1st=0.099s, min_sub=0.0000s, overhead=0.0990s (0%), GPU:60W [OK]
+  w3_001... 1st=0.084s, min_sub=0.0010s, overhead=0.0830s (8300%), GPU:60W [OK]
+  w5a_029... 1st=0.154s, min_sub=0.0080s, overhead=0.1460s (1825%), GPU:60W [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_TPCH SF=10 (3 queries, 10 reps)
+======================================================================
+  w1_002... 1st=0.126s, min_sub=0.0010s, overhead=0.1250s (12500%), GPU:60W [OK]
+  w3_001... 1st=0.091s, min_sub=0.0010s, overhead=0.0900s (9000%), GPU:60W [OK]
+  w5a_029... 1st=0.220s, min_sub=0.0160s, overhead=0.2040s (1275%), GPU:61W [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_TPCH SF=20 (3 queries, 10 reps)
+======================================================================
+  w1_002... 1st=0.202s, min_sub=0.0000s, overhead=0.2020s (0%), GPU:60W [OK]
+  w3_001... 1st=0.100s, min_sub=0.0020s, overhead=0.0980s (4900%), GPU:60W [OK]
+  w5a_029... 1st=0.489s, min_sub=0.0320s, overhead=0.4570s (1428%), GPU:61W [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=1gb (3 queries, 10 reps)
+======================================================================
+  w1_001... 1st=0.002s, min_sub=0.0000s, overhead=0.0020s (0%), GPU:60W [OK]
+  w3_016... 1st=0.469s, min_sub=0.0160s, overhead=0.4530s (2831%), GPU:60W [OK]
+  w6_022... 1st=0.815s, min_sub=0.0340s, overhead=0.7810s (2297%), GPU:61W [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=2gb (3 queries, 10 reps)
+======================================================================
+  w1_001... 1st=0.003s, min_sub=0.0000s, overhead=0.0030s (0%), GPU:60W [OK]
+  w3_016... 1st=0.796s, min_sub=0.0300s, overhead=0.7660s (2553%), GPU:61W [OK]
+  w6_022... 1st=1.364s, min_sub=0.0640s, overhead=1.3000s (2031%), GPU:63W [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=3gb (3 queries, 10 reps)
+======================================================================
+  w1_001... 1st=0.003s, min_sub=0.0000s, overhead=0.0030s (0%), GPU:60W [OK]
+  w3_016... 1st=1.135s, min_sub=0.0450s, overhead=1.0900s (2422%), GPU:61W [OK]
+  w6_022... 1st=1.974s, min_sub=0.0960s, overhead=1.8780s (1956%), GPU:65W [OK]
+  --- 3/3 OK
+
+======================================================================
+  MICROBENCH_H2O SF=4gb (3 queries, 10 reps)
+======================================================================
+  w1_001... 1st=0.005s, min_sub=0.0000s, overhead=0.0050s (0%), GPU:61W [OK]
+  w3_016... 1st=1.492s, min_sub=0.0600s, overhead=1.4320s (2387%), GPU:62W [OK]
+  w6_022... 1st=2.633s, min_sub=0.1310s, overhead=2.5020s (1910%), GPU:66W [OK]
+  --- 3/3 OK
+[SKIP] microbench_clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] microbench_clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] microbench_clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] microbench_clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+  Samples: /workspace/gpu_db/results/sirius_cpu_data_samples_20260316_123641.csv
+
+======================================================================
+  DONE (2333s = 38.9min)
+  Results: /workspace/gpu_db/results/sirius_cpu_data_analysis.csv
+======================================================================
+
+======================================================================
+  FAIRNESS ANALYSIS: Sirius Data-on-CPU
+======================================================================
+  For each query in a FRESH DuckDB process:
+    - gpu_buffer_init() allocates GPU memory (constant cost)
+    - 1st gpu_processing() = transfers data from CPU → GPU + computes
+    - 2nd+ gpu_processing() = data already on GPU, just computes
+
+  Fair measurement approach:
+    - Data-on-CPU cost = first_run_s (includes buffer init + transfer + compute)
+    - Data-on-GPU cost = min_subsequent_s (just compute, data cached)
+    - Transfer overhead = first_run_s - min_subsequent_s
+
+  TPCH:
+    SF=1: 3 queries OK
+      Avg first_run: 0.0990s
+      Avg gpu_cached: 0.0023s
+      Avg transfer overhead: 0.0967s (4143% of compute)
+      Max transfer overhead: 0.1470s
+    SF=5: 3 queries OK
+      Avg first_run: 0.5953s
+      Avg gpu_cached: 0.0247s
+      Avg transfer overhead: 0.5707s (2314% of compute)
+      Max transfer overhead: 0.8030s
+    SF=10: 3 queries OK
+      Avg first_run: 1.3933s
+      Avg gpu_cached: 0.0477s
+      Avg transfer overhead: 1.3457s (2823% of compute)
+      Max transfer overhead: 1.8310s
+    SF=20: 3 queries OK
+      Avg first_run: 2.3993s
+      Avg gpu_cached: 0.0923s
+      Avg transfer overhead: 2.3070s (2499% of compute)
+      Max transfer overhead: 3.2070s
+  H2O:
+    SF=1gb: 3 queries OK
+      Avg first_run: 0.8580s
+      Avg gpu_cached: 0.0490s
+      Avg transfer overhead: 0.8090s (1651% of compute)
+      Max transfer overhead: 1.3640s
+    SF=2gb: 3 queries OK
+      Avg first_run: 1.4893s
+      Avg gpu_cached: 0.0683s
+      Avg transfer overhead: 1.4210s (2080% of compute)
+      Max transfer overhead: 2.3960s
+    SF=3gb: 3 queries OK
+      Avg first_run: 2.1523s
+      Avg gpu_cached: 0.0890s
+      Avg transfer overhead: 2.0633s (2318% of compute)
+      Max transfer overhead: 3.4660s
+    SF=4gb: 3 queries OK
+      Avg first_run: 2.5503s
+      Avg gpu_cached: 0.1047s
+      Avg transfer overhead: 2.4457s (2337% of compute)
+      Max transfer overhead: 3.9040s
+  MICROBENCH_TPCH:
+    SF=1: 3 queries OK
+      Avg first_run: 0.0673s
+      Avg gpu_cached: 0.0010s
+      Avg transfer overhead: 0.0663s (6633% of compute)
+      Max transfer overhead: 0.0760s
+    SF=5: 3 queries OK
+      Avg first_run: 0.1123s
+      Avg gpu_cached: 0.0030s
+      Avg transfer overhead: 0.1093s (3644% of compute)
+      Max transfer overhead: 0.1460s
+    SF=10: 3 queries OK
+      Avg first_run: 0.1457s
+      Avg gpu_cached: 0.0060s
+      Avg transfer overhead: 0.1397s (2328% of compute)
+      Max transfer overhead: 0.2040s
+    SF=20: 3 queries OK
+      Avg first_run: 0.2637s
+      Avg gpu_cached: 0.0113s
+      Avg transfer overhead: 0.2523s (2226% of compute)
+      Max transfer overhead: 0.4570s
+  MICROBENCH_H2O:
+    SF=1gb: 3 queries OK
+      Avg first_run: 0.4287s
+      Avg gpu_cached: 0.0167s
+      Avg transfer overhead: 0.4120s (2472% of compute)
+      Max transfer overhead: 0.7810s
+    SF=2gb: 3 queries OK
+      Avg first_run: 0.7210s
+      Avg gpu_cached: 0.0313s
+      Avg transfer overhead: 0.6897s (2201% of compute)
+      Max transfer overhead: 1.3000s
+    SF=3gb: 3 queries OK
+      Avg first_run: 1.0373s
+      Avg gpu_cached: 0.0470s
+      Avg transfer overhead: 0.9903s (2107% of compute)
+      Max transfer overhead: 1.8780s
+    SF=4gb: 3 queries OK
+      Avg first_run: 1.3767s
+      Avg gpu_cached: 0.0637s
+      Avg transfer overhead: 1.3130s (2062% of compute)
+      Max transfer overhead: 2.5020s

@@ -1,0 +1,4 @@
+run_id,benchmark,sf,query,storage,n_reps,min_ms,query_time_ms,avg_ms,elapsed_s,num_samples,num_steady_samples,avg_power_w,max_power_w,max_mem_mb,avg_gpu_util,max_gpu_util,energy_j,avg_cpu_pkg_w,avg_cpu_dram_w,cpu_energy_j,status
+microbench_tpch_sf1_w1_002,microbench_tpch,1,w1_002,gpu,1000,3.0,3.0000,3.0,4.63,53,53,62.3,67.0,40768,26.7,100,0.1870,0.0,0.0,0.0000,OK
+microbench_tpch_sf1_w3_001,microbench_tpch,1,w3_001,gpu,1000,25.0,25.0000,25.0,4.39,51,14,64.1,66.2,40772,76.1,100,1.6013,0.0,0.0,0.0000,OK
+microbench_tpch_sf1_w5a_029,microbench_tpch,1,w5a_029,gpu,1000,31.0,31.0000,31.0,4.64,54,17,64.4,66.8,40770,70.4,100,1.9975,0.0,0.0,0.0000,OK

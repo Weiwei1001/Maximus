@@ -1,0 +1,363 @@
+======================================================================
+  MAXIMUS DATA-ON-CPU BENCHMARK (-s cpu)
+  Started: 2026-03-16 09:54:49.253392
+======================================================================
+
+======================================================================
+  TPCH SF=1 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 1.269ms (from timing CSV)
+  q3: 1.061ms (from timing CSV)
+  q6: 0.445ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (1000 reps, -s cpu)... 1.169ms, 5.8s, GPU:63W CPU:0W [OK]
+  q3 (1000 reps, -s cpu)... 1.001ms, 5.5s, GPU:64W CPU:0W [OK]
+  q6 (1000 reps, -s cpu)... 0.569ms, 5.0s, GPU:63W CPU:0W [OK]
+
+======================================================================
+  TPCH SF=5 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 126.757ms (from timing CSV)
+  q3: 59.284ms (from timing CSV)
+  q6: 45.37ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (79 reps, -s cpu)... 122.411ms, 107.4s, GPU:66W CPU:0W [OK]
+  q3 (169 reps, -s cpu)... 58.158ms, 234.8s, GPU:62W CPU:0W [OK]
+  q6 (221 reps, -s cpu)... 44.391ms, 240.2s, GPU:61W CPU:0W [OK]
+
+======================================================================
+  TPCH SF=10 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 248.056ms (from timing CSV)
+  q3: 116.535ms (from timing CSV)
+  q6: 89.405ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (41 reps, -s cpu)... 244.957ms, 126.0s, GPU:66W CPU:0W [OK]
+  q3 (86 reps, -s cpu)... 117.442ms, 239.4s, GPU:62W CPU:0W [OK]
+  q6 (112 reps, -s cpu)... 87.583ms, 242.5s, GPU:61W CPU:0W [OK]
+
+======================================================================
+  TPCH SF=20 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 503.508ms (from timing CSV)
+  q3: 250.944ms (from timing CSV)
+  q6: 174.936ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (20 reps, -s cpu)... 496.219ms, 192.1s, GPU:65W CPU:0W [OK]
+  q3 (40 reps, -s cpu)... 233.579ms, 344.2s, GPU:61W CPU:0W [OK]
+  q6 (58 reps, -s cpu)... 174.248ms, 356.3s, GPU:61W CPU:0W [OK]
+
+======================================================================
+  H2O SF=1gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 55.61ms (from timing CSV)
+  q3: 289.503ms (from timing CSV)
+  q5: 72.821ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (180 reps, -s cpu)... 55.469ms, 109.3s, GPU:63W CPU:0W [OK]
+  q3 (35 reps, -s cpu)... 289.667ms, 46.1s, GPU:68W CPU:0W [OK]
+  q5 (138 reps, -s cpu)... 70.444ms, 93.7s, GPU:63W CPU:0W [OK]
+
+======================================================================
+  H2O SF=2gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 125.505ms (from timing CSV)
+  q3: 424.121ms (from timing CSV)
+  q5: 154.993ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (80 reps, -s cpu)... 110.608ms, 99.1s, GPU:63W CPU:0W [OK]
+  q3 (24 reps, -s cpu)... 407.717ms, 55.1s, GPU:65W CPU:0W [OK]
+  q5 (65 reps, -s cpu)... 137.757ms, 89.5s, GPU:63W CPU:0W [OK]
+
+======================================================================
+  H2O SF=3gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 172.006ms (from timing CSV)
+  q3: 599.753ms (from timing CSV)
+  q5: 226.771ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (59 reps, -s cpu)... 165.525ms, 121.9s, GPU:63W CPU:0W [OK]
+  q3 (17 reps, -s cpu)... 531.554ms, 69.0s, GPU:65W CPU:0W [OK]
+  q5 (45 reps, -s cpu)... 220.757ms, 103.1s, GPU:63W CPU:0W [OK]
+
+======================================================================
+  H2O SF=4gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  q1: 269.976ms (from timing CSV)
+  q3: 675.517ms (from timing CSV)
+  q5: 287.337ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  q1 (38 reps, -s cpu)... 219.845ms, 113.1s, GPU:63W CPU:0W [OK]
+  q3 (15 reps, -s cpu)... 676.744ms, 89.0s, GPU:64W CPU:0W [OK]
+  q5 (35 reps, -s cpu)... 289.48ms, 112.0s, GPU:63W CPU:0W [OK]
+
+======================================================================
+  CLICKBENCH SF=1 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  q1: NO DATA [FAIL]
+  q6: NO DATA [FAIL]
+  q20: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  q1: SKIP (no timing data)
+  q6: SKIP (no timing data)
+  q20: SKIP (no timing data)
+
+======================================================================
+  CLICKBENCH SF=5 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  q1: NO DATA [FAIL]
+  q6: NO DATA [FAIL]
+  q20: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  q1: SKIP (no timing data)
+  q6: SKIP (no timing data)
+  q20: SKIP (no timing data)
+
+======================================================================
+  CLICKBENCH SF=10 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  q1: NO DATA [FAIL]
+  q6: NO DATA [FAIL]
+  q20: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  q1: SKIP (no timing data)
+  q6: SKIP (no timing data)
+  q20: SKIP (no timing data)
+
+======================================================================
+  CLICKBENCH SF=20 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  q1: NO DATA [FAIL]
+  q6: NO DATA [FAIL]
+  q20: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  q1: SKIP (no timing data)
+  q6: SKIP (no timing data)
+  q20: SKIP (no timing data)
+
+======================================================================
+  MICROBENCH_TPCH SF=1 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_002: 0.503ms (from timing CSV)
+  w3_001: 0.308ms (from timing CSV)
+  w5a_029: 0.475ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_002 (1000 reps, -s cpu)... 0.478ms, 4.8s, GPU:63W CPU:0W [OK]
+  w3_001 (1000 reps, -s cpu)... 0.286ms, 4.4s, GPU:65W CPU:0W [OK]
+  w5a_029 (1000 reps, -s cpu)... 0.431ms, 4.5s, GPU:65W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_TPCH SF=5 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_002: 6.147ms (from timing CSV)
+  w3_001: 1.688ms (from timing CSV)
+  w5a_029: 14.316ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_002 (1000 reps, -s cpu)... 5.977ms, 176.5s, GPU:62W CPU:0W [OK]
+  w3_001 (1000 reps, -s cpu)... 1.548ms, 34.9s, GPU:63W CPU:0W [OK]
+  w5a_029 (699 reps, -s cpu)... 14.246ms, 178.6s, GPU:66W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_TPCH SF=10 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_002: 15.619ms (from timing CSV)
+  w3_001: 2.93ms (from timing CSV)
+  w5a_029: 39.871ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_002 (641 reps, -s cpu)... 15.203ms, 312.6s, GPU:62W CPU:0W [OK]
+  w3_001 (1000 reps, -s cpu)... 2.758ms, 62.8s, GPU:63W CPU:0W [OK]
+  w5a_029 (251 reps, -s cpu)... 36.738ms, 151.6s, GPU:65W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_TPCH SF=20 (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_002: 30.247ms (from timing CSV)
+  w3_001: 5.312ms (from timing CSV)
+  w5a_029: 91.12ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_002 (331 reps, -s cpu)... 29.949ms, 354.0s, GPU:62W CPU:0W [OK]
+  w3_001 (1000 reps, -s cpu)... 5.135ms, 130.3s, GPU:63W CPU:0W [OK]
+  w5a_029 (110 reps, -s cpu)... 75.708ms, 144.9s, GPU:66W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_H2O SF=1gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_001: 12.888ms (from timing CSV)
+  w3_016: 55.914ms (from timing CSV)
+  w6_022: 90.038ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001 (776 reps, -s cpu)... 12.46ms, 382.3s, GPU:62W CPU:0W [OK]
+  w3_016 (179 reps, -s cpu)... 55.591ms, 106.2s, GPU:64W CPU:0W [OK]
+  w6_022 (112 reps, -s cpu)... 89.228ms, 76.3s, GPU:75W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_H2O SF=2gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_001: 24.739ms (from timing CSV)
+  w3_016: 115.115ms (from timing CSV)
+  w6_022: 186.787ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001 (405 reps, -s cpu)... 23.999ms, 396.8s, GPU:61W CPU:0W [OK]
+  w3_016 (87 reps, -s cpu)... 110.063ms, 109.2s, GPU:63W CPU:0W [OK]
+  w6_022 (54 reps, -s cpu)... 180.041ms, 80.0s, GPU:73W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_H2O SF=3gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_001: 38.578ms (from timing CSV)
+  w3_016: 166.613ms (from timing CSV)
+  w6_022: 277.413ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001 (260 reps, -s cpu)... 35.847ms, 389.6s, GPU:61W CPU:0W [OK]
+  w3_016 (61 reps, -s cpu)... 165.848ms, 122.0s, GPU:63W CPU:0W [OK]
+  w6_022 (37 reps, -s cpu)... 271.214ms, 90.5s, GPU:74W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_H2O SF=4gb (3 queries, -s cpu)
+======================================================================
+
+--- Using pre-computed timing from B1 CSV ---
+  w1_001: 55.647ms (from timing CSV)
+  w3_016: 247.132ms (from timing CSV)
+  w6_022: 391.754ms (from timing CSV)
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001 (180 reps, -s cpu)... 48.189ms, 363.6s, GPU:62W CPU:0W [OK]
+  w3_016 (41 reps, -s cpu)... 219.266ms, 117.0s, GPU:63W CPU:0W [OK]
+  w6_022 (26 reps, -s cpu)... 357.557ms, 95.6s, GPU:72W CPU:0W [OK]
+
+======================================================================
+  MICROBENCH_CLICKBENCH SF=1 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  w1_001: NO DATA [FAIL]
+  w3_011: NO DATA [FAIL]
+  w6_016: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001: SKIP (no timing data)
+  w3_011: SKIP (no timing data)
+  w6_016: SKIP (no timing data)
+
+======================================================================
+  MICROBENCH_CLICKBENCH SF=5 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  w1_001: NO DATA [FAIL]
+  w3_011: NO DATA [FAIL]
+  w6_016: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001: SKIP (no timing data)
+  w3_011: SKIP (no timing data)
+  w6_016: SKIP (no timing data)
+
+======================================================================
+  MICROBENCH_CLICKBENCH SF=10 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  w1_001: NO DATA [FAIL]
+  w3_011: NO DATA [FAIL]
+  w6_016: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001: SKIP (no timing data)
+  w3_011: SKIP (no timing data)
+  w6_016: SKIP (no timing data)
+
+======================================================================
+  MICROBENCH_CLICKBENCH SF=20 (3 queries, -s cpu)
+======================================================================
+
+--- Timing (3 reps, -s cpu) ---
+  Batch incomplete (0/3), retrying...
+  w1_001: NO DATA [FAIL]
+  w3_011: NO DATA [FAIL]
+  w6_016: NO DATA [FAIL]
+  --- 0/3 OK
+
+--- Metrics with power sampling (-s cpu) ---
+  w1_001: SKIP (no timing data)
+  w3_011: SKIP (no timing data)
+  w6_016: SKIP (no timing data)
+  Metrics: /workspace/gpu_db/results/maximus_cpu_data_metrics_summary_20260316_115748.csv
+  Samples: /workspace/gpu_db/results/maximus_cpu_data_metrics_samples_20260316_115748.csv
+
+======================================================================
+  DONE (7379s = 123.0min)
+  Timing: /workspace/gpu_db/results/maximus_cpu_data_timing.csv
+======================================================================

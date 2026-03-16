@@ -1,0 +1,4 @@
+run_id,benchmark,sf,query,storage,n_reps,min_ms,query_time_ms,avg_ms,elapsed_s,num_samples,num_steady_samples,avg_power_w,max_power_w,max_mem_mb,avg_gpu_util,max_gpu_util,energy_j,avg_cpu_pkg_w,avg_cpu_dram_w,cpu_energy_j,status
+microbench_clickbench_sf1_w1_001,microbench_clickbench,1,w1_001,gpu,1000,5.0,5.0000,5.0,8.50,106,69,125.0,143.0,40768,86.4,100,0.6248,0.0,0.0,0.0000,OK
+microbench_clickbench_sf1_w3_011,microbench_clickbench,1,w3_011,gpu,1000,21.0,21.0000,21.0,8.16,101,64,132.6,145.4,40770,94.8,100,2.7852,0.0,0.0,0.0000,OK
+microbench_clickbench_sf1_w6_016,microbench_clickbench,1,w6_016,gpu,1000,14.0,14.0000,14.0,8.21,101,63,134.0,149.1,40766,95.7,100,1.8754,0.0,0.0,0.0000,OK

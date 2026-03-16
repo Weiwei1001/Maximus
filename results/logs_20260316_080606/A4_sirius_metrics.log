@@ -1,0 +1,419 @@
+  Loaded 48 timing entries from /workspace/gpu_db/results/sirius_benchmark.csv
+======================================================================
+  SIRIUS GPU STEADY-STATE METRICS
+  GPU: NVIDIA A100 80GB PCIe (index 0, 81920 MiB)
+  Target: 20.0s sustained execution per query
+  Started: 2026-03-16 08:52:06.204668
+======================================================================
+
+======================================================================
+  METRICS: TPCH SF=1 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf1.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0040s x 1000 reps = 4.0s (from timing CSV)
+  q3: 0.0050s x 1000 reps = 5.0s (from timing CSV)
+  q6: 0.0010s x 1000 reps = 1.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +28819MB (429→29248MB)
+0.003s, 47.3s (1 passes), GPU:61W CPU:0W, 100%util, 81046MB, GPU_E:0.2J CPU_E:0.0J [OK]
+  q3 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +28785MB (429→29214MB)
+0.003s, 45.5s (1 passes), GPU:61W CPU:0W, 100%util, 81018MB, GPU_E:0.2J CPU_E:0.0J [OK]
+  q6 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q6: +28789MB (429→29218MB)
+0.001s, 46.5s (1 passes), GPU:61W CPU:0W, 100%util, 81040MB, GPU_E:0.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf1_metrics_samples_20260316_085206.csv (1760 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf1_metrics_summary_20260316_085206.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=5 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf5.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0650s x 308 reps = 20.0s (from timing CSV)
+  q3: 0.0110s x 1000 reps = 11.0s (from timing CSV)
+  q6: 0.0020s x 1000 reps = 2.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (308 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +43097MB (433→43529MB)
+0.063s, 67.4s (1 passes), GPU:97W CPU:0W, 100%util, 80944MB, GPU_E:6.1J CPU_E:0.0J [OK]
+  q3 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +28608MB (429→29038MB)
+0.009s, 46.7s (1 passes), GPU:63W CPU:0W, 100%util, 81038MB, GPU_E:0.6J CPU_E:0.0J [OK]
+  q6 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q6: +28605MB (429→29034MB)
+0.002s, 46.4s (1 passes), GPU:63W CPU:0W, 100%util, 81044MB, GPU_E:0.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf5_metrics_samples_20260316_085425.csv (2048 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf5_metrics_summary_20260316_085425.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=10 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf10.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.1240s x 162 reps = 20.1s (from timing CSV)
+  q3: 0.0150s x 1000 reps = 15.0s (from timing CSV)
+  q6: 0.0030s x 1000 reps = 3.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (162 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +43091MB (433→43524MB)
+0.122s, 67.9s (1 passes), GPU:92W CPU:0W, 100%util, 80760MB, GPU_E:11.2J CPU_E:0.0J [OK]
+  q3 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +28618MB (429→29048MB)
+0.014s, 48.9s (1 passes), GPU:65W CPU:0W, 100%util, 81034MB, GPU_E:0.9J CPU_E:0.0J [OK]
+  q6 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q6: +28640MB (429→29070MB)
+0.003s, 48.4s (1 passes), GPU:65W CPU:0W, 100%util, 81036MB, GPU_E:0.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf10_metrics_samples_20260316_085706.csv (2096 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf10_metrics_summary_20260316_085706.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: TPCH SF=20 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf20.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.2620s x 77 reps = 20.2s (from timing CSV)
+  q3: 0.0270s x 741 reps = 20.0s (from timing CSV)
+  q6: 0.0050s x 1000 reps = 5.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (77 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +43395MB (432→43827MB)
+0.243s, 67.1s (1 passes), GPU:97W CPU:0W, 100%util, 80654MB, GPU_E:23.5J CPU_E:0.0J [OK]
+  q3 (741 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +29948MB (430→30378MB)
+0.026s, 51.2s (1 passes), GPU:70W CPU:0W, 100%util, 81048MB, GPU_E:1.8J CPU_E:0.0J [OK]
+  q6 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q6: +28631MB (429→29061MB)
+0.005s, 49.6s (1 passes), GPU:68W CPU:0W, 100%util, 81032MB, GPU_E:0.3J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_tpch_sf20_metrics_samples_20260316_085951.csv (2130 samples)
+  Summary: /workspace/gpu_db/results/sirius_tpch_sf20_metrics_summary_20260316_085951.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=1gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_1gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0170s x 1000 reps = 17.0s (from timing CSV)
+  q3: 0.1210s x 166 reps = 20.1s (from timing CSV)
+  q5: 0.0130s x 1000 reps = 13.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +31951MB (430→32381MB)
+0.016s, 51.9s (1 passes), GPU:71W CPU:0W, 100%util, 81046MB, GPU_E:1.1J CPU_E:0.0J [OK]
+  q3 (166 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +42730MB (432→43162MB)
+0.116s, 66.9s (1 passes), GPU:77W CPU:0W, 100%util, 80768MB, GPU_E:8.9J CPU_E:0.0J [OK]
+  q5 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q5: +30576MB (430→31006MB)
+0.012s, 51.6s (1 passes), GPU:72W CPU:0W, 100%util, 81048MB, GPU_E:0.9J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf1gb_metrics_samples_20260316_090239.csv (2181 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf1gb_metrics_summary_20260316_090239.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=2gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_2gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0310s x 646 reps = 20.0s (from timing CSV)
+  q3: 0.1510s x 133 reps = 20.1s (from timing CSV)
+  q5: 0.0230s x 870 reps = 20.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (646 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +37676MB (431→38107MB)
+0.030s, 59.0s (1 passes), GPU:79W CPU:0W, 100%util, 81044MB, GPU_E:2.4J CPU_E:0.0J [OK]
+  q3 (133 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +44523MB (433→44956MB)
+0.151s, 68.7s (1 passes), GPU:82W CPU:0W, 100%util, 80726MB, GPU_E:12.3J CPU_E:0.0J [OK]
+  q5 (870 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q5: +34571MB (431→35002MB)
+0.022s, 54.6s (1 passes), GPU:80W CPU:0W, 100%util, 81044MB, GPU_E:1.8J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf2gb_metrics_samples_20260316_090529.csv (2345 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf2gb_metrics_summary_20260316_090529.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=3gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_3gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0460s x 435 reps = 20.0s (from timing CSV)
+  q3: 0.1970s x 102 reps = 20.1s (from timing CSV)
+  q5: 0.0400s x 500 reps = 20.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (435 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +41761MB (432→42193MB)
+0.045s, 65.2s (1 passes), GPU:80W CPU:0W, 100%util, 81046MB, GPU_E:3.6J CPU_E:0.0J [OK]
+  q3 (102 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +43360MB (434→43794MB)
+0.181s, 68.4s (1 passes), GPU:84W CPU:0W, 100%util, 80688MB, GPU_E:15.3J CPU_E:0.0J [OK]
+  q5 (500 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q5: +38112MB (431→38543MB)
+0.032s, 59.3s (1 passes), GPU:88W CPU:0W, 100%util, 81048MB, GPU_E:2.8J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf3gb_metrics_samples_20260316_090832.csv (2479 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf3gb_metrics_summary_20260316_090832.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: H2O SF=4gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_4gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  q1: 0.0610s x 328 reps = 20.0s (from timing CSV)
+  q3: 0.2880s x 70 reps = 20.2s (from timing CSV)
+  q5: 0.0420s x 477 reps = 20.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  q1 (328 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q1: +43048MB (432→43480MB)
+0.060s, 66.3s (1 passes), GPU:82W CPU:0W, 100%util, 80964MB, GPU_E:4.9J CPU_E:0.0J [OK]
+  q3 (70 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q3: +40881MB (432→41313MB)
+0.209s, 65.7s (1 passes), GPU:82W CPU:0W, 100%util, 80648MB, GPU_E:17.2J CPU_E:0.0J [OK]
+  q5 (477 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for q5: +40384MB (432→40817MB)
+0.042s, 65.7s (1 passes), GPU:94W CPU:0W, 100%util, 81044MB, GPU_E:3.9J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_h2o_sf4gb_metrics_samples_20260316_091144.csv (2530 samples)
+  Summary: /workspace/gpu_db/results/sirius_h2o_sf4gb_metrics_summary_20260316_091144.csv (3 queries)
+  --- 3/3 OK
+[SKIP] clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=1 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf1.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0010s x 1000 reps = 1.0s (from timing CSV)
+  w3_001: 0.0010s x 1000 reps = 1.0s (from timing CSV)
+  w5a_029: 0.0030s x 1000 reps = 3.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_002: +28588MB (429→29016MB)
+0.000s, 46.1s (1 passes), GPU:61W CPU:0W, 100%util, 81010MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_001: +28796MB (429→29225MB)
+0.001s, 46.2s (1 passes), GPU:61W CPU:0W, 100%util, 81022MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w5a_029: +28597MB (429→29026MB)
+0.002s, 47.3s (1 passes), GPU:61W CPU:0W, 100%util, 81046MB, GPU_E:0.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf1_metrics_samples_20260316_091502.csv (1749 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf1_metrics_summary_20260316_091502.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=5 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf5.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0010s x 1000 reps = 1.0s (from timing CSV)
+  w3_001: 0.0020s x 1000 reps = 2.0s (from timing CSV)
+  w5a_029: 0.0090s x 1000 reps = 9.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_002: +28594MB (429→29023MB)
+0.000s, 47.4s (1 passes), GPU:61W CPU:0W, 100%util, 81018MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_001: +28786MB (429→29215MB)
+0.001s, 45.6s (1 passes), GPU:61W CPU:0W, 100%util, 81042MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w5a_029: +28811MB (429→29241MB)
+0.008s, 47.5s (1 passes), GPU:65W CPU:0W, 100%util, 81044MB, GPU_E:0.5J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf5_metrics_samples_20260316_091722.csv (1764 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf5_metrics_summary_20260316_091722.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=10 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf10.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0010s x 1000 reps = 1.0s (from timing CSV)
+  w3_001: 0.0020s x 1000 reps = 2.0s (from timing CSV)
+  w5a_029: 0.0170s x 1000 reps = 17.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_002: +28796MB (429→29226MB)
+0.000s, 47.4s (1 passes), GPU:61W CPU:0W, 100%util, 81042MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_001: +28789MB (429→29218MB)
+0.001s, 47.7s (1 passes), GPU:61W CPU:0W, 100%util, 81036MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w5a_029: +28645MB (430→29075MB)
+0.016s, 49.4s (1 passes), GPU:71W CPU:0W, 100%util, 81046MB, GPU_E:1.1J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf10_metrics_samples_20260316_091942.csv (1797 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf10_metrics_summary_20260316_091942.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_TPCH SF=20 (3 queries)
+  DB: /workspace/gpu_db/tests/tpch_duckdb/tpch_sf20.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_002: 0.0010s x 1000 reps = 1.0s (from timing CSV)
+  w3_001: 0.0020s x 1000 reps = 2.0s (from timing CSV)
+  w5a_029: 0.0330s x 607 reps = 20.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_002 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_002: +28792MB (429→29221MB)
+0.000s, 46.1s (1 passes), GPU:62W CPU:0W, 100%util, 81030MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_001 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_001: +28596MB (429→29025MB)
+0.002s, 47.8s (1 passes), GPU:62W CPU:0W, 100%util, 81036MB, GPU_E:0.1J CPU_E:0.0J [OK]
+  w5a_029 (607 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w5a_029: +30215MB (430→30645MB)
+0.031s, 53.8s (1 passes), GPU:81W CPU:0W, 100%util, 81044MB, GPU_E:2.5J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_tpch_sf20_metrics_samples_20260316_092207.csv (1838 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_tpch_sf20_metrics_summary_20260316_092207.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=1gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_1gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: no prior timing, calibrating... 0.0000s x 3 reps = 0.0s (calibrated)
+  w3_016: 0.0160s x 1000 reps = 16.0s (from timing CSV)
+  w6_022: 0.0330s x 607 reps = 20.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (3 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_001: +28280MB (429→28709MB)
+0.000s, 45.5s (1 passes), GPU:61W CPU:0W, 100%util, 80544MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_016: +31463MB (430→31893MB)
+0.015s, 53.6s (1 passes), GPU:69W CPU:0W, 100%util, 81048MB, GPU_E:1.0J CPU_E:0.0J [OK]
+  w6_022 (607 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w6_022: +31893MB (431→32323MB)
+0.033s, 54.5s (1 passes), GPU:85W CPU:0W, 100%util, 81042MB, GPU_E:2.8J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf1gb_metrics_samples_20260316_092434.csv (1911 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf1gb_metrics_summary_20260316_092434.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=2gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_2gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: no prior timing, calibrating... 0.0000s x 3 reps = 0.0s (calibrated)
+  w3_016: 0.0300s x 667 reps = 20.0s (from timing CSV)
+  w6_022: 0.0640s x 313 reps = 20.0s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (3 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_001: +28281MB (428→28709MB)
+0.000s, 45.3s (1 passes), GPU:61W CPU:0W, 100%util, 80542MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (667 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_016: +36390MB (431→36821MB)
+0.030s, 59.9s (1 passes), GPU:80W CPU:0W, 100%util, 81048MB, GPU_E:2.4J CPU_E:0.0J [OK]
+  w6_022 (313 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w6_022: +36850MB (432→37282MB)
+0.064s, 61.0s (1 passes), GPU:114W CPU:0W, 100%util, 81044MB, GPU_E:7.3J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf2gb_metrics_samples_20260316_092753.csv (2081 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf2gb_metrics_summary_20260316_092753.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=3gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_3gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: no prior timing, calibrating... 0.0000s x 3 reps = 0.0s (calibrated)
+  w3_016: 0.0460s x 435 reps = 20.0s (from timing CSV)
+  w6_022: 0.0960s x 209 reps = 20.1s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (3 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_001: +28280MB (429→28709MB)
+0.000s, 45.3s (1 passes), GPU:61W CPU:0W, 100%util, 80546MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (435 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_016: +40827MB (432→41259MB)
+0.045s, 65.9s (1 passes), GPU:84W CPU:0W, 100%util, 81048MB, GPU_E:3.8J CPU_E:0.0J [OK]
+  w6_022 (209 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w6_022: +41568MB (432→42001MB)
+0.096s, 68.0s (1 passes), GPU:118W CPU:0W, 100%util, 81044MB, GPU_E:11.3J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf3gb_metrics_samples_20260316_093125.csv (2263 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf3gb_metrics_summary_20260316_093125.csv (3 queries)
+  --- 3/3 OK
+
+======================================================================
+  METRICS: MICROBENCH_H2O SF=4gb (3 queries)
+  DB: /workspace/gpu_db/tests/h2o_duckdb/h2o_4gb.duckdb
+======================================================================
+
+--- Calculate n_reps (target=20.0s) ---
+  w1_001: 0.0010s x 1000 reps = 1.0s (from timing CSV)
+  w3_016: 0.0600s x 334 reps = 20.0s (from timing CSV)
+  w6_022: 0.1320s x 152 reps = 20.1s (from timing CSV)
+
+--- Metrics run with power sampling ---
+  w1_001 (1000 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w1_001: +28285MB (429→28714MB)
+0.000s, 45.8s (1 passes), GPU:61W CPU:0W, 100%util, 80546MB, GPU_E:0.0J CPU_E:0.0J [OK]
+  w3_016 (334 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w3_016: +42760MB (432→43192MB)
+0.060s, 67.3s (1 passes), GPU:82W CPU:0W, 100%util, 80972MB, GPU_E:4.9J CPU_E:0.0J [OK]
+  w6_022 (152 reps/pass, target=20.0s)... 
+  ⚠ MEMORY LEAK DETECTED for w6_022: +42587MB (432→43020MB)
+0.131s, 69.4s (1 passes), GPU:132W CPU:0W, 100%util, 80930MB, GPU_E:17.2J CPU_E:0.0J [OK]
+
+  Samples: /workspace/gpu_db/results/sirius_microbench_h2o_sf4gb_metrics_samples_20260316_093509.csv (2321 samples)
+  Summary: /workspace/gpu_db/results/sirius_microbench_h2o_sf4gb_metrics_summary_20260316_093509.csv (3 queries)
+  --- 3/3 OK
+[SKIP] microbench_clickbench SF=1: /workspace/gpu_db/tests/click_duckdb/clickbench_1.duckdb not found
+[SKIP] microbench_clickbench SF=5: /workspace/gpu_db/tests/click_duckdb/clickbench_5.duckdb not found
+[SKIP] microbench_clickbench SF=10: /workspace/gpu_db/tests/click_duckdb/clickbench_10.duckdb not found
+[SKIP] microbench_clickbench SF=20: /workspace/gpu_db/tests/click_duckdb/clickbench_20.duckdb not found
+
+======================================================================
+  ALL DONE — 2026-03-16 09:38:12.173452
+======================================================================
