@@ -40,9 +40,9 @@ gpu_info = detect_gpu()
 BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 
 GPU_ID = str(gpu_info["index"])
-TARGET_TIME_S = 10
+TARGET_TIME_S = 5
 MIN_REPS = 3
-MAX_REPS = 1000      # cap reps; memory leak detection guards against GPU OOM
+MAX_REPS = 100       # cap reps to limit memory leak impact
 CALIBRATION_REPS = 3
 
 

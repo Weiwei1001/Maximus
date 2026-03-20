@@ -722,12 +722,12 @@ Examples:
         help="Skip configs that already have summary CSVs",
     )
     parser.add_argument(
-        "--maximus-target-time", type=float, default=10,
-        help="Target sustained time for Maximus in seconds (default: 10)",
+        "--maximus-target-time", type=float, default=5,
+        help="Target sustained time for Maximus in seconds (default: 5)",
     )
     parser.add_argument(
-        "--sirius-target-time", type=float, default=20,
-        help="Target sustained time for Sirius in seconds (default: 20)",
+        "--sirius-target-time", type=float, default=5,
+        help="Target sustained time for Sirius in seconds (default: 5)",
     )
     parser.add_argument(
         "--test", action="store_true",
@@ -738,6 +738,30 @@ Examples:
         # In test mode, use only 1 power limit and 1 SM clock
         args.power_limits = [DEFAULT_POWER_LIMITS[-1]]  # default PL only
         args.sm_clocks = [DEFAULT_SM_CLOCKS[-1]]        # max SM clock only
+
+    # Validate: filter out power limits outside GPU's supported range
+    pl_min = _GPU_INFO["power_min_w"]
+    pl_max = _GPU_INFO["power_max_w"]
+    valid_pls = [pl for pl in args.power_limits if pl_min <= pl <= pl_max]
+    if len(valid_pls) < len(args.power_limits):
+        dropped = set(args.power_limits) - set(valid_pls)
+        print(f"  [WARN] Dropped power limits outside GPU range [{pl_min}W, {pl_max}W]: {sorted(dropped)}")
+    args.power_limits = valid_pls if valid_pls else [_GPU_INFO["power_default_w"]]
+
+    # Validate: snap SM clocks to nearest supported values
+    supported_clocks = _GPU_INFO["sm_clocks"]
+    if supported_clocks:
+        valid_clks = []
+        for clk in args.sm_clocks:
+            nearest = min(supported_clocks, key=lambda c: abs(c - clk))
+            if nearest not in valid_clks:
+                valid_clks.append(nearest)
+            else:
+                # Already have this value, skip duplicate
+                pass
+        if valid_clks != args.sm_clocks:
+            print(f"  [INFO] SM clocks snapped to supported values: {args.sm_clocks} -> {valid_clks}")
+        args.sm_clocks = valid_clks
 
     # Safety: always restore GPU defaults on exit
     try:

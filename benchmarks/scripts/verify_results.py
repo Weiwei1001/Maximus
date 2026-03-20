@@ -34,6 +34,38 @@ RE_MAXIMUS_METRICS = re.compile(
 RE_SIRIUS_METRICS = re.compile(
     r'(\S+) \(\d+ reps/pass.*?\.\.\. ([\d.]+)s, [\d.]+s \(\d+ passes\), '
     r'GPU:(\d+)W CPU:(\d+)W, (\d+)%util, \d+MB, GPU_E:([\d.]+)J CPU_E:([\d.]+)J \[(OK|FAIL)\]')
+# B2 log format: simpler, no %util/MB/GPU_E fields — energy estimated as power × latency
+RE_MAXIMUS_CPU_METRICS = re.compile(
+    r'(\S+) \(\d+ reps, -s cpu\)\.\.\. ([\d.]+)ms, [\d.]+s, GPU:(\d+)W CPU:(\d+)W \[(OK|FAIL)\]')
+
+
+def _normalize_metrics_text(text: str) -> str:
+    """Remove memory leak warnings and rejoin split metrics lines.
+
+    When a memory leak is detected, the output is split across lines:
+        q3 (746 reps, -s gpu)...
+        ⚠ MEMORY LEAK DETECTED for q3: +2874MB (48505→51379MB)
+        60.000ms, 37.0s, GPU:205W ...
+    This function removes the warning lines and joins the timing data
+    back onto the query line so that regexes can match.
+    """
+    # Remove memory leak warning lines
+    lines = [l for l in text.split('\n') if '⚠ MEMORY LEAK DETECTED' not in l]
+    # Rejoin split lines: if a line ends with "..." and the next starts with timing data
+    joined = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.rstrip().endswith('...') and i + 1 < len(lines):
+            next_line = lines[i + 1].strip()
+            # Timing data starts with digits (e.g. "60.000ms," or "0.003s,")
+            if re.match(r'[\d.]+(?:ms|s),', next_line):
+                joined.append(line.rstrip() + ' ' + next_line)
+                i += 2
+                continue
+        joined.append(line)
+        i += 1
+    return '\n'.join(joined)
 
 
 def parse_sections(text):
@@ -76,12 +108,15 @@ def parse_latency_from_logs(log_dir: Path):
                     if passes_str:
                         passes = [float(x.strip()) * 1000 for x in passes_str.split(',')]
                         min_ms = round(min(passes), 3)
+                        all_times = ";".join(f"{t:.2f}" for t in passes)
                     else:
                         min_ms = round(time_ms, 3)
+                        all_times = f"{time_ms:.2f}"
                     rows.append({
                         'engine': engine, 'storage': storage, 'benchmark': bench,
                         'sf': sf, 'query': query,
                         'min_ms': min_ms, 'avg_ms': round(time_ms, 3),
+                        'all_times_ms': all_times,
                         'status': status,
                     })
             else:
@@ -91,22 +126,23 @@ def parse_latency_from_logs(log_dir: Path):
                         'engine': engine, 'storage': storage, 'benchmark': bench,
                         'sf': sf, 'query': query,
                         'min_ms': float(min_ms), 'avg_ms': float(avg_ms),
+                        'all_times_ms': '',  # Maximus timing log doesn't show all reps
                         'status': status,
                     })
     return rows
 
 
 def parse_energy_from_logs(log_dir: Path):
-    """Parse A3, A4 logs into energy rows."""
+    """Parse A3, A4, B2 logs into energy rows."""
     rows = []
-    for fname, engine, regex, is_sirius in [
-        ("A3_maximus_metrics.log", "maximus", RE_MAXIMUS_METRICS, False),
-        ("A4_sirius_metrics.log", "sirius", RE_SIRIUS_METRICS, True),
+    for fname, engine, storage, regex, is_sirius in [
+        ("A3_maximus_metrics.log", "maximus", "gpu", RE_MAXIMUS_METRICS, False),
+        ("A4_sirius_metrics.log", "sirius", "gpu", RE_SIRIUS_METRICS, True),
     ]:
         path = log_dir / fname
         if not path.exists():
             continue
-        text = path.read_text()
+        text = _normalize_metrics_text(path.read_text())
         for bench, sf, section in parse_sections(text):
             for m in regex.finditer(section):
                 if is_sirius:
@@ -116,9 +152,26 @@ def parse_energy_from_logs(log_dir: Path):
                     query, latency_ms_str, gpu_w, cpu_w, util, gpu_e, cpu_e, status = m.groups()
                     latency_ms = float(latency_ms_str)
                 rows.append({
-                    'engine': engine, 'storage': 'gpu', 'benchmark': bench,
+                    'engine': engine, 'storage': storage, 'benchmark': bench,
                     'sf': sf, 'query': query, 'latency_ms': latency_ms,
                     'gpu_power_w': int(gpu_w), 'gpu_energy_j': float(gpu_e),
+                    'status': status,
+                })
+
+    # B2: Maximus CPU metrics (no GPU_E field — estimate as gpu_power × latency)
+    b2_path = log_dir / "B2_maximus_cpu_metrics.log"
+    if b2_path.exists():
+        text = _normalize_metrics_text(b2_path.read_text())
+        for bench, sf, section in parse_sections(text):
+            for m in RE_MAXIMUS_CPU_METRICS.finditer(section):
+                query, latency_ms_str, gpu_w, cpu_w, status = m.groups()
+                latency_ms = float(latency_ms_str)
+                gpu_power = int(gpu_w)
+                gpu_energy = round(gpu_power * latency_ms / 1000, 4)
+                rows.append({
+                    'engine': 'maximus', 'storage': 'cpu', 'benchmark': bench,
+                    'sf': sf, 'query': query, 'latency_ms': latency_ms,
+                    'gpu_power_w': gpu_power, 'gpu_energy_j': gpu_energy,
                     'status': status,
                 })
     return rows
@@ -295,7 +348,8 @@ def main():
     # Also save parsed results as CSVs alongside the report
     lat_csv = log_dir / "test_latency.csv"
     with open(lat_csv, 'w', newline='') as f:
-        w = csv.DictWriter(f, fieldnames=['engine', 'storage', 'benchmark', 'sf', 'query', 'min_ms', 'avg_ms', 'status'])
+        w = csv.DictWriter(f, fieldnames=['engine', 'storage', 'benchmark', 'sf', 'query',
+                                          'min_ms', 'avg_ms', 'all_times_ms', 'status'])
         w.writeheader()
         w.writerows([r for r in new_latency if r['status'] in ('OK', 'FALLBACK')])
 

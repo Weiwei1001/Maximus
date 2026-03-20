@@ -29,7 +29,7 @@ from pathlib import Path
 
 from hw_detect import (
     detect_gpu, get_benchmark_config, sirius_db_path, sirius_query_dir,
-    buffer_init_sql, MAXIMUS_DIR,
+    buffer_init_sql, ensure_sirius_db, MAXIMUS_DIR,
 )
 
 # ── Defaults ─────────────────────────────────────────────────────────────────
@@ -56,6 +56,7 @@ os.environ["LD_LIBRARY_PATH"] = ":".join(LD_EXTRA_SIRIUS) + (":" + _ld if _ld el
 _gpu_info = detect_gpu()
 BUFFER_INIT = buffer_init_sql(_gpu_info["vram_mb"])
 N_WARMUP = 2          # warmup passes before timed pass (within same process)
+N_TIMED = 3           # number of timed passes (record all times)
 BATCH_SIZE = 10       # queries per batch (avoids OOM)
 QUERY_TIMEOUT_S = 60  # per-query timeout; >60s = FALLBACK
 
@@ -81,56 +82,77 @@ def load_queries(query_dir: Path):
     return queries
 
 
-def build_batch_sql(query_batch, buffer_init=BUFFER_INIT, n_warmup=N_WARMUP):
-    """Build SQL: gpu_buffer_init → warmup passes (no timer) → .timer on → timed pass with markers.
+def build_batch_sql(query_batch, buffer_init=BUFFER_INIT, n_warmup=N_WARMUP,
+                    n_timed=N_TIMED):
+    """Build SQL: gpu_buffer_init → warmup passes (no timer) → n_timed timed passes with markers.
 
     Single DuckDB process runs everything: warmup warms GPU caches,
-    then the timed pass captures stable performance.
+    then each timed pass captures stable performance.
     """
     parts = [buffer_init]
     # Warmup passes (no timer, no markers)
     for _ in range(n_warmup):
         for _qname, gpu_lines in query_batch:
             parts.extend(gpu_lines)
-    # Timed pass
+    # Multiple timed passes
     parts.append(".timer on")
-    for qname, gpu_lines in query_batch:
-        parts.append(f".print ===MARKER {qname}===")
-        parts.extend(gpu_lines)
+    for pass_i in range(n_timed):
+        for qname, gpu_lines in query_batch:
+            parts.append(f".print ===MARKER {qname}_pass{pass_i}===")
+            parts.extend(gpu_lines)
     parts.append(".print ===END===")
     return "\n".join(parts) + "\n"
 
 
 def parse_batch_output(stdout: str) -> dict:
-    """Parse markers + Run Time to get {qname: (time_s, has_fallback)}."""
+    """Parse markers + Run Time to get {qname: (all_times_s, has_fallback)}.
+
+    Markers are now qname_passN; times are aggregated per query across passes.
+    Returns {qname: ([time_pass0, time_pass1, ...], has_fallback)}.
+    """
     markers = [(m.start(), m.group(1)) for m in RE_MARKER.finditer(stdout)]
     markers.append((len(stdout), "__END__"))
-    query_data = {}
+    # Collect per-pass times
+    pass_times = {}  # {qname: [time_per_pass, ...]}
+    pass_fallbacks = {}
     for i in range(len(markers) - 1):
-        pos, qname = markers[i]
+        pos, raw_label = markers[i]
         next_pos = markers[i + 1][0]
         section = stdout[pos:next_pos]
+        # Parse pass index from marker: qname_passN
+        if "_pass" in raw_label:
+            qname = raw_label.rsplit("_pass", 1)[0]
+        else:
+            qname = raw_label  # backward compat
         times = [float(m.group(1)) for m in RE_RUN_TIME.finditer(section)]
         total = round(sum(times), 4) if times else -1
         has_fallback = "fallback" in section.lower()
-        query_data[qname] = (total, has_fallback)
+        pass_times.setdefault(qname, []).append(total)
+        if has_fallback:
+            pass_fallbacks[qname] = True
+    # Build result
+    query_data = {}
+    for qname, times_list in pass_times.items():
+        valid = [t for t in times_list if t >= 0]
+        fb = pass_fallbacks.get(qname, False)
+        query_data[qname] = (valid if valid else [-1], fb)
     return query_data
 
 
 def run_single_pass(duckdb_bin: Path, db_path: Path, queries: list,
                     batch_size: int = BATCH_SIZE, buffer_init: str = BUFFER_INIT,
-                    n_warmup: int = N_WARMUP):
-    """Run all queries in batches; each batch = warmup + timed pass in one process."""
+                    n_warmup: int = N_WARMUP, n_timed: int = N_TIMED):
+    """Run all queries in batches; each batch = warmup + n_timed timed passes in one process."""
     all_data = {}
     batches = [queries[i:i+batch_size] for i in range(0, len(queries), batch_size)]
 
     for batch in batches:
-        sql = build_batch_sql(batch, buffer_init, n_warmup)
+        sql = build_batch_sql(batch, buffer_init, n_warmup, n_timed)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".sql", delete=False) as f:
             f.write(sql)
             tmp = f.name
-        # Timeout accounts for warmup + timed pass
-        total_timeout = QUERY_TIMEOUT_S * len(batch) * (n_warmup + 1) + 120
+        # Timeout accounts for warmup + timed passes
+        total_timeout = QUERY_TIMEOUT_S * len(batch) * (n_warmup + n_timed) + 120
         try:
             r = subprocess.run(
                 [str(duckdb_bin), str(db_path)],
@@ -148,7 +170,7 @@ def run_single_pass(duckdb_bin: Path, db_path: Path, queries: list,
         # Retry failed queries individually (with warmup)
         for qn, gl in batch:
             if qn not in all_data:
-                sql2 = build_batch_sql([(qn, gl)], buffer_init, n_warmup)
+                sql2 = build_batch_sql([(qn, gl)], buffer_init, n_warmup, n_timed)
                 with tempfile.NamedTemporaryFile(mode="w", suffix=".sql", delete=False) as f:
                     f.write(sql2)
                     tmp2 = f.name
@@ -157,11 +179,11 @@ def run_single_pass(duckdb_bin: Path, db_path: Path, queries: list,
                         [str(duckdb_bin), str(db_path)],
                         stdin=open(tmp2, "r"),
                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                        text=True, timeout=QUERY_TIMEOUT_S * (n_warmup + 1) + 60,
+                        text=True, timeout=QUERY_TIMEOUT_S * (n_warmup + n_timed) + 60,
                     )
                     all_data.update(parse_batch_output(r2.stdout or ""))
                 except Exception:
-                    all_data[qn] = (-1, False)
+                    all_data[qn] = ([-1], False)
                 finally:
                     os.unlink(tmp2)
 
@@ -215,40 +237,48 @@ def main():
         for sf in cfg["scale_factors"]:
             db_path = sirius_db_path(bench_name, sf)
             if not db_path.exists():
-                print(f"[SKIP] {bench_name} SF={sf}: {db_path} not found")
-                continue
+                if not ensure_sirius_db(bench_name, sf):
+                    print(f"[SKIP] {bench_name} SF={sf}: {db_path} not found")
+                    continue
 
             print(f"\n{'='*60}")
             print(f"  {bench_name.upper()} SF={sf} ({len(queries)} queries)")
             print(f"{'='*60}")
             sys.stdout.flush()
 
-            # Single pass: warmup + timed in one process per batch
-            print(f"  Running ({_n_warmup} warmup + 1 timed pass per batch)...")
+            # Multiple timed passes: warmup + N_TIMED in one process per batch
+            _n_timed = N_TIMED
+            print(f"  Running ({_n_warmup} warmup + {_n_timed} timed passes per batch)...")
             sys.stdout.flush()
             pass_data = run_single_pass(duckdb_bin, db_path, queries,
                                         batch_size=_batch_size,
                                         buffer_init=_buffer_init,
-                                        n_warmup=_n_warmup)
+                                        n_warmup=_n_warmup,
+                                        n_timed=_n_timed)
 
             ok = 0
             for qname, _ in queries:
-                t, fb = pass_data.get(qname, (-1, False))
+                times_list, fb = pass_data.get(qname, ([-1], False))
+                min_t = min(t for t in times_list if t >= 0) if any(t >= 0 for t in times_list) else -1
 
-                if fb or t > QUERY_TIMEOUT_S:
+                if fb or (min_t >= 0 and min_t > QUERY_TIMEOUT_S):
                     status = "FALLBACK"
-                elif t < 0:
+                elif min_t < 0:
                     status = "ERROR"
                 else:
                     status = "OK"
                     ok += 1
 
-                time_str = f"{t:.3f}s" if t >= 0 else "ERR"
-                print(f"  {qname}: {time_str} [{status}]")
+                passes_str = ", ".join(f"{t:.3f}" for t in times_list)
+                time_str = f"{min_t:.3f}s" if min_t >= 0 else "ERR"
+                print(f"  {qname}: {time_str} [{status}] (passes: [{passes_str}])")
 
                 all_rows.append({
                     "benchmark": bench_name, "sf": sf, "query": qname,
-                    "wall_time_s": t, "status": status,
+                    "min_time_s": round(min_t, 4) if min_t >= 0 else -1,
+                    "wall_time_s": round(min_t, 4) if min_t >= 0 else -1,
+                    "all_times_s": ";".join(f"{t:.4f}" for t in times_list),
+                    "status": status,
                 })
 
             print(f"  --- {ok}/{len(queries)} OK")
@@ -258,7 +288,8 @@ def main():
     csv_path = results_dir / "sirius_benchmark.csv"
     with open(csv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["benchmark", "sf", "query",
-                                           "wall_time_s", "status"])
+                                           "min_time_s", "wall_time_s",
+                                           "all_times_s", "status"])
         w.writeheader()
         w.writerows(all_rows)
 

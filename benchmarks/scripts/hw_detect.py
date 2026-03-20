@@ -232,6 +232,17 @@ def set_gpu_power_limit(gpu_id: int, watts: int) -> bool:
     """Set GPU power limit in watts. Returns True on success."""
     r = _sudo_nvidia_smi(["-i", str(gpu_id), "-pl", str(watts)])
     if r.returncode != 0:
+        # Check if already at the target power limit
+        try:
+            q = subprocess.run(
+                ["nvidia-smi", "-i", str(gpu_id),
+                 "--query-gpu=power.limit", "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if q.returncode == 0 and abs(float(q.stdout.strip()) - watts) <= 1.0:
+                return True  # already at target
+        except Exception:
+            pass
         print(f"[hw_detect] WARNING: set power limit {watts}W failed: "
               f"{r.stderr.strip()}")
         return False
@@ -552,6 +563,101 @@ def sirius_query_dir(benchmark: str) -> Path:
         base = _base_benchmark_name(benchmark)
         dir_name = "click_sql" if base == "clickbench" else f"{base}_sql"
     return MAXIMUS_DIR / "tests" / dir_name / "queries" / "1"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Auto Data Generation
+# ══════════════════════════════════════════════════════════════════════════════
+
+_DATA_DIR = MAXIMUS_DIR / "benchmarks" / "data"
+
+
+def ensure_sirius_db(benchmark: str, sf) -> bool:
+    """Generate Sirius DuckDB database if missing. Returns True if DB exists."""
+    import subprocess, sys
+    base = _base_benchmark_name(benchmark)
+    db_path = sirius_db_path(benchmark, sf)
+    if db_path.exists():
+        return True
+    print(f"[GEN] Generating Sirius DuckDB: {benchmark} SF={sf}")
+    try:
+        if base == "tpch":
+            db_dir = MAXIMUS_DIR / "tests" / "tpch_duckdb"
+            db_dir.mkdir(parents=True, exist_ok=True)
+            cmd = [sys.executable, str(_DATA_DIR / "generate_tpch.py"),
+                   "-o", str(db_dir), "--scale-factors", str(sf),
+                   "--no-run-query", "--skip-install"]
+            subprocess.run(cmd, check=True)
+        elif base == "h2o":
+            db_dir = MAXIMUS_DIR / "tests" / "h2o_duckdb"
+            db_dir.mkdir(parents=True, exist_ok=True)
+            cmd = [sys.executable, str(_DATA_DIR / "generate_h2o.py"),
+                   "-o", str(db_dir), "--format", "duckdb", str(sf)]
+            subprocess.run(cmd, check=True)
+        elif base == "clickbench":
+            db_dir = MAXIMUS_DIR / "tests" / "click_duckdb"
+            db_dir.mkdir(parents=True, exist_ok=True)
+            parquet = MAXIMUS_DIR / "tests" / "clickbench" / "clickbench.parquet"
+            cmd = [sys.executable, str(_DATA_DIR / "generate_clickbench.py"),
+                   "-o", str(db_dir), "--format", "duckdb", "--scales", str(sf)]
+            if parquet.exists():
+                cmd.extend(["--parquet-path", str(parquet)])
+            subprocess.run(cmd, check=True)
+    except Exception as e:
+        print(f"[WARN] Generation failed for {benchmark} SF={sf}: {e}")
+        return False
+    return db_path.exists()
+
+
+def ensure_maximus_csv(benchmark: str, sf) -> bool:
+    """Generate Maximus CSV data if missing. Returns True if data exists."""
+    import subprocess, sys
+    base = _base_benchmark_name(benchmark)
+    csv_path = maximus_data_dir(benchmark, sf)
+    if csv_path.exists():
+        return True
+    print(f"[GEN] Generating Maximus CSV: {benchmark} SF={sf}")
+    try:
+        if base == "tpch":
+            # First ensure DuckDB exists, then export CSV
+            db_dir = MAXIMUS_DIR / "tests" / "tpch_duckdb"
+            db_dir.mkdir(parents=True, exist_ok=True)
+            db_file = db_dir / f"tpch_sf{sf}.duckdb"
+            if not db_file.exists():
+                cmd = [sys.executable, str(_DATA_DIR / "generate_tpch.py"),
+                       "-o", str(db_dir), "--scale-factors", str(sf),
+                       "--no-run-query", "--skip-install"]
+                subprocess.run(cmd, check=True)
+            # Export CSV from DuckDB
+            import duckdb
+            csv_dir = MAXIMUS_DIR / "tests" / "tpch" / f"csv-{sf}"
+            csv_dir.mkdir(parents=True, exist_ok=True)
+            con = duckdb.connect(str(db_file), read_only=True)
+            tables = [r[0] for r in con.execute(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema='main'"
+            ).fetchall()]
+            for t in tables:
+                con.execute(f"COPY {t} TO '{csv_dir / (t + '.csv')}' (HEADER, DELIMITER ',')")
+            con.close()
+        elif base == "h2o":
+            h2o_dir = MAXIMUS_DIR / "tests" / "h2o"
+            h2o_dir.mkdir(parents=True, exist_ok=True)
+            cmd = [sys.executable, str(_DATA_DIR / "generate_h2o.py"),
+                   "-o", str(h2o_dir), "--format", "csv", str(sf)]
+            subprocess.run(cmd, check=True)
+        elif base == "clickbench":
+            cb_dir = MAXIMUS_DIR / "tests" / "clickbench"
+            cb_dir.mkdir(parents=True, exist_ok=True)
+            parquet = cb_dir / "clickbench.parquet"
+            cmd = [sys.executable, str(_DATA_DIR / "generate_clickbench.py"),
+                   "-o", str(cb_dir), "--format", "csv", "--scales", str(sf)]
+            if parquet.exists():
+                cmd.extend(["--parquet-path", str(parquet)])
+            subprocess.run(cmd, check=True)
+    except Exception as e:
+        print(f"[WARN] Generation failed for {benchmark} SF={sf}: {e}")
+        return False
+    return csv_path.exists()
 
 
 # ══════════════════════════════════════════════════════════════════════════════

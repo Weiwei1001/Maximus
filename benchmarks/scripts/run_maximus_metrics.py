@@ -36,7 +36,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from hw_detect import detect_gpu, get_benchmark_config, maximus_data_dir, MAXIMUS_DIR
+from hw_detect import detect_gpu, get_benchmark_config, maximus_data_dir, ensure_maximus_csv, MAXIMUS_DIR
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -57,9 +57,9 @@ LD_EXTRA = [
 gpu_info = detect_gpu()
 BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"])
 
-TARGET_TIME_S = 10   # target sustained execution time per query
+TARGET_TIME_S = 5    # target sustained execution time per query
 MIN_REPS = 3         # minimum repetitions even for slow queries
-MAX_REPS = 1000      # cap reps; memory leak detection guards against GPU OOM
+MAX_REPS = 100       # cap reps to limit memory leak impact
 CALIBRATION_REPS = 3
 TIMEOUT = 300
 
@@ -444,8 +444,9 @@ def main():
         for sf in sfs:
             data_path = maximus_data_dir(bench_name, sf)
             if not data_path.exists():
-                print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
-                continue
+                if not ensure_maximus_csv(bench_name, sf):
+                    print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
+                    continue
             td = None
             if args.timing_csv and os.path.exists(args.timing_csv):
                 td = load_timing_from_csv(args.timing_csv, bench_name, sf)

@@ -34,7 +34,7 @@ from pathlib import Path
 
 from hw_detect import (
     detect_gpu, get_benchmark_config, sirius_db_path, sirius_query_dir,
-    buffer_init_sql, MAXIMUS_DIR,
+    buffer_init_sql, ensure_sirius_db, MAXIMUS_DIR,
 )
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -213,8 +213,9 @@ def main():
         for sf in cfg["scale_factors"]:
             db_path = sirius_db_path(bench_name, sf)
             if not db_path.exists():
-                print(f"[SKIP] {bench_name} SF={sf}: {db_path} not found")
-                continue
+                if not ensure_sirius_db(bench_name, sf):
+                    print(f"[SKIP] {bench_name} SF={sf}: {db_path} not found")
+                    continue
 
             print(f"\n{'=' * 70}")
             print(f"  {bench_name.upper()} SF={sf} ({len(queries)} queries, {n_reps} reps)")

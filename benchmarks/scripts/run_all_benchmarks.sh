@@ -285,14 +285,14 @@ fi
 
 # A3: Maximus metrics (standard + microbench) — reuse A1 timing to skip calibration
 run_step "A3_maximus_metrics" \
-    python3 run_maximus_metrics.py $TEST_FLAG --target-time 10 --results-dir "$RESULTS_DIR" \
+    python3 run_maximus_metrics.py $TEST_FLAG --target-time 5 --results-dir "$RESULTS_DIR" \
     --timing-csv "$RESULTS_DIR/maximus_benchmark.csv" \
     $ALL_BENCH
 
 # A4: Sirius metrics (standard SQL only)
 if has_sirius; then
     run_step "A4_sirius_metrics" \
-        python3 run_sirius_metrics.py $TEST_FLAG --target-time 20 --results-dir "$RESULTS_DIR" \
+        python3 run_sirius_metrics.py $TEST_FLAG --target-time 5 --results-dir "$RESULTS_DIR" \
         $ALL_BENCH
 else
     echo "  [SKIP] A4: Sirius metrics: binary not found"
@@ -312,7 +312,7 @@ run_step "B1_maximus_cpu_timing" \
 
 # B2: Maximus CPU-data metrics (standard + microbench) — reuse B1 timing to skip calibration
 run_step "B2_maximus_cpu_metrics" \
-    python3 run_maximus_cpu_data.py $TEST_FLAG --target-time 10 --results-dir "$RESULTS_DIR" \
+    python3 run_maximus_cpu_data.py $TEST_FLAG --target-time 5 --results-dir "$RESULTS_DIR" \
     --timing-csv "$RESULTS_DIR/maximus_cpu_data_timing.csv" \
     $ALL_BENCH
 

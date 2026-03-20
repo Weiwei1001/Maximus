@@ -23,7 +23,7 @@ import sys
 import time
 from pathlib import Path
 
-from hw_detect import detect_gpu, get_benchmark_config, maximus_data_dir, MAXIMUS_DIR
+from hw_detect import detect_gpu, get_benchmark_config, maximus_data_dir, ensure_maximus_csv, MAXIMUS_DIR
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -138,8 +138,9 @@ def main():
         for sf in cfg["scale_factors"]:
             data_path = maximus_data_dir(bench_name, sf)
             if not data_path.exists():
-                print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
-                continue
+                if not ensure_maximus_csv(bench_name, sf):
+                    print(f"[SKIP] {bench_name} SF={sf}: {data_path} not found")
+                    continue
 
             queries = cfg["queries"]
             print(f"\n{'='*60}")
@@ -186,6 +187,7 @@ def main():
                     "min_ms": min(times) if times else "",
                     "avg_ms": round(sum(times)/len(times), 2) if times else "",
                     "max_ms": max(times) if times else "",
+                    "all_times_ms": ";".join(f"{t:.2f}" for t in times) if times else "",
                     "status": status,
                 })
             print(f"  --- {ok}/{len(queries)} OK")
@@ -195,7 +197,8 @@ def main():
     csv_path = results_dir / "maximus_benchmark.csv"
     with open(csv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["benchmark", "sf", "query", "n_reps",
-                                           "min_ms", "avg_ms", "max_ms", "status"])
+                                           "min_ms", "avg_ms", "max_ms",
+                                           "all_times_ms", "status"])
         w.writeheader()
         w.writerows(all_rows)
 

@@ -5,7 +5,7 @@ Sirius (DuckDB GPU extension) steady-state metrics measurement.
 Measures GPU and CPU power consumption for each query under sustained load.
 Methodology:
   1. Reads per-query timing from a prior timing CSV (run_sirius_benchmark.py output)
-  2. Calculates n_reps so total execution >= TARGET_TIME_S (default 20s)
+  2. Calculates n_reps so total execution >= TARGET_TIME_S (default 5s)
   3. Each query runs in its own DuckDB process with gpu_buffer_init
   4. nvidia-smi + RAPL sampled at 50ms intervals during sustained execution
   5. Steady-state detected via GPU utilization threshold
@@ -34,7 +34,7 @@ from pathlib import Path
 
 from hw_detect import (
     detect_gpu, get_benchmark_config, sirius_db_path, sirius_query_dir,
-    buffer_init_sql, MAXIMUS_DIR,
+    buffer_init_sql, ensure_sirius_db, MAXIMUS_DIR,
 )
 
 # ── Defaults ─────────────────────────────────────────────────────────────────
@@ -61,9 +61,9 @@ _gpu_info = detect_gpu()
 GPU_ID = str(_gpu_info["index"])
 BUFFER_INIT = buffer_init_sql(_gpu_info["vram_mb"])
 QUERY_TIMEOUT_S = 120
-TARGET_TIME_S = 20
+TARGET_TIME_S = 5
 MIN_REPS = 3
-MAX_REPS = 1000      # cap reps; memory leak detection guards against GPU OOM
+MAX_REPS = 100       # cap reps to limit memory leak impact
 
 # Sirius-supported benchmarks (standard + microbench)
 _SIRIUS_BENCHMARKS = {
@@ -272,8 +272,9 @@ def main():
         for sf in cfg["scale_factors"]:
             db_path = sirius_db_path(bench_name, sf)
             if not db_path.exists():
-                print(f"[SKIP] {bench_name} SF={sf}: {db_path} not found")
-                continue
+                if not ensure_sirius_db(bench_name, sf):
+                    print(f"[SKIP] {bench_name} SF={sf}: {db_path} not found")
+                    continue
 
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             tag = f"{bench_name}_sf{sf}"
