@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GPU-accelerated SQL benchmark suite comparing **Maximus** (standalone GPU query engine built on Arrow Acero + cuDF) and **Sirius** (DuckDB GPU extension). Benchmarks: TPC-H (22 queries), H2O groupby (9 queries, q8 unimplemented), ClickBench (39 of 43 queries; q18/q27/q28/q42 unsupported on cuDF).
+GPU-accelerated SQL benchmark suite comparing **Maximus** (standalone GPU query engine built on Arrow Acero + cuDF) and **Sirius** (DuckDB GPU extension). Benchmarks: TPC-H (22 queries), H2O groupby (9 queries, q8 unimplemented), ClickBench (39 of 43 queries; q18/q27/q28/q42 unsupported on cuDF), plus 120 microbench queries for fine-grained workload characterization.
 
 ## Build Commands
 
@@ -31,6 +31,8 @@ cd build && ctest
 ./build/tests/maximus_test --gtest_filter="TpchGpu.*"
 ```
 
+**Important**: Always `source setup_env.sh` before running anything — it sets `LD_LIBRARY_PATH` for Arrow, cuDF, RMM, and other shared libraries.
+
 ## Running Benchmarks
 
 ```bash
@@ -49,6 +51,22 @@ python benchmarks/scripts/run_sirius_metrics.py tpch --scale-factors 1 2
 # Direct maxbench usage
 ./build/benchmarks/maxbench --benchmark tpch -q q1,q2,q3 -d gpu -r 50 \
     --path tests/tpch/csv-1 -s gpu --engines maximus
+
+# Microbench (120 fine-grained queries)
+bash scripts/benchmarks/run_all_microbench.sh --n-reps 5
+./build/benchmarks/maxbench --benchmark=microbench_tpch --queries=w1_001 \
+    --device=gpu --storage_device=gpu --engines=maximus --n_reps=5 --path=tests/tpch/csv-1
+```
+
+### GPU Frequency / Energy Sweep Scripts
+
+```bash
+# Energy sweep: 3 power limits × 3 SM clocks = 9 GPU configs
+python benchmarks/scripts/run_energy_sweep.py
+
+# Frequency sweep: 4 CPU/GPU frequency configs (baseline, cpu_low, gpu_low, both_low)
+python benchmarks/scripts/run_freq_sweep.py
+python benchmarks/scripts/run_freq_sweep_cpu_storage.py  # same but --storage_device=cpu
 ```
 
 ## Architecture
@@ -72,21 +90,29 @@ SQL string → hsql parser (third_party/sql-parser)
 - `src/maximus/gpu/gtable/` — GPU table/column abstractions (GTable, GColumn)
 - `src/maximus/frontend/query_plan_api.cpp` — programmatic query construction API
 - `src/maximus/tpch/`, `h2o/`, `clickbench/` — benchmark query definitions (hardcoded query plans)
+- `src/maximus/microbench/` — 120 microbench query plans (C++, workload-typed)
+- `microbench/` — SQL files for DuckDB baseline (h2o/35, tpch/55, clickbench/25+5 cross-benchmark)
 
 ### Operator Abstraction
-Abstract base classes (`abstract_*.hpp`) define the interface. Implementations live in `acero/` (CPU), `gpu/cudf/` (GPU), or `native/` (custom CPU). Operator selection is by `DeviceType::CPU|GPU`.
+Abstract base classes (`abstract_*.hpp` in `src/maximus/operators/`) define the interface. Implementations live in `acero/` (CPU), `gpu/cudf/` (GPU), or `native/` (custom CPU). Operator selection is by `DeviceType::CPU|GPU`.
 
 ### Dual-Engine Design
 - **Maximus**: C++ engine, queries defined as programmatic query plans in `*_queries.cpp`, run via `maxbench` binary
-- **Sirius**: DuckDB GPU extension (`sirius/` git submodule), queries generated as SQL by `generate_sirius_sql.py`, run via DuckDB CLI
+- **Sirius**: DuckDB GPU extension (`sirius/` git submodule), queries generated as SQL by `generate_sirius_sql.py`, run via DuckDB CLI at `sirius/build/release/duckdb`
 
 ## Benchmark Scale Factors
 
 | Benchmark | Scale Factors | Data Path |
 |-----------|--------------|-----------|
-| TPC-H | 1, 5, 10, 20 | `tests/tpch/csv-{sf}` |
+| TPC-H | 1, 2, 10, 20 | `tests/tpch/csv-{sf}` |
 | H2O | 1gb, 2gb, 3gb, 4gb | `tests/h2o/csv-{sf}` |
-| ClickBench | 1, 5, 10, 20 | `tests/clickbench/csv-{sf}` |
+| ClickBench | 10, 20, 50, 100 | `tests/clickbench/csv-{sf}` |
+
+## GPU Memory and Storage Device
+
+Use `--storage_device=gpu` (default) to pre-load data into VRAM for fastest timings. Use `--storage_device=cpu` when datasets exceed GPU memory. Even with CPU storage, cuDF still allocates GPU memory for computation — **never run multiple benchmark processes in parallel** as RMM pools will contend for GPU memory and cause OOM.
+
+Known OOM limits (16GB RTX 5080): TPC-H sf20 q17/q18/q19/q21, H2O sf4 q3/q7/q10.
 
 ## Measurement Methodology
 
@@ -112,44 +138,15 @@ Abstract base classes (`abstract_*.hpp`) define the interface. Implementations l
 - Taskflow v3.11.0
 - CUDA 12.0+, C++20, CMake 3.17+, Ninja
 
+**Critical**: cuDF 24.12 was built with CCCL 2.5.0. Using a newer CCCL (e.g., 2.8.2 from `nvidia-cuda-cccl` pip) causes ABI mismatch → segfault in `PinnedMemoryPool::do_allocate`. Always use the CCCL bundled with cuDF.
+
 ## Hardware Environment
 
 - GPU: NVIDIA RTX 5080 (index 1, 16GB) + T400 (index 0, 2GB)
 - CPU: Intel Xeon w5-2455X (12C/24T)
 - Maximus install: `/home/xzw/Maximus/`
 - Sirius install: `/home/xzw/sirius/`
-- Sirius DuckDB binary: `sirius/build/release/duckdb`
 
 ## Code Style
 
 Google C++ style (`.clang-format`), 4-space indent, ~100 char line width, C++20.
-
-## Energy Sweep Experiment (completed 2026-03-05)
-
-**Goal**: Explore GPU (power-limit, SM-clock) configurations to find energy-optimal settings for each engine/benchmark combination.
-
-**Script**: `benchmarks/scripts/run_energy_sweep.py`
-
-**Config grid**: 3 power limits × 3 SM clocks = 9 configs, all DONE.
-
-**Results locations**:
-- Run 1 (with clickbench): `results/energy_sweep/pl250w_clk{0600,1200,1800}mhz/`
-- Run 3 (tpch+h2o only): `benchmarks/scripts/results/energy_sweep/pl*/`
-- Summary CSV: `benchmarks/scripts/results/energy_sweep/energy_sweep_summary.csv` (1164 rows)
-- Log: `results/energy_sweep/sweep.log`
-
-**Best configurations** (lowest total energy per benchmark):
-
-| Engine | Benchmark | SF | PL(W) | CLK(MHz) | Avg E(J) |
-|--------|-----------|-----|-------|----------|----------|
-| maximus | clickbench | 5 | 250 | 600 | 3.13 |
-| maximus | h2o | 1gb | 450 | 1800 | 2.26 |
-| maximus | h2o | 2gb | 300 | 1800 | 5.17 |
-| maximus | tpch | 1 | 300 | 1800 | 0.92 |
-| maximus | tpch | 2 | 300 | 1800 | 1.75 |
-| sirius | h2o | 1gb | 250 | 1800 | 0.24 |
-| sirius | h2o | 2gb | 250 | 1800 | 0.47 |
-| sirius | tpch | 1 | 450 | 1800 | 0.12 |
-| sirius | tpch | 2 | 250 | 1800 | 0.18 |
-
-**Run history**: Total 3 runs. Run 3 completed 2026-03-05 09:47 (9h13m, 9/9 configs, 0 failures).

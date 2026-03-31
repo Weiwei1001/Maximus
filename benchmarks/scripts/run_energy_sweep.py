@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-GPU energy sweep: explore (power-limit, SM-clock) configurations.
+GPU energy sweep: explore (power-limit, SM-clock, memory-clock) configurations.
 
-Iterates over a grid of GPU power limits and SM clock frequencies, running
-the existing Maximus and Sirius metrics scripts at each configuration point.
+Iterates over a grid of GPU power limits, SM clock frequencies, and optionally
+memory clock frequencies, running the existing Maximus and Sirius metrics
+scripts at each configuration point.
 Results are aggregated into a single energy_sweep_summary.csv for analysis.
 
 Safety: GPU defaults are always restored on exit (including Ctrl+C / exceptions).
@@ -11,8 +12,8 @@ Safety: GPU defaults are always restored on exit (including Ctrl+C / exceptions)
 Usage:
     python run_energy_sweep.py
     python run_energy_sweep.py --power-limits 250,300,360 --sm-clocks 1200,2400
+    python run_energy_sweep.py --mem-clocks 405,7001,15001 --sm-clocks 1800,3090
     python run_energy_sweep.py --engines maximus --benchmarks tpch h2o --resume
-    python run_energy_sweep.py --results-dir results/sweep_v2 --resume
 """
 from __future__ import annotations
 
@@ -27,20 +28,14 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from hw_detect import (
-    detect_gpu, gpu_power_levels, gpu_sm_clock_levels,
-    set_gpu_power_limit, set_gpu_sm_clock, reset_gpu_clocks,
-    restore_gpu_defaults,
-)
-
 # ── Constants ─────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-# Detected at startup in main(); set as module-level for helper functions.
-GPU_ID: str = "0"
-_GPU_INFO: dict = {}
-DEFAULT_POWER_LIMITS: list[int] = []
-DEFAULT_SM_CLOCKS: list[int] = []
+DEFAULT_POWER_LIMITS = [250, 275, 300, 325, 360, 450]
+DEFAULT_SM_CLOCKS = [600, 1200, 1800, 2400, 3090]
+DEFAULT_MEM_CLOCKS: list[int] = []  # empty = don't lock memory clocks
+DEFAULT_POWER_LIMIT = 360  # RTX 5080 default
+GPU_ID = "1"
 
 MAXIMUS_BENCHMARKS = {
     "tpch": [1, 2],
@@ -55,8 +50,8 @@ SIRIUS_BENCHMARKS = {
 
 # Unified summary CSV columns
 SUMMARY_COLUMNS = [
-    "power_limit_w", "sm_clock_mhz", "engine", "benchmark", "sf",
-    "query", "min_ms", "avg_power_w", "max_power_w", "energy_j",
+    "power_limit_w", "sm_clock_mhz", "mem_clock_mhz", "engine", "benchmark",
+    "sf", "query", "min_ms", "avg_power_w", "max_power_w", "energy_j",
     "cpu_energy_j", "avg_gpu_util", "status",
 ]
 
@@ -68,31 +63,67 @@ MAX_COOLDOWN_TEMP_C = 85
 #  GPU Configuration Management
 # ══════════════════════════════════════════════════════════════════════════════
 
-def set_gpu_config(power_limit_w: int, sm_clock_mhz: int) -> bool:
-    """Set GPU power limit and lock SM clocks. Returns True on success."""
-    print(f"  [GPU] Setting power limit to {power_limit_w}W, SM clock to {sm_clock_mhz}MHz")
+def set_gpu_config(power_limit_w: int, sm_clock_mhz: int,
+                   mem_clock_mhz: int | None = None) -> bool:
+    """Set GPU power limit, lock SM clocks, and optionally lock memory clocks."""
+    mem_str = f", MemCLK={mem_clock_mhz}MHz" if mem_clock_mhz else ""
+    print(f"  [GPU] Setting PL={power_limit_w}W, SM={sm_clock_mhz}MHz{mem_str}")
 
-    gpu_id_int = int(GPU_ID)
-    if not set_gpu_power_limit(gpu_id_int, power_limit_w):
+    # Set power limit
+    rc1 = subprocess.run(
+        ["sudo", "nvidia-smi", "-i", GPU_ID, "-pl", str(power_limit_w)],
+        capture_output=True, text=True,
+    )
+    if rc1.returncode != 0:
+        print(f"  [GPU] WARNING: Failed to set power limit: {rc1.stderr.strip()}")
         return False
 
-    if not set_gpu_sm_clock(gpu_id_int, sm_clock_mhz):
+    # Lock SM clocks
+    rc2 = subprocess.run(
+        ["sudo", "nvidia-smi", "-i", GPU_ID,
+         f"--lock-gpu-clocks={sm_clock_mhz},{sm_clock_mhz}"],
+        capture_output=True, text=True,
+    )
+    if rc2.returncode != 0:
+        print(f"  [GPU] WARNING: Failed to lock SM clocks: {rc2.stderr.strip()}")
         return False
+
+    # Lock memory clocks (optional)
+    if mem_clock_mhz is not None:
+        rc3 = subprocess.run(
+            ["sudo", "nvidia-smi", "-i", GPU_ID,
+             f"--lock-memory-clocks={mem_clock_mhz},{mem_clock_mhz}"],
+            capture_output=True, text=True,
+        )
+        if rc3.returncode != 0:
+            print(f"  [GPU] WARNING: Failed to lock memory clocks: {rc3.stderr.strip()}")
+            return False
 
     # Verify
     if not verify_gpu_config(power_limit_w, sm_clock_mhz):
         print("  [GPU] WARNING: Verification failed after setting config")
         return False
 
-    print(f"  [GPU] Config applied and verified: PL={power_limit_w}W, CLK={sm_clock_mhz}MHz")
+    print(f"  [GPU] Config applied and verified: PL={power_limit_w}W, SM={sm_clock_mhz}MHz{mem_str}")
     return True
 
 
-def _restore_gpu_defaults() -> None:
-    """Restore GPU to default power limit and unlock clocks."""
-    default_pl = _GPU_INFO.get("power_default_w") if _GPU_INFO else None
-    print(f"\n  [GPU] Restoring defaults: PL={default_pl}W, clocks=unlocked")
-    restore_gpu_defaults(int(GPU_ID), default_pl)
+def restore_gpu_defaults() -> None:
+    """Restore GPU to default power limit and unlock all clocks."""
+    print(f"\n  [GPU] Restoring defaults: PL={DEFAULT_POWER_LIMIT}W, clocks=unlocked")
+
+    subprocess.run(
+        ["sudo", "nvidia-smi", "-i", GPU_ID, "-pl", str(DEFAULT_POWER_LIMIT)],
+        capture_output=True, text=True,
+    )
+    subprocess.run(
+        ["sudo", "nvidia-smi", "-i", GPU_ID, "--reset-gpu-clocks"],
+        capture_output=True, text=True,
+    )
+    subprocess.run(
+        ["sudo", "nvidia-smi", "-i", GPU_ID, "--reset-memory-clocks"],
+        capture_output=True, text=True,
+    )
     print("  [GPU] Defaults restored")
 
 
@@ -172,94 +203,54 @@ def enable_persistence_mode() -> None:
 #  Config Tag and Directory Helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
-def config_tag(power_limit_w: int, sm_clock_mhz: int) -> str:
-    """Generate config tag: pl250w_clk0600mhz"""
-    return f"pl{power_limit_w}w_clk{sm_clock_mhz:04d}mhz"
+def config_tag(power_limit_w: int, sm_clock_mhz: int,
+               mem_clock_mhz: int | None = None) -> str:
+    """Generate config tag: pl250w_clk0600mhz or pl250w_clk0600mhz_mem15001mhz"""
+    tag = f"pl{power_limit_w}w_clk{sm_clock_mhz:04d}mhz"
+    if mem_clock_mhz is not None:
+        tag += f"_mem{mem_clock_mhz:05d}mhz"
+    return tag
 
 
-def config_dir(results_dir: Path, power_limit_w: int, sm_clock_mhz: int) -> Path:
+def config_dir(results_dir: Path, power_limit_w: int, sm_clock_mhz: int,
+               mem_clock_mhz: int | None = None) -> Path:
     """Get per-config subdirectory under results_dir."""
-    return results_dir / config_tag(power_limit_w, sm_clock_mhz)
+    return results_dir / config_tag(power_limit_w, sm_clock_mhz, mem_clock_mhz)
 
 
-def config_has_results(cfg_dir: Path, engines: list[str]) -> bool:
-    """Check if a config directory already has results for all experiment steps.
-
-    Checks for A1 (maximus_benchmark.csv) and A3/A4 (metrics summaries).
-    """
+def config_has_results(cfg_dir: Path, engine: str, benchmarks: list[str]) -> bool:
+    """Check if a config directory already has summary CSVs for all requested benchmarks."""
     if not cfg_dir.exists():
         return False
-    if "maximus" in engines:
-        if not (cfg_dir / "maximus_benchmark.csv").exists():
-            return False
-        if not list(cfg_dir.glob("maximus_*_metrics_summary_*.csv")):
-            return False
-    if "sirius" in engines:
-        if not list(cfg_dir.glob("sirius_*_metrics_summary_*.csv")):
-            return False
-    return True
+    pattern = f"{engine}_*_metrics_summary_*.csv"
+    existing = list(cfg_dir.glob(pattern))
+    return len(existing) > 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  Subprocess Runners for Existing Metrics Scripts
 # ══════════════════════════════════════════════════════════════════════════════
 
-def run_maximus_timing(benchmarks: list[str], cfg_dir: Path,
-                       n_reps: int = 3, test_mode: bool = False) -> int:
-    """A1: Maximus GPU timing (run_maximus_benchmark.py). Returns exit code."""
-    cmd = [
-        sys.executable,
-        str(SCRIPT_DIR / "run_maximus_benchmark.py"),
-        *benchmarks,
-        "--n-reps", str(n_reps),
-        "--results-dir", str(cfg_dir),
-    ]
-    if test_mode:
-        cmd.append("--test")
-    print(f"  [A1 MAXIMUS TIMING] {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)
-    return result.returncode
-
-
-def run_sirius_timing(benchmarks: list[str], cfg_dir: Path,
-                      test_mode: bool = False) -> int:
-    """A2: Sirius GPU timing (run_sirius_benchmark.py). Returns exit code."""
-    cmd = [
-        sys.executable,
-        str(SCRIPT_DIR / "run_sirius_benchmark.py"),
-        *benchmarks,
-        "--results-dir", str(cfg_dir),
-    ]
-    if test_mode:
-        cmd.append("--test")
-    print(f"  [A2 SIRIUS TIMING] {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)
-    return result.returncode
-
-
 def run_maximus_metrics(benchmarks: list[str], cfg_dir: Path,
-                        target_time: float, timing_csv: str | None = None,
-                        test_mode: bool = False) -> int:
-    """A3: Maximus GPU metrics (run_maximus_metrics.py). Returns exit code."""
+                        target_time: float,
+                        storage: str = "gpu") -> int:
+    """Run run_maximus_metrics.py as a subprocess. Returns exit code."""
     cmd = [
         sys.executable,
         str(SCRIPT_DIR / "run_maximus_metrics.py"),
         *benchmarks,
         "--results-dir", str(cfg_dir),
         "--target-time", str(target_time),
+        "--storage", storage,
     ]
-    if timing_csv and os.path.exists(str(timing_csv)):
-        cmd.extend(["--timing-csv", str(timing_csv)])
-    if test_mode:
-        cmd.append("--test")
-    print(f"  [A3 MAXIMUS METRICS] {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)
+    print(f"  [MAXIMUS] Running: {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)  # 2 hour timeout
     return result.returncode
 
 
 def run_sirius_metrics(benchmarks: list[str], cfg_dir: Path,
-                       target_time: float, test_mode: bool = False) -> int:
-    """A4: Sirius GPU metrics (run_sirius_metrics.py). Returns exit code."""
+                       target_time: float) -> int:
+    """Run run_sirius_metrics.py as a subprocess. Returns exit code."""
     cmd = [
         sys.executable,
         str(SCRIPT_DIR / "run_sirius_metrics.py"),
@@ -267,64 +258,8 @@ def run_sirius_metrics(benchmarks: list[str], cfg_dir: Path,
         "--results-dir", str(cfg_dir),
         "--target-time", str(target_time),
     ]
-    if test_mode:
-        cmd.append("--test")
-    print(f"  [A4 SIRIUS METRICS] {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)
-    return result.returncode
-
-
-def run_maximus_cpu_timing(benchmarks: list[str], cfg_dir: Path,
-                           test_mode: bool = False) -> int:
-    """B1: Maximus CPU-data timing (run_maximus_cpu_data.py --timing-only). Returns exit code."""
-    cmd = [
-        sys.executable,
-        str(SCRIPT_DIR / "run_maximus_cpu_data.py"),
-        *benchmarks,
-        "--timing-only",
-        "--results-dir", str(cfg_dir),
-    ]
-    if test_mode:
-        cmd.append("--test")
-    print(f"  [B1 MAXIMUS CPU TIMING] {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)
-    return result.returncode
-
-
-def run_maximus_cpu_metrics(benchmarks: list[str], cfg_dir: Path,
-                            target_time: float, timing_csv: str | None = None,
-                            test_mode: bool = False) -> int:
-    """B2: Maximus CPU-data metrics (run_maximus_cpu_data.py). Returns exit code."""
-    cmd = [
-        sys.executable,
-        str(SCRIPT_DIR / "run_maximus_cpu_data.py"),
-        *benchmarks,
-        "--target-time", str(target_time),
-        "--results-dir", str(cfg_dir),
-    ]
-    if timing_csv and os.path.exists(str(timing_csv)):
-        cmd.extend(["--timing-csv", str(timing_csv)])
-    if test_mode:
-        cmd.append("--test")
-    print(f"  [B2 MAXIMUS CPU METRICS] {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)
-    return result.returncode
-
-
-def run_sirius_cpu_data(benchmarks: list[str], cfg_dir: Path,
-                        n_reps: int = 10, test_mode: bool = False) -> int:
-    """B3: Sirius CPU-data timing + metrics (run_sirius_cpu_data.py). Returns exit code."""
-    cmd = [
-        sys.executable,
-        str(SCRIPT_DIR / "run_sirius_cpu_data.py"),
-        *benchmarks,
-        "--n-reps", str(n_reps),
-        "--results-dir", str(cfg_dir),
-    ]
-    if test_mode:
-        cmd.append("--test")
-    print(f"  [B3 SIRIUS CPU DATA] {' '.join(cmd)}")
-    result = subprocess.run(cmd, timeout=7200)
+    print(f"  [SIRIUS] Running: {' '.join(cmd)}")
+    result = subprocess.run(cmd, timeout=7200)  # 2 hour timeout
     return result.returncode
 
 
@@ -333,7 +268,8 @@ def run_sirius_cpu_data(benchmarks: list[str], cfg_dir: Path,
 # ══════════════════════════════════════════════════════════════════════════════
 
 def parse_maximus_summary(csv_path: Path, power_limit_w: int,
-                          sm_clock_mhz: int) -> list[dict]:
+                          sm_clock_mhz: int,
+                          mem_clock_mhz: int | None = None) -> list[dict]:
     """Parse a Maximus metrics summary CSV into unified rows."""
     rows = []
     try:
@@ -343,6 +279,7 @@ def parse_maximus_summary(csv_path: Path, power_limit_w: int,
                 rows.append({
                     "power_limit_w": power_limit_w,
                     "sm_clock_mhz": sm_clock_mhz,
+                    "mem_clock_mhz": mem_clock_mhz or "",
                     "engine": "maximus",
                     "benchmark": r.get("benchmark", ""),
                     "sf": r.get("sf", ""),
@@ -361,7 +298,8 @@ def parse_maximus_summary(csv_path: Path, power_limit_w: int,
 
 
 def parse_sirius_summary(csv_path: Path, power_limit_w: int,
-                         sm_clock_mhz: int) -> list[dict]:
+                         sm_clock_mhz: int,
+                         mem_clock_mhz: int | None = None) -> list[dict]:
     """Parse a Sirius metrics summary CSV into unified rows.
 
     Sirius uses min_s (seconds) and gpu_energy_j; we convert to match
@@ -383,6 +321,7 @@ def parse_sirius_summary(csv_path: Path, power_limit_w: int,
                 rows.append({
                     "power_limit_w": power_limit_w,
                     "sm_clock_mhz": sm_clock_mhz,
+                    "mem_clock_mhz": mem_clock_mhz or "",
                     "engine": "sirius",
                     "benchmark": r.get("benchmark", ""),
                     "sf": r.get("sf", ""),
@@ -402,23 +341,28 @@ def parse_sirius_summary(csv_path: Path, power_limit_w: int,
 
 def aggregate_results(results_dir: Path,
                       power_limits: list[int],
-                      sm_clocks: list[int]) -> list[dict]:
+                      sm_clocks: list[int],
+                      mem_clocks: list[int] | None = None) -> list[dict]:
     """Read all per-config summary CSVs and combine into unified rows."""
     all_rows = []
 
+    # If no mem_clocks specified, use [None] to iterate once without mem lock
+    mem_clock_list: list[int | None] = mem_clocks if mem_clocks else [None]
+
     for pl in power_limits:
         for clk in sm_clocks:
-            cfg_d = config_dir(results_dir, pl, clk)
-            if not cfg_d.exists():
-                continue
+            for mclk in mem_clock_list:
+                cfg_d = config_dir(results_dir, pl, clk, mclk)
+                if not cfg_d.exists():
+                    continue
 
-            # Maximus summaries
-            for csv_path in sorted(cfg_d.glob("maximus_*_metrics_summary_*.csv")):
-                all_rows.extend(parse_maximus_summary(csv_path, pl, clk))
+                # Maximus summaries
+                for csv_path in sorted(cfg_d.glob("maximus_*_metrics_summary_*.csv")):
+                    all_rows.extend(parse_maximus_summary(csv_path, pl, clk, mclk))
 
-            # Sirius summaries
-            for csv_path in sorted(cfg_d.glob("sirius_*_metrics_summary_*.csv")):
-                all_rows.extend(parse_sirius_summary(csv_path, pl, clk))
+                # Sirius summaries
+                for csv_path in sorted(cfg_d.glob("sirius_*_metrics_summary_*.csv")):
+                    all_rows.extend(parse_sirius_summary(csv_path, pl, clk, mclk))
 
     return all_rows
 
@@ -455,9 +399,9 @@ def print_best_configs(rows: list[dict]) -> None:
     print(f"\n{'=' * 80}")
     print("  BEST CONFIGURATIONS (lowest total energy per benchmark)")
     print(f"{'=' * 80}")
-    print(f"  {'Engine':<10} {'Benchmark':<12} {'SF':<6} {'PL(W)':<8} {'CLK(MHz)':<10} "
-          f"{'Avg E(J)':<10} {'Queries'}")
-    print(f"  {'-' * 75}")
+    print(f"  {'Engine':<10} {'Benchmark':<12} {'SF':<6} {'PL(W)':<8} {'SM(MHz)':<10} "
+          f"{'Mem(MHz)':<10} {'Avg E(J)':<10} {'Queries'}")
+    print(f"  {'-' * 85}")
 
     for key in sorted(groups.keys()):
         engine, bench, sf = key
@@ -466,7 +410,9 @@ def print_best_configs(rows: list[dict]) -> None:
         # Group by config to get total energy per config
         config_energy: dict[tuple, list[float]] = {}
         for energy, r in entries:
-            ck = (int(r["power_limit_w"]), int(r["sm_clock_mhz"]))
+            mclk = r.get("mem_clock_mhz", "")
+            ck = (int(r["power_limit_w"]), int(r["sm_clock_mhz"]),
+                  int(mclk) if mclk else 0)
             config_energy.setdefault(ck, []).append(energy)
 
         # Find config with lowest average per-query energy
@@ -481,9 +427,10 @@ def print_best_configs(rows: list[dict]) -> None:
                 best_n = len(energies)
 
         if best_cfg:
-            pl, clk = best_cfg
+            pl, clk, mclk = best_cfg
+            mclk_str = str(mclk) if mclk else "-"
             print(f"  {engine:<10} {bench:<12} {sf:<6} {pl:<8} {clk:<10} "
-                  f"{best_avg:<10.2f} {best_n}")
+                  f"{mclk_str:<10} {best_avg:<10.2f} {best_n}")
 
     print()
 
@@ -493,23 +440,33 @@ def print_best_configs(rows: list[dict]) -> None:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_sweep(args: argparse.Namespace) -> None:
-    """Main sweep loop: iterate (PL, CLK), set GPU config, run full A+B pipeline."""
+    """Main sweep loop: iterate (PL, CLK, MEM_CLK), set GPU config, run metrics."""
     results_dir = Path(args.results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
 
     power_limits = args.power_limits
     sm_clocks = args.sm_clocks
+    mem_clocks: list[int] | None = args.mem_clocks
     engines = args.engines
     benchmarks = args.benchmarks
     resume = args.resume
 
-    total_configs = len(power_limits) * len(sm_clocks)
+    # Build the config grid
+    mem_clock_list: list[int | None] = mem_clocks if mem_clocks else [None]
+    config_grid = [
+        (pl, clk, mclk)
+        for pl in power_limits
+        for clk in sm_clocks
+        for mclk in mem_clock_list
+    ]
+    total_configs = len(config_grid)
     total_engine_configs = total_configs * len(engines)
 
     print("=" * 80)
     print("  GPU ENERGY SWEEP")
     print(f"  Power limits: {power_limits}")
     print(f"  SM clocks:    {sm_clocks}")
+    print(f"  Mem clocks:   {mem_clocks or 'unlocked'}")
     print(f"  Engines:      {engines}")
     print(f"  Benchmarks:   {benchmarks}")
     print(f"  Results dir:  {results_dir}")
@@ -526,15 +483,14 @@ def run_sweep(args: argparse.Namespace) -> None:
     failed = 0
     start_time = time.time()
 
-    for cfg_idx, (pl, clk) in enumerate(
-        [(p, c) for p in power_limits for c in sm_clocks], start=1
-    ):
-        tag = config_tag(pl, clk)
-        cfg_d = config_dir(results_dir, pl, clk)
+    for cfg_idx, (pl, clk, mclk) in enumerate(config_grid, start=1):
+        tag = config_tag(pl, clk, mclk)
+        cfg_d = config_dir(results_dir, pl, clk, mclk)
 
+        mem_str = f", MEM={mclk}MHz" if mclk else ""
         print(f"\n{'=' * 80}")
         print(f"  CONFIG {cfg_idx}/{total_configs}: {tag} "
-              f"(PL={pl}W, CLK={clk}MHz)")
+              f"(PL={pl}W, SM={clk}MHz{mem_str})")
 
         # ETA calculation
         elapsed = time.time() - start_time
@@ -547,17 +503,23 @@ def run_sweep(args: argparse.Namespace) -> None:
             print(f"  Progress: {done}/{total_configs} done, ETA: {eta_str}")
         print(f"{'=' * 80}")
 
-        # Resume: check if this config already has all results
-        if resume and config_has_results(cfg_d, engines):
-            print(f"  SKIP (resume): {tag} already has results")
-            skipped += 1
-            continue
+        # Resume: check if all engines have results for this config
+        if resume:
+            all_done = True
+            for engine in engines:
+                if not config_has_results(cfg_d, engine, benchmarks):
+                    all_done = False
+                    break
+            if all_done:
+                print(f"  SKIP (resume): {tag} already has results")
+                skipped += 1
+                continue
 
         # Cool-down check
         wait_for_cooldown()
 
         # Set GPU config
-        if not set_gpu_config(pl, clk):
+        if not set_gpu_config(pl, clk, mclk):
             print(f"  FAILED to set GPU config for {tag}, skipping")
             failed += 1
             continue
@@ -565,67 +527,39 @@ def run_sweep(args: argparse.Namespace) -> None:
         # Create config directory
         cfg_d.mkdir(parents=True, exist_ok=True)
 
-        # Build benchmark list including microbench variants
-        bench_with_micro = list(benchmarks)
-        for b in list(benchmarks):
-            bench_with_micro.append(f"microbench_{b}")
+        # Run metrics for each engine
+        for engine in engines:
+            if resume and config_has_results(cfg_d, engine, benchmarks):
+                print(f"  SKIP (resume): {engine} already has results for {tag}")
+                continue
 
-        has_maximus = "maximus" in engines
-        has_sirius = "sirius" in engines
-        test_mode = args.test
+            # Determine which benchmarks to run for this engine
+            if engine == "maximus":
+                engine_bench_map = MAXIMUS_BENCHMARKS
+            else:
+                engine_bench_map = SIRIUS_BENCHMARKS
 
-        def _run_step(step_name, func, *a, **kw):
-            print(f"\n  --- {step_name} for {tag} ---")
+            bench_to_run = [b for b in benchmarks if b in engine_bench_map]
+            if not bench_to_run:
+                print(f"  SKIP: No configured benchmarks for {engine}")
+                continue
+
+            print(f"\n  --- Running {engine} metrics for {tag} ---")
             try:
-                rc = func(*a, **kw)
+                if engine == "maximus":
+                    rc = run_maximus_metrics(
+                        bench_to_run, cfg_d, args.maximus_target_time,
+                        storage=args.storage)
+                else:
+                    rc = run_sirius_metrics(
+                        bench_to_run, cfg_d, args.sirius_target_time)
+
                 if rc != 0:
-                    print(f"  WARNING: {step_name} exited with code {rc}")
+                    print(f"  WARNING: {engine} metrics exited with code {rc}")
             except subprocess.TimeoutExpired:
-                print(f"  ERROR: {step_name} timed out for {tag}")
+                print(f"  ERROR: {engine} metrics timed out for {tag}")
             except Exception as e:
-                print(f"  ERROR: {step_name} failed for {tag}: {e}")
-
-        # ── Category A: Data on GPU ──────────────────────────────────────
-        # A1: Maximus GPU timing
-        if has_maximus:
-            _run_step("A1 Maximus timing", run_maximus_timing,
-                      bench_with_micro, cfg_d, n_reps=3, test_mode=test_mode)
-
-        # A2: Sirius GPU timing
-        if has_sirius:
-            _run_step("A2 Sirius timing", run_sirius_timing,
-                      bench_with_micro, cfg_d, test_mode=test_mode)
-
-        # A3: Maximus GPU metrics (reuse A1 timing CSV)
-        if has_maximus:
-            a1_csv = cfg_d / "maximus_benchmark.csv"
-            _run_step("A3 Maximus metrics", run_maximus_metrics,
-                      bench_with_micro, cfg_d, args.maximus_target_time,
-                      timing_csv=str(a1_csv), test_mode=test_mode)
-
-        # A4: Sirius GPU metrics
-        if has_sirius:
-            _run_step("A4 Sirius metrics", run_sirius_metrics,
-                      bench_with_micro, cfg_d, args.sirius_target_time,
-                      test_mode=test_mode)
-
-        # ── Category B: Data on CPU ──────────────────────────────────────
-        # B1: Maximus CPU-data timing
-        if has_maximus:
-            _run_step("B1 Maximus CPU timing", run_maximus_cpu_timing,
-                      bench_with_micro, cfg_d, test_mode=test_mode)
-
-        # B2: Maximus CPU-data metrics (reuse B1 timing CSV)
-        if has_maximus:
-            b1_csv = cfg_d / "maximus_cpu_data_timing.csv"
-            _run_step("B2 Maximus CPU metrics", run_maximus_cpu_metrics,
-                      bench_with_micro, cfg_d, args.maximus_target_time,
-                      timing_csv=str(b1_csv), test_mode=test_mode)
-
-        # B3: Sirius CPU-data timing + metrics
-        if has_sirius:
-            _run_step("B3 Sirius CPU data", run_sirius_cpu_data,
-                      bench_with_micro, cfg_d, n_reps=10, test_mode=test_mode)
+                print(f"  ERROR: {engine} metrics failed for {tag}: {e}")
 
         completed += 1
 
@@ -638,7 +572,7 @@ def run_sweep(args: argparse.Namespace) -> None:
     print("  AGGREGATING RESULTS")
     print(f"{'=' * 80}")
 
-    all_rows = aggregate_results(results_dir, power_limits, sm_clocks)
+    all_rows = aggregate_results(results_dir, power_limits, sm_clocks, mem_clocks)
     if all_rows:
         write_sweep_summary(results_dir, all_rows)
         print_best_configs(all_rows)
@@ -667,17 +601,6 @@ def parse_int_list(s: str) -> list[int]:
 
 
 def main():
-    global GPU_ID, _GPU_INFO, DEFAULT_POWER_LIMITS, DEFAULT_SM_CLOCKS
-
-    # Auto-detect GPU hardware
-    _GPU_INFO = detect_gpu()
-    GPU_ID = str(_GPU_INFO["index"])
-    DEFAULT_POWER_LIMITS = gpu_power_levels(_GPU_INFO, n=3)
-    DEFAULT_SM_CLOCKS = gpu_sm_clock_levels(_GPU_INFO, n=5)
-    print(f"  [HW] Detected GPU #{GPU_ID}: {_GPU_INFO['name']}")
-    print(f"  [HW] Power levels: {DEFAULT_POWER_LIMITS}")
-    print(f"  [HW] SM clock levels: {DEFAULT_SM_CLOCKS}")
-
     parser = argparse.ArgumentParser(
         description="GPU energy sweep: explore (power-limit, SM-clock) configurations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -702,6 +625,12 @@ Examples:
              f"(default: {','.join(map(str, DEFAULT_SM_CLOCKS))})",
     )
     parser.add_argument(
+        "--mem-clocks", type=parse_int_list,
+        default=None,
+        help="Comma-separated memory clock frequencies in MHz "
+             "(default: unlocked). RTX 5080 supports: 405,810,7001,14801,15001",
+    )
+    parser.add_argument(
         "--engines", nargs="+", default=["maximus", "sirius"],
         choices=["maximus", "sirius"],
         help="Engines to benchmark (default: maximus sirius)",
@@ -722,46 +651,18 @@ Examples:
         help="Skip configs that already have summary CSVs",
     )
     parser.add_argument(
-        "--maximus-target-time", type=float, default=5,
-        help="Target sustained time for Maximus in seconds (default: 5)",
+        "--maximus-target-time", type=float, default=10,
+        help="Target sustained time for Maximus in seconds (default: 10)",
     )
     parser.add_argument(
-        "--sirius-target-time", type=float, default=5,
-        help="Target sustained time for Sirius in seconds (default: 5)",
+        "--sirius-target-time", type=float, default=20,
+        help="Target sustained time for Sirius in seconds (default: 20)",
     )
     parser.add_argument(
-        "--test", action="store_true",
-        help="Quick test mode: use fewer configs and queries",
+        "--storage", choices=["gpu", "cpu"], default="gpu",
+        help="Storage device for Maximus tables (default: gpu)",
     )
     args = parser.parse_args()
-    if args.test:
-        # In test mode, use only 1 power limit and 1 SM clock
-        args.power_limits = [DEFAULT_POWER_LIMITS[-1]]  # default PL only
-        args.sm_clocks = [DEFAULT_SM_CLOCKS[-1]]        # max SM clock only
-
-    # Validate: filter out power limits outside GPU's supported range
-    pl_min = _GPU_INFO["power_min_w"]
-    pl_max = _GPU_INFO["power_max_w"]
-    valid_pls = [pl for pl in args.power_limits if pl_min <= pl <= pl_max]
-    if len(valid_pls) < len(args.power_limits):
-        dropped = set(args.power_limits) - set(valid_pls)
-        print(f"  [WARN] Dropped power limits outside GPU range [{pl_min}W, {pl_max}W]: {sorted(dropped)}")
-    args.power_limits = valid_pls if valid_pls else [_GPU_INFO["power_default_w"]]
-
-    # Validate: snap SM clocks to nearest supported values
-    supported_clocks = _GPU_INFO["sm_clocks"]
-    if supported_clocks:
-        valid_clks = []
-        for clk in args.sm_clocks:
-            nearest = min(supported_clocks, key=lambda c: abs(c - clk))
-            if nearest not in valid_clks:
-                valid_clks.append(nearest)
-            else:
-                # Already have this value, skip duplicate
-                pass
-        if valid_clks != args.sm_clocks:
-            print(f"  [INFO] SM clocks snapped to supported values: {args.sm_clocks} -> {valid_clks}")
-        args.sm_clocks = valid_clks
 
     # Safety: always restore GPU defaults on exit
     try:
@@ -773,7 +674,7 @@ Examples:
         import traceback
         traceback.print_exc()
     finally:
-        _restore_gpu_defaults()
+        restore_gpu_defaults()
 
 
 if __name__ == "__main__":
