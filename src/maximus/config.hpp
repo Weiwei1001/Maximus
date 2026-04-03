@@ -17,6 +17,7 @@ const std::string MAXIMUS_OPERATORS_FUSION = "MAXIMUS_OPERATORS_FUSION";
 const std::string MAXIMUS_CSV_BATCH_SIZE = "MAXIMUS_CSV_BATCH_SIZE";
 // the max size of the pinned memory to be allocated in bytes
 const std::string MAXIMUS_MAX_PINNED_POOL_SIZE = "MAXIMUS_MAX_PINNED_POOL_SIZE";
+const std::string MAXIMUS_TRANSFER_COMPRESSION = "MAXIMUS_TRANSFER_COMPRESSION";
 }  // namespace env_vars_names
 
 namespace env_vars_defaults {
@@ -26,6 +27,17 @@ const bool MAXIMUS_OPERATORS_FUSION            = true;
 const int32_t MAXIMUS_CSV_BATCH_SIZE           = 1 << 30;
 const std::size_t MAXIMUS_MAX_PINNED_POOL_SIZE = std::size_t{4} * 1024 * 1024 * 1024;
 }  // namespace env_vars_defaults
+
+enum class TransferCompression {
+    NONE,    // No compression (default, current behavior)
+    LZ4,     // Fast compression, moderate ratio
+    SNAPPY,  // Balanced
+    ZSTD,    // High ratio, slower
+};
+
+// Parse from env var MAXIMUS_TRANSFER_COMPRESSION or string (none/lz4/snappy/zstd)
+TransferCompression parse_transfer_compression();
+TransferCompression parse_transfer_compression(const std::string& value);
 
 // checks if the specified environment variable is defined
 bool env_var_defined(const char* var_name);

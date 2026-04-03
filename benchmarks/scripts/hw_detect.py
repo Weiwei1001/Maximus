@@ -465,6 +465,12 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
     clickbench_queries = (_CLICKBENCH_QUERIES_LARGE if large_gpu
                           else _CLICKBENCH_QUERIES_SMALL)
 
+    # ClickBench SF mapping: sample% → equivalent TPC-H SF
+    # Based on data size ratio: clickbench_csv_size / tpch_sf1_csv_size (3.2GB)
+    # 10% ≈ 7.1GB → SF≈2, 30% ≈ 21GB → SF≈7, 60% ≈ 43GB → SF≈13, 100% ≈ 71GB → SF≈22
+    # Directory naming uses sample percentage for data generation.
+    _CLICKBENCH_SFS = [10, 30, 60, 100]
+
     benchmarks: dict[str, dict] = {
         "tpch": {
             "scale_factors": [1, 5, 10, 20],
@@ -472,12 +478,12 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
                         else list(_TPCH_QUERIES)),
         },
         "h2o": {
-            "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
+            "scale_factors": ["1gb", "2gb", "4gb", "10gb"],
             "queries": (_TEST_QUERIES["h2o"] if test_mode
                         else list(_H2O_QUERIES)),
         },
         "clickbench": {
-            "scale_factors": [1, 5, 10, 20],
+            "scale_factors": _CLICKBENCH_SFS,
             "queries": (_TEST_QUERIES["clickbench"] if test_mode
                         else list(clickbench_queries)),
         },
@@ -487,12 +493,12 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
                         else list(_MICROBENCH_TPCH_QUERIES)),
         },
         "microbench_h2o": {
-            "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
+            "scale_factors": ["1gb", "2gb", "4gb", "10gb"],
             "queries": (_TEST_QUERIES["microbench_h2o"] if test_mode
                         else list(_MICROBENCH_H2O_QUERIES)),
         },
         "microbench_clickbench": {
-            "scale_factors": [1, 5, 10, 20],
+            "scale_factors": _CLICKBENCH_SFS,
             "queries": (_TEST_QUERIES["microbench_clickbench"] if test_mode
                         else list(_MICROBENCH_CLICKBENCH_QUERIES)),
         },

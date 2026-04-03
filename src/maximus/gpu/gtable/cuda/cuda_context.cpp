@@ -1,6 +1,7 @@
 #include <cudf/null_mask.hpp>
 #include <cudf/strings/strings_column_view.hpp>
 #include <cudf/transform.hpp>
+#include <maximus/gpu/compression/transfer_compressor.hpp>
 #include <maximus/gpu/gtable/cuda/cuda_buffer.hpp>
 #include <maximus/gpu/gtable/cuda/cuda_context.hpp>
 
@@ -22,7 +23,15 @@ arrow::Status MaximusCudaContext::memcpy_host_to_device(
     int64_t nbytes,
     int64_t offset,
     std::shared_ptr<GBuffer> &device_buf) {
-    // Transfer data from host to device
+    if (transfer_compression != TransferCompression::NONE && nbytes > 0) {
+        auto result = gpu::TransferCompressor::compress_and_transfer(
+            host_buf->data() + offset, nbytes, transfer_compression,
+            rmm::cuda_stream_default, get_memory_resource_ptr());
+        auto cuda_buf = std::make_shared<rmm::device_buffer>(std::move(result));
+        device_buf = std::make_shared<CudaBuffer>(cuda_buf, nbytes);
+        return arrow::Status::OK();
+    }
+    // Transfer data from host to device (uncompressed)
     std::shared_ptr<rmm::device_buffer> cuda_buf =
         std::make_shared<rmm::device_buffer>((const void *) (host_buf->data() + offset),
                                              nbytes,
@@ -71,7 +80,15 @@ arrow::Status MaximusCudaContext::transform_mask_to_bools(
 arrow::Status MaximusCudaContext::memcpy_host_to_device(uint8_t *host_buf,
                                                         int64_t nbytes,
                                                         std::shared_ptr<GBuffer> &device_buf) {
-    // Transfer data from host to device
+    if (transfer_compression != TransferCompression::NONE && nbytes > 0) {
+        auto result = gpu::TransferCompressor::compress_and_transfer(
+            host_buf, nbytes, transfer_compression,
+            rmm::cuda_stream_default, get_memory_resource_ptr());
+        auto cuda_buf = std::make_shared<rmm::device_buffer>(std::move(result));
+        device_buf = std::make_shared<CudaBuffer>(cuda_buf, nbytes);
+        return arrow::Status::OK();
+    }
+    // Transfer data from host to device (uncompressed)
     std::shared_ptr<rmm::device_buffer> cuda_buf = std::make_shared<rmm::device_buffer>(
         (const void *) host_buf, nbytes, rmm::cuda_stream_default, get_memory_resource_ptr());
     device_buf = std::make_shared<CudaBuffer>(cuda_buf, nbytes);

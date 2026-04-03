@@ -17,6 +17,11 @@
 #else
 #include <rmm/mr/pool_memory_resource.hpp>
 #endif
+#if __has_include(<rmm/mr/device/managed_memory_resource.hpp>)
+#include <rmm/mr/device/managed_memory_resource.hpp>
+#else
+#include <rmm/mr/managed_memory_resource.hpp>
+#endif
 #endif
 
 // Forward declaration
@@ -67,6 +72,8 @@ public:
 
     std::size_t max_pinned_pool_size = -1;
 
+    TransferCompression transfer_compression = TransferCompression::NONE;
+
     bool tables_initially_pinned = false;
 
     bool tables_initially_as_single_chunk = false;
@@ -80,17 +87,18 @@ public:
     rmm::cuda_stream_view h2d_stream;
     rmm::cuda_stream_view d2h_stream;
 
-    rmm::mr::cuda_memory_resource cuda_mr;
-
-    // RMM GPU memory pool configuration:
-    // - Initial size: 50% of free device memory
-    // - Maximum size: 90% of free device memory (leaves headroom for CUDA runtime)
-    // - The pool grows on demand up to the maximum; "maximum pool size exceeded"
-    //   errors mean the dataset + query intermediates exceed available GPU memory.
-    rmm::mr::pool_memory_resource<rmm::mr::cuda_memory_resource> pool_mr{
-        &cuda_mr,
-        rmm::percent_of_free_device_memory(50),   // initial
-        rmm::percent_of_free_device_memory(90)};  // maximum
+    // Use managed memory (cudaMallocManaged) which:
+    // - Allows GPU memory to overflow into CPU memory via CUDA Unified Memory
+    // - On GH200 with NVLink-C2C + ATS, this uses hardware address translation
+    //   with minimal performance penalty for hot data
+    // - No fixed capacity limit — can use full system memory (GPU + CPU)
+    // - Eliminates OOM for queries with large intermediate results
+    // Wrap in pool for allocation performance.
+    rmm::mr::managed_memory_resource managed_mr;
+    rmm::mr::pool_memory_resource<rmm::mr::managed_memory_resource> pool_mr{
+        &managed_mr,
+        rmm::percent_of_free_device_memory(50),   // initial pool from GPU memory
+        std::size_t{400} * 1024 * 1024 * 1024};   // max 400GB (GPU+CPU combined)
 
     void wait_h2d_copy() const;
     void wait_d2h_copy() const;

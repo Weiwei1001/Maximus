@@ -48,6 +48,13 @@ MaximusContext::MaximusContext() {
     csv_batch_size = get_csv_batch_size();
     assert(csv_batch_size > 0);
     assert(csv_batch_size <= 1 << 30);  // 1GB (max block size, because of int32_t)
+
+    transfer_compression = parse_transfer_compression();
+#ifdef MAXIMUS_WITH_CUDA
+    if (gcontext) {
+        gcontext->transfer_compression = transfer_compression;
+    }
+#endif
 }
 
 MaximusContext::~MaximusContext() {

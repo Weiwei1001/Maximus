@@ -66,4 +66,17 @@ std::size_t get_max_pinned_pool_size() {
     return aligned_size;
 }
 
+TransferCompression parse_transfer_compression() {
+    const char* env = std::getenv(env_vars_names::MAXIMUS_TRANSFER_COMPRESSION.c_str());
+    if (!env) return TransferCompression::NONE;
+    return parse_transfer_compression(std::string(env));
+}
+
+TransferCompression parse_transfer_compression(const std::string& value) {
+    if (value == "lz4") return TransferCompression::LZ4;
+    if (value == "snappy") return TransferCompression::SNAPPY;
+    if (value == "zstd") return TransferCompression::ZSTD;
+    return TransferCompression::NONE;
+}
+
 }  // namespace maximus

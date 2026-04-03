@@ -102,17 +102,17 @@ Abstract base classes (`abstract_*.hpp` in `src/maximus/operators/`) define the 
 
 ## Benchmark Scale Factors
 
-| Benchmark | Scale Factors | Data Path |
-|-----------|--------------|-----------|
-| TPC-H | 1, 2, 10, 20 | `tests/tpch/csv-{sf}` |
-| H2O | 1gb, 2gb, 3gb, 4gb | `tests/h2o/csv-{sf}` |
-| ClickBench | 10, 20, 50, 100 | `tests/clickbench/csv-{sf}` |
+| Benchmark | Scale Factors | Data Path | Notes |
+|-----------|--------------|-----------|-------|
+| TPC-H | 1, 5, 10, 20 | `tests/tpch/csv-{sf}` | SF = data size in GB |
+| H2O | 1gb, 2gb, 4gb, 10gb | `tests/h2o/csv-{sf}` | |
+| ClickBench | 10, 30, 60, 100 | `tests/clickbench/csv-{pct}` | pct = sample %; equiv SF ≈ pct×0.22 |
 
 ## GPU Memory and Storage Device
 
 Use `--storage_device=gpu` (default) to pre-load data into VRAM for fastest timings. Use `--storage_device=cpu` when datasets exceed GPU memory. Even with CPU storage, cuDF still allocates GPU memory for computation — **never run multiple benchmark processes in parallel** as RMM pools will contend for GPU memory and cause OOM.
 
-Known OOM limits (16GB RTX 5080): TPC-H sf20 q17/q18/q19/q21, H2O sf4 q3/q7/q10.
+GPU memory management uses `managed_memory_resource` (cudaMallocManaged), allowing overflow to CPU memory via CUDA Unified Memory. On GH200 with NVLink-C2C this has near-zero performance penalty. All TPC-H queries (SF1-20), H2O (1-10gb), and ClickBench (10-100%) run without OOM on GH200 (96GB + 480GB unified).
 
 ## Measurement Methodology
 

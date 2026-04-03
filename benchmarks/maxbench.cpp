@@ -41,8 +41,11 @@ int main(int argc, char** argv) {
         // cxxopts::value<std::string>()->default_value("runtime-report,calc.inclusive,mem.highwatermark,sample-report,cuda-activity-report"))(
         // cxxopts::value<std::string>()->default_value("runtime-report,calc.inclusive"))(
         cxxopts::value<std::string>()->default_value(
-            "runtime-report(calc.inclusive=true,output=stdout),event-trace"))("h,help",
-                                                                              "Print help");
+            "runtime-report(calc.inclusive=true,output=stdout),event-trace"))(
+        "transfer_compression",
+        "Compression for CPU->GPU transfer: none, lz4, snappy, zstd",
+        cxxopts::value<std::string>()->default_value("none"))("h,help",
+                                                                "Print help");
 
     auto result = options.parse(argc, argv);
     if (result.count("help")) {
@@ -72,6 +75,8 @@ int main(int argc, char** argv) {
     auto csv_batch_size_string = result["csv_batch_size"].as<std::string>();
     // Whether to persist the data
     auto persist_results = result["persist_results"].as<std::string>();
+    // Transfer compression codec
+    auto transfer_compression_string = result["transfer_compression"].as<std::string>();
 
     // initialize the profiler if compiled with profiling enabled
     PROFILER_INIT(mgr, profile);
@@ -90,6 +95,16 @@ int main(int argc, char** argv) {
     }
     if (storage_device_string == "cpu-pinned") {
         context->tables_initially_pinned = true;
+    }
+
+    // Set transfer compression from CLI (overrides env var)
+    if (transfer_compression_string != "none") {
+        context->transfer_compression = maximus::parse_transfer_compression(transfer_compression_string);
+#ifdef MAXIMUS_WITH_CUDA
+        if (context->gcontext) {
+            context->gcontext->transfer_compression = context->transfer_compression;
+        }
+#endif
     }
 
     if (csv_batch_size_string == "max") {
@@ -147,6 +162,7 @@ int main(int argc, char** argv) {
               << (context->tables_initially_pinned ? "YES" : "NO") << "\n";
     std::cout << "---> Tables as single chunk:   "
               << (context->tables_initially_as_single_chunk ? "YES" : "NO") << "\n";
+    std::cout << "---> Transfer compression:     " << transfer_compression_string << "\n";
 
     std::vector<std::vector<double>> timings_maximus(queries.size(),
                                                     std::vector<double>(n_reps, 0.0));

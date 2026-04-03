@@ -2024,65 +2024,78 @@ std::shared_ptr<QueryPlan> q21(std::shared_ptr<Database>& db, DeviceType device)
 }
 
 std::shared_ptr<QueryPlan> q21_optimized(std::shared_ptr<Database>& db, DeviceType device) {
-    auto lineitem = table_source(db, "lineitem", schema("lineitem"), {}, device);
-    auto orders   = table_source(db, "orders", schema("orders"), {}, device);
-    auto supplier = table_source(db, "supplier", schema("supplier"), {}, device);
-    auto nation   = table_source(db, "nation", schema("nation"), {}, device);
+    auto lineitem = table_source(db, "lineitem", schema("lineitem"),
+                                 {"l_orderkey", "l_suppkey", "l_receiptdate", "l_commitdate"},
+                                 device);
+    auto orders   = table_source(db, "orders", schema("orders"),
+                                 {"o_orderkey", "o_orderstatus"}, device);
+    auto supplier = table_source(db, "supplier", schema("supplier"),
+                                 {"s_suppkey", "s_name", "s_nationkey"}, device);
+    auto nation   = table_source(db, "nation", schema("nation"),
+                                 {"n_nationkey", "n_name"}, device);
 
-    auto lineitem_with_failed =
-        filter(lineitem,
-               expr(arrow_expr(cp::field_ref("l_receiptdate"), ">", cp::field_ref("l_commitdate"))),
-               device);
+    // l1: lineitems with late delivery (l_receiptdate > l_commitdate)
+    auto l1 = filter(lineitem,
+                     expr(arrow_expr(cp::field_ref("l_receiptdate"), ">",
+                                     cp::field_ref("l_commitdate"))),
+                     device);
 
-    // Step 1: Group by l_orderkey and count distinct l_suppkey
-    auto grouped_lineitem =
+    // EXISTS: orders that have more than one distinct supplier
+    auto supp_per_order =
         group_by(lineitem,
                  {"l_orderkey"},
-                 {aggregate("hash_count_distinct", "l_suppkey", "n_supp_by_order")},
+                 {aggregate("hash_count_distinct", "l_suppkey", "n_supp_total")},
                  device);
-
-    // Step 2: Filter orders with more than one supplier
-    auto filtered_orders =
-        filter(grouped_lineitem,
-               expr(arrow_expr(cp::field_ref("n_supp_by_order"), ">", int32_literal(1))),
+    auto multi_supp_orders =
+        filter(supp_per_order,
+               expr(arrow_expr(cp::field_ref("n_supp_total"), ">", int32_literal(1))),
                device);
 
-    // Step 3: Join with lineitem on l_orderkey
-    auto joined_lineitem = left_semi_join(
-        lineitem_with_failed, filtered_orders, {"l_orderkey"}, {"l_orderkey"}, "", "", device);
+    // NOT EXISTS: orders where only ONE supplier had a late delivery
+    // (i.e., no other supplier was also late)
+    auto late_supp_per_order =
+        group_by(l1,
+                 {"l_orderkey"},
+                 {aggregate("hash_count_distinct", "l_suppkey", "n_supp_late")},
+                 device);
+    auto single_late_orders =
+        filter(late_supp_per_order,
+               expr(arrow_expr(cp::field_ref("n_supp_late"), "==", int32_literal(1))),
+               device);
 
-    // Step 4: Join with supplier and nation
-    auto supplier_joined =
-        inner_join(supplier, joined_lineitem, {"s_suppkey"}, {"l_suppkey"}, "", "", device);
+    // Apply both conditions: semi-join l1 with EXISTS and NOT EXISTS
+    auto with_exists = left_semi_join(
+        l1, multi_supp_orders, {"l_orderkey"}, {"l_orderkey"}, "", "", device);
+    auto with_not_exists = left_semi_join(
+        with_exists, single_late_orders, {"l_orderkey"}, {"l_orderkey"}, "", "", device);
 
-    auto nation_joined =
-        inner_join(supplier_joined, nation, {"s_nationkey"}, {"n_nationkey"}, "", "", device);
-
-    // Step 5: Join with orders on l_orderkey
-    auto orders_joined =
-        inner_join(nation_joined, orders, {"l_orderkey"}, {"o_orderkey"}, "", "", device);
-
-    // Step 6: Filter results
-    auto filtered_results = filter(
+    // Join with orders (o_orderstatus = 'F')
+    auto orders_joined = inner_join(
+        with_not_exists, orders, {"l_orderkey"}, {"o_orderkey"}, "", "", device);
+    auto orders_filtered = filter(
         orders_joined,
-        expr(arrow_all({arrow_expr(cp::field_ref("n_name"), "==", string_literal("SAUDI ARABIA")),
-                        arrow_expr(cp::field_ref("o_orderstatus"), "==", string_literal("F"))})),
+        expr(arrow_expr(cp::field_ref("o_orderstatus"), "==", string_literal("F"))),
         device);
 
-    // Step 7: Group by s_name and count the number of waits
-    auto grouped_final = group_by(filtered_results,
-                                  {"s_name"},
-                                  {aggregate("hash_count", count_all(), "l_orderkey", "numwait")},
-                                  device);
+    // Join with supplier and nation (n_name = 'SAUDI ARABIA')
+    auto supplier_joined = inner_join(
+        orders_filtered, supplier, {"l_suppkey"}, {"s_suppkey"}, "", "", device);
+    auto nation_joined = inner_join(
+        supplier_joined, nation, {"s_nationkey"}, {"n_nationkey"}, "", "", device);
+    auto nation_filtered = filter(
+        nation_joined,
+        expr(arrow_expr(cp::field_ref("n_name"), "==", string_literal("SAUDI ARABIA"))),
+        device);
 
-    // Step 8: Order by numwait and s_name
-    auto ordered_results =
-        order_by(grouped_final, {{"numwait", SortOrder::DESCENDING}, {"s_name"}}, device);
+    // Final aggregation
+    auto grouped = group_by(nation_filtered,
+                            {"s_name"},
+                            {aggregate("hash_count", count_all(), "l_orderkey", "numwait")},
+                            device);
+    auto ordered = order_by(grouped, {{"numwait", SortOrder::DESCENDING}, {"s_name"}}, device);
+    auto limited = limit(ordered, 100, 0, device);
 
-    // Step 9: Limit to top 100 results
-    auto limited_results = limit(ordered_results, 100, 0, device);
-
-    return query_plan(table_sink(limited_results));
+    return query_plan(table_sink(limited));
 }
 
 std::shared_ptr<QueryPlan> q22(std::shared_ptr<Database>& db, DeviceType device) {

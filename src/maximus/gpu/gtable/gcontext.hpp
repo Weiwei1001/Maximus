@@ -1,5 +1,6 @@
 #pragma once
 
+#include <maximus/config.hpp>
 #include <maximus/gpu/gtable/gbuffer.hpp>
 #include <maximus/types/types.hpp>
 
@@ -11,6 +12,9 @@ namespace gpu {
 class MaximusGContext {
 public:
     MaximusGContext() = default;
+
+    /// Compression codec for CPU->GPU transfers (set from MaximusContext)
+    TransferCompression transfer_compression = TransferCompression::NONE;
 
     /**
      * To set the device context

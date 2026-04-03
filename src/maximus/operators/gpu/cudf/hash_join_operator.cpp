@@ -1,7 +1,6 @@
 #include <cudf/concatenate.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/join/join.hpp>
-#include <cudf/join/filtered_join.hpp>
+#include <cudf/join.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/utilities/default_stream.hpp>
 #include <maximus/gpu/cuda_api.hpp>
@@ -184,8 +183,7 @@ std::shared_ptr<::cudf::table> join_and_gather_right(
     return std::make_shared<::cudf::table>(std::move(joined_cols));
 }
 
-// cuDF 26.x: use filtered_join class for semi/anti joins
-// Build hash table on right keys (filter table), probe with left keys
+// cuDF 24.12: use free functions left_semi_join / left_anti_join
 static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
     ::cudf::table_view const& left_input,
     ::cudf::table_view const& right_input,
@@ -195,9 +193,9 @@ static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
     bool anti) {
     auto left_keys  = left_input.select(left_key_indices);
     auto right_keys = right_input.select(right_key_indices);
-    // Build on right keys (the filter table), probe with left keys
-    ::cudf::filtered_join hasher(right_keys, compare_nulls, ::cudf::set_as_build_table::RIGHT, ::cudf::get_default_stream());
-    auto left_join_indices = anti ? hasher.anti_join(left_keys) : hasher.semi_join(left_keys);
+    auto left_join_indices = anti
+        ? ::cudf::left_anti_join(left_keys, right_keys, compare_nulls)
+        : ::cudf::left_semi_join(left_keys, right_keys, compare_nulls);
     return std::make_shared<::cudf::table>(
         gather_column(left_input, std::move(*left_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
@@ -211,9 +209,10 @@ static std::shared_ptr<::cudf::table> semi_join_and_gather_right_impl(
     bool anti) {
     auto left_keys  = left_input.select(left_key_indices);
     auto right_keys = right_input.select(right_key_indices);
-    // Build on left keys (the filter table), probe with right keys
-    ::cudf::filtered_join hasher(left_keys, compare_nulls, ::cudf::set_as_build_table::RIGHT, ::cudf::get_default_stream());
-    auto right_join_indices = anti ? hasher.anti_join(right_keys) : hasher.semi_join(right_keys);
+    // For right semi/anti, swap: treat right as left
+    auto right_join_indices = anti
+        ? ::cudf::left_anti_join(right_keys, left_keys, compare_nulls)
+        : ::cudf::left_semi_join(right_keys, left_keys, compare_nulls);
     return std::make_shared<::cudf::table>(
         gather_column(right_input, std::move(*right_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
