@@ -2,11 +2,15 @@
 # =============================================================================
 # Generate all benchmark data for TPC-H, H2O, and ClickBench.
 #
+# Scale factors:
+#   TPC-H:     1, 5, 10, 20  (SF = data size in GB)
+#   H2O:       1gb, 2gb, 4gb, 10gb
+#   ClickBench: 2, 6, 13, 22  (equiv TPC-H SF; sample 10%,30%,60%,100%)
+#
 # Usage:
 #   ./generate_all.sh [DATA_DIR]
 #
 # DATA_DIR defaults to the Maximus tests/ directory.
-# For Sirius, DuckDB databases are generated alongside the CSV data.
 # =============================================================================
 set -e
 
@@ -27,15 +31,13 @@ python3 -c "import duckdb" 2>/dev/null || {
 
 # ── TPC-H ──────────────────────────────────────────────────────────────────
 echo ""
-echo "=== TPC-H Data Generation ==="
+echo "=== TPC-H Data Generation (SF=1,5,10,20) ==="
 
-# DuckDB databases (for Sirius)
 TPCH_DB_DIR="$DATA_DIR/tpch_duckdb"
 mkdir -p "$TPCH_DB_DIR"
 echo "Generating TPC-H DuckDB databases in $TPCH_DB_DIR..."
 python3 "$SCRIPT_DIR/generate_tpch.py" -o "$TPCH_DB_DIR" -sf 1 5 10 20 --no-run-query
 
-# CSV data (for Maximus) - generated from DuckDB using dbgen + COPY
 TPCH_CSV_DIR="$DATA_DIR/tpch"
 mkdir -p "$TPCH_CSV_DIR"
 echo "Generating TPC-H CSV data in $TPCH_CSV_DIR..."
@@ -65,34 +67,42 @@ done
 
 # ── H2O ────────────────────────────────────────────────────────────────────
 echo ""
-echo "=== H2O Data Generation ==="
+echo "=== H2O Data Generation (1gb,2gb,4gb,10gb) ==="
 
 H2O_DIR="$DATA_DIR/h2o"
 H2O_DB_DIR="$DATA_DIR/h2o_duckdb"
 mkdir -p "$H2O_DIR" "$H2O_DB_DIR"
 echo "Generating H2O data..."
-python3 "$SCRIPT_DIR/generate_h2o.py" --output-dir "$H2O_DIR" --format csv 1gb 2gb 3gb 4gb
-python3 "$SCRIPT_DIR/generate_h2o.py" --output-dir "$H2O_DB_DIR" --format duckdb 1gb 2gb 3gb 4gb
+python3 "$SCRIPT_DIR/generate_h2o.py" --output-dir "$H2O_DIR" --format csv 1gb 2gb 4gb 10gb
+python3 "$SCRIPT_DIR/generate_h2o.py" --output-dir "$H2O_DB_DIR" --format duckdb 1gb 2gb 4gb 10gb
 
 # ── ClickBench ─────────────────────────────────────────────────────────────
 echo ""
-echo "=== ClickBench Data Generation ==="
+echo "=== ClickBench Data Generation (SF=2,6,13,22) ==="
 
 CB_DIR="$DATA_DIR/clickbench"
 CB_DB_DIR="$DATA_DIR/click_duckdb"
 mkdir -p "$CB_DIR" "$CB_DB_DIR"
 
-# Check for parquet file
 PARQUET_PATH="$DATA_DIR/clickbench.parquet"
 if [ ! -f "$PARQUET_PATH" ]; then
     echo "ClickBench parquet not found. Downloading (~14GB)..."
-    echo "  This may take a while depending on network speed."
 fi
 
 echo "Generating ClickBench CSV data..."
-python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DIR" --format csv --scales 1 5 10 20 --parquet-path "$PARQUET_PATH"
+python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DIR" --format csv \
+    --scales 2 6 13 22 --parquet-path "$PARQUET_PATH"
 echo "Generating ClickBench DuckDB databases..."
-python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DB_DIR" --format duckdb --scales 1 5 10 20 --parquet-path "$PARQUET_PATH"
+python3 "$SCRIPT_DIR/generate_clickbench.py" --output-dir "$CB_DB_DIR" --format duckdb \
+    --scales 2 6 13 22 --parquet-path "$PARQUET_PATH"
+
+# ── Sirius SQL Queries ────────────────────────────────────────────────────
+echo ""
+echo "=== Generating Sirius SQL Queries ==="
+SIRIUS_SQL="$SCRIPT_DIR/../scripts/generate_sirius_sql.py"
+if [ -f "$SIRIUS_SQL" ]; then
+    python3 "$SIRIUS_SQL" 2>/dev/null || true
+fi
 
 # ── Summary ────────────────────────────────────────────────────────────────
 echo ""
@@ -100,14 +110,14 @@ echo "=============================================="
 echo "  Data Generation Complete"
 echo "=============================================="
 echo ""
-echo "TPC-H:"
+echo "TPC-H (SF=1,5,10,20):"
 echo "  DuckDB: $TPCH_DB_DIR/tpch_sf{1,5,10,20}.duckdb"
 echo "  CSV:    $TPCH_CSV_DIR/csv-{1,5,10,20}/"
 echo ""
-echo "H2O:"
-echo "  DuckDB: $H2O_DB_DIR/h2o_{1gb,2gb,3gb,4gb}.duckdb"
-echo "  CSV:    $H2O_DIR/csv-{1gb,2gb,3gb,4gb}/groupby.csv"
+echo "H2O (1gb,2gb,4gb,10gb):"
+echo "  DuckDB: $H2O_DB_DIR/h2o_{1gb,2gb,4gb,10gb}.duckdb"
+echo "  CSV:    $H2O_DIR/csv-{1gb,2gb,4gb,10gb}/groupby.csv"
 echo ""
-echo "ClickBench:"
-echo "  DuckDB: $CB_DB_DIR/clickbench_{1,5,10,20}.duckdb"
-echo "  CSV:    $CB_DIR/csv-{1,5,10,20}/t.csv"
+echo "ClickBench (SF=2,6,13,22 ≈ sample 10%,30%,60%,100%):"
+echo "  DuckDB: $CB_DB_DIR/clickbench_{2,6,13,22}.duckdb"
+echo "  CSV:    $CB_DIR/csv-{2,6,13,22}/t.csv"

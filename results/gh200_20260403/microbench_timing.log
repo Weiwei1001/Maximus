@@ -1,0 +1,570 @@
+
+============================================================
+  microbench_tpch_sf1 (55 queries, 5 reps)
+  16:34:43
+============================================================
+  w1_002: min=1.55ms
+  w1_004: min=0.305ms  *** <1ms ***
+  w1_005: min=4.89ms
+  w1_006: min=4.90ms
+  w1_007: min=9.86ms
+  w1_008: min=5.03ms
+  w1_011: min=18.82ms
+  w2_003: min=0.741ms  *** <1ms ***
+  w2_012: min=0.595ms  *** <1ms ***
+  w2_013: min=2.19ms
+  w2_014: min=3.35ms
+  w2_015: min=0.866ms  *** <1ms ***
+  w2_016: min=1.82ms
+  w2_017: min=4.75ms
+  w3_001: min=0.348ms  *** <1ms ***
+  w3_009: min=0.715ms  *** <1ms ***
+  w3_010: min=0.572ms  *** <1ms ***
+  w3_023: min=1.94ms
+  w3_024: min=2.43ms
+  w3_025: min=1.68ms
+  w3_028: min=2.92ms
+  w4_033: min=0.551ms  *** <1ms ***
+  w4_052: min=1.14ms
+  w4_053: min=1.23ms
+  w4_054: min=4.00ms
+  w4_055: min=1.29ms
+  w4_057: min=6.43ms
+  w4_059: min=2.21ms
+  w5a_029: min=4.63ms
+  w5a_034: min=7.42ms
+  w5a_035: min=21.45ms
+  w5a_036: min=6.94ms
+  w5a_037: min=8.15ms
+  w5a_038: min=12.82ms
+  w5a_048: min=14.29ms
+  w5a_049: min=11.18ms
+  w5a_050: min=26.76ms
+  w5a_056: min=54.46ms
+  w5b_030: min=249.40ms
+  w5b_039: min=3157.80ms
+  w5b_040: min=4581.95ms
+  w5b_041: min=93.18ms
+  w5b_042: min=5920.09ms
+  w5b_043: min=780.12ms
+  w5b_044: min=6291.49ms
+  w5b_045: FAIL
+  w5b_047: FAIL
+  w5b_051: min=8798.61ms
+  w6_020: min=2.34ms
+  w6_021: min=3.10ms
+  w6_026: min=9.90ms
+  w6_031: min=5.51ms
+  w6_032: min=3.72ms
+  w6_046: min=10.49ms
+  w6_060: min=14.43ms
+  --- 53/55 OK, 8 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_tpch_sf1.csv
+
+============================================================
+  microbench_tpch_sf5 (55 queries, 5 reps)
+  16:38:28
+============================================================
+  w1_002: min=2.32ms
+  w1_004: min=0.342ms  *** <1ms ***
+  w1_005: min=7.96ms
+  w1_006: min=7.96ms
+  w1_007: min=16.18ms
+  w1_008: min=8.22ms
+  w1_011: min=31.03ms
+  w2_003: min=1.06ms
+  w2_012: min=0.778ms  *** <1ms ***
+  w2_013: min=3.39ms
+  w2_014: min=5.31ms
+  w2_015: min=1.15ms
+  w2_016: min=2.86ms
+  w2_017: min=7.66ms
+  w3_001: min=0.372ms  *** <1ms ***
+  w3_009: min=1.01ms
+  w3_010: min=0.767ms  *** <1ms ***
+  w3_023: min=2.93ms
+  w3_024: min=3.79ms
+  w3_025: min=2.54ms
+  w3_028: min=4.56ms
+  w4_033: min=1.98ms
+  w4_052: min=3.90ms
+  w4_053: min=1.89ms
+  w4_054: min=12.75ms
+  w4_055: min=1.82ms
+  w4_057: min=17.11ms
+  w4_059: min=3.27ms
+  w5a_029: min=3.68ms
+  w5a_034: min=8.19ms
+  w5a_035: min=16.02ms
+  w5a_036: min=8.04ms
+  w5a_037: min=8.12ms
+  w5a_038: min=5.60ms
+  w5a_048: min=11.98ms
+  w5a_049: min=9.77ms
+  w5a_050: min=15.69ms
+  w5a_056: min=20.93ms
+  w5b_030: min=30.78ms
+  w5b_039: min=34.17ms
+  w5b_040: min=34.63ms
+  w5b_041: min=12.60ms
+  w5b_042: min=38.02ms
+  w5b_043: min=12.54ms
+  w5b_044: min=44.32ms
+  w5b_045: min=49.28ms
+  w5b_047: min=46.36ms
+  w5b_051: min=49.10ms
+  w6_020: min=3.76ms
+  w6_021: min=4.89ms
+  w6_026: min=16.76ms
+  w6_031: min=8.86ms
+  w6_032: min=6.21ms
+  w6_046: min=17.81ms
+  w6_060: min=24.12ms
+  --- 55/55 OK, 4 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_tpch_sf5.csv
+
+============================================================
+  microbench_tpch_sf10 (55 queries, 5 reps)
+  16:38:36
+============================================================
+  w1_002: min=4.22ms
+  w1_004: min=0.326ms  *** <1ms ***
+  w1_005: min=15.56ms
+  w1_006: min=15.57ms
+  w1_007: min=31.95ms
+  w1_008: min=16.14ms
+  w1_011: min=61.48ms
+  w2_003: min=1.76ms
+  w2_012: min=1.22ms
+  w2_013: min=6.39ms
+  w2_014: min=10.24ms
+  w2_015: min=1.90ms
+  w2_016: min=5.33ms
+  w2_017: min=14.94ms
+  w3_001: min=0.442ms  *** <1ms ***
+  w3_009: min=1.68ms
+  w3_010: min=1.23ms
+  w3_023: min=5.52ms
+  w3_024: min=7.21ms
+  w3_025: min=4.74ms
+  w3_028: min=8.53ms
+  w4_033: min=3.49ms
+  w4_052: min=7.98ms
+  w4_053: min=3.42ms
+  w4_054: min=24.53ms
+  w4_055: min=3.50ms
+  w4_057: min=36.67ms
+  w4_059: min=6.33ms
+  w5a_029: min=7.20ms
+  w5a_034: min=16.09ms
+  w5a_035: min=31.70ms
+  w5a_036: min=15.56ms
+  w5a_037: min=14.20ms
+  w5a_038: min=10.91ms
+  w5a_048: min=23.53ms
+  w5a_049: min=19.34ms
+  w5a_050: min=31.89ms
+  w5a_056: min=42.29ms
+  w5b_030: min=61.49ms
+  w5b_039: min=68.31ms
+  w5b_040: min=70.28ms
+  w5b_041: min=22.56ms
+  w5b_042: min=76.19ms
+  w5b_043: min=24.71ms
+  w5b_044: min=91.90ms
+  w5b_045: min=101.06ms
+  w5b_047: min=92.53ms
+  w5b_051: min=97.88ms
+  w6_020: min=7.80ms
+  w6_021: min=9.90ms
+  w6_026: min=36.78ms
+  w6_031: min=17.30ms
+  w6_032: min=13.32ms
+  w6_046: min=39.36ms
+  w6_060: min=49.78ms
+  --- 55/55 OK, 2 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_tpch_sf10.csv
+
+============================================================
+  microbench_tpch_sf20 (55 queries, 5 reps)
+  16:38:50
+============================================================
+  w1_002: min=8.07ms
+  w1_004: min=0.359ms  *** <1ms ***
+  w1_005: min=30.81ms
+  w1_006: min=30.83ms
+  w1_007: min=63.52ms
+  w1_008: min=32.05ms
+  w1_011: min=122.40ms
+  w2_003: min=3.13ms
+  w2_012: min=2.18ms
+  w2_013: min=12.50ms
+  w2_014: min=20.14ms
+  w2_015: min=3.41ms
+  w2_016: min=10.23ms
+  w2_017: min=29.58ms
+  w3_001: min=0.582ms  *** <1ms ***
+  w3_009: min=3.00ms
+  w3_010: min=2.16ms
+  w3_023: min=10.66ms
+  w3_024: min=14.04ms
+  w3_025: min=9.14ms
+  w3_028: min=16.46ms
+  w4_033: min=6.96ms
+  w4_052: min=16.93ms
+  w4_053: min=7.07ms
+  w4_054: min=48.66ms
+  w4_055: min=7.38ms
+  w4_057: min=65.95ms
+  w4_059: min=13.14ms
+  w5a_029: min=14.63ms
+  w5a_034: min=32.03ms
+  w5a_035: min=63.62ms
+  w5a_036: min=44.58ms
+  w5a_037: min=30.41ms
+  w5a_038: min=21.83ms
+  w5a_048: min=46.74ms
+  w5a_049: min=38.39ms
+  w5a_050: min=64.71ms
+  w5a_056: min=85.75ms
+  w5b_030: min=140.38ms
+  w5b_039: min=155.14ms
+  w5b_040: min=141.92ms
+  w5b_041: min=46.35ms
+  w5b_042: min=153.41ms
+  w5b_043: min=55.65ms
+  w5b_044: min=188.59ms
+  w5b_045: min=205.68ms
+  w5b_047: min=186.01ms
+  w5b_051: min=245.11ms
+  w6_020: min=17.45ms
+  w6_021: min=22.51ms
+  w6_026: min=82.62ms
+  w6_031: min=34.70ms
+  w6_032: min=27.89ms
+  w6_046: min=88.82ms
+  w6_060: min=108.73ms
+  --- 55/55 OK, 2 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_tpch_sf20.csv
+
+============================================================
+  microbench_h2o_sf1gb (35 queries, 5 reps)
+  16:39:36
+============================================================
+  w1_001: min=0.309ms  *** <1ms ***
+  w1_002: min=8.46ms
+  w1_003: min=9.19ms
+  w1_004: min=8.79ms
+  w1_005: min=18.11ms
+  w1_006: min=26.82ms
+  w1_007: min=32.51ms
+  w2_008: min=1.02ms
+  w2_009: min=0.435ms  *** <1ms ***
+  w2_010: min=1.26ms
+  w2_011: min=3.12ms
+  w2_012: min=1.23ms
+  w2_013: min=0.889ms  *** <1ms ***
+  w2_014: min=9.47ms
+  w3_016: min=4.14ms
+  w3_017: min=4.77ms
+  w3_018: min=3.25ms
+  w3_019: min=3.53ms
+  w3_020: min=2.93ms
+  w3_021: min=3.82ms
+  w3_023: min=7.38ms
+  w4_027: min=22.52ms
+  w4_028: min=2.19ms
+  w4_029: min=2.76ms
+  w4_030: min=17.46ms
+  w4_031: min=77.01ms
+  w4_032: min=34.84ms
+  w4_033: min=124.30ms
+  w6_015: min=12.28ms
+  w6_022: min=22.58ms
+  w6_024: min=5.67ms
+  w6_025: min=4.60ms
+  w6_026: min=4.00ms
+  w6_034: min=6.77ms
+  w6_035: min=29.43ms
+  --- 35/35 OK, 3 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_h2o_sf1gb.csv
+
+============================================================
+  microbench_h2o_sf2gb (35 queries, 5 reps)
+  16:39:41
+============================================================
+  w1_001: min=0.317ms  *** <1ms ***
+  w1_002: min=16.64ms
+  w1_003: min=18.10ms
+  w1_004: min=17.34ms
+  w1_005: min=35.88ms
+  w1_006: min=53.21ms
+  w1_007: min=64.27ms
+  w2_008: min=1.72ms
+  w2_009: min=0.771ms  *** <1ms ***
+  w2_010: min=2.14ms
+  w2_011: min=5.95ms
+  w2_012: min=2.18ms
+  w2_013: min=1.49ms
+  w2_014: min=18.68ms
+  w3_016: min=8.02ms
+  w3_017: min=9.22ms
+  w3_018: min=6.28ms
+  w3_019: min=6.67ms
+  w3_020: min=5.64ms
+  w3_021: min=7.30ms
+  w3_023: min=14.35ms
+  w4_027: min=25.87ms
+  w4_028: min=4.11ms
+  w4_029: min=5.15ms
+  w4_030: min=27.20ms
+  w4_031: min=137.55ms
+  w4_032: min=38.14ms
+  w4_033: min=131.46ms
+  w6_015: min=26.40ms
+  w6_022: min=49.91ms
+  w6_024: min=10.90ms
+  w6_025: min=8.83ms
+  w6_026: min=7.64ms
+  w6_034: min=12.49ms
+  w6_035: min=61.50ms
+  --- 35/35 OK, 2 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_h2o_sf2gb.csv
+
+============================================================
+  microbench_h2o_sf4gb (35 queries, 5 reps)
+  16:39:49
+============================================================
+  w1_001: min=0.308ms  *** <1ms ***
+  w1_002: min=33.07ms
+  w1_003: min=35.84ms
+  w1_004: min=34.16ms
+  w1_005: min=70.17ms
+  w1_006: min=104.83ms
+  w1_007: min=128.51ms
+  w2_008: min=3.04ms
+  w2_009: min=1.44ms
+  w2_010: min=3.86ms
+  w2_011: min=11.50ms
+  w2_012: min=4.03ms
+  w2_013: min=2.55ms
+  w2_014: min=37.06ms
+  w3_016: min=15.56ms
+  w3_017: min=18.04ms
+  w3_018: min=12.28ms
+  w3_019: min=13.26ms
+  w3_020: min=11.03ms
+  w3_021: min=14.21ms
+  w3_023: min=28.06ms
+  w4_027: min=38.69ms
+  w4_028: min=8.06ms
+  w4_029: min=9.91ms
+  w4_030: min=33.53ms
+  w4_031: min=243.38ms
+  w4_032: min=50.09ms
+  w4_033: min=180.27ms
+  w6_015: min=57.09ms
+  w6_022: min=109.82ms
+  w6_024: min=21.38ms
+  w6_025: min=17.28ms
+  w6_026: min=14.94ms
+  w6_034: min=23.63ms
+  w6_035: min=130.77ms
+  --- 35/35 OK, 1 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_h2o_sf4gb.csv
+
+============================================================
+  microbench_h2o_sf10gb (35 queries, 5 reps)
+  16:40:03
+============================================================
+  w1_001: min=0.348ms  *** <1ms ***
+  w1_002: min=82.02ms
+  w1_003: min=89.23ms
+  w1_004: min=82.05ms
+  w1_005: min=215.68ms
+  w1_006: min=264.40ms
+  w1_007: min=325.44ms
+  w2_008: min=16.12ms
+  w2_009: min=3.51ms
+  w2_010: min=41.98ms
+  w2_011: min=32.16ms
+  w2_012: min=18.97ms
+  w2_013: min=27.60ms
+  w2_014: min=170.38ms
+  w3_016: min=68.10ms
+  w3_017: min=71.22ms
+  w3_018: min=37.28ms
+  w3_019: min=83.34ms
+  w3_020: min=50.20ms
+  w3_021: min=96.50ms
+  w3_023: min=88.30ms
+  w4_027: min=156.70ms
+  w4_028: min=56.01ms
+  w4_029: min=79.58ms
+  w4_030: min=140.93ms
+  w4_031: FAIL
+  w4_032: min=77.55ms
+  w4_033: min=252.23ms
+  w6_015: min=161.89ms
+  w6_022: min=315.48ms
+  w6_024: min=52.58ms
+  w6_025: min=42.61ms
+  w6_026: min=36.71ms
+  w6_034: min=56.85ms
+  w6_035: min=368.90ms
+  --- 34/35 OK, 1 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_h2o_sf10gb.csv
+
+============================================================
+  microbench_clickbench_sf10 (30 queries, 5 reps)
+  16:42:35
+============================================================
+  w1_001: min=0.364ms  *** <1ms ***
+  w1_002: min=2.43ms
+  w1_003: min=2.61ms
+  w1_004: min=5.60ms
+  w1_005: min=2.61ms
+  w1_006: min=9.58ms
+  w2_007: min=0.492ms  *** <1ms ***
+  w2_008: min=0.314ms  *** <1ms ***
+  w2_009: min=1.88ms
+  w2_010: min=0.486ms  *** <1ms ***
+  w2_018: min=0.741ms  *** <1ms ***
+  w2_019: min=0.326ms  *** <1ms ***
+  w3_011: min=0.570ms  *** <1ms ***
+  w3_012: min=0.564ms  *** <1ms ***
+  w3_013: min=0.604ms  *** <1ms ***
+  w3_014: min=1.28ms
+  w3_015: min=1.16ms
+  w3_027: min=1.88ms
+  w4_021: min=0.579ms  *** <1ms ***
+  w4_022: min=0.871ms  *** <1ms ***
+  w4_023: min=1.23ms
+  w4_024: min=3.06ms
+  w4_025: min=0.745ms  *** <1ms ***
+  w4_058: min=2.06ms
+  w6_016: min=2.84ms
+  w6_017: min=1.31ms
+  w6_018: min=0.856ms  *** <1ms ***
+  w6_019: min=0.428ms  *** <1ms ***
+  w6_020: min=1.23ms
+  w6_022: min=1.03ms
+  --- 30/30 OK, 14 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_clickbench_sf10.csv
+
+============================================================
+  microbench_clickbench_sf30 (30 queries, 5 reps)
+  16:42:39
+============================================================
+  w1_001: min=0.335ms  *** <1ms ***
+  w1_002: min=7.14ms
+  w1_003: min=7.52ms
+  w1_004: min=16.15ms
+  w1_005: min=7.24ms
+  w1_006: min=27.83ms
+  w2_007: min=0.780ms  *** <1ms ***
+  w2_008: min=0.754ms  *** <1ms ***
+  w2_009: min=7.78ms
+  w2_010: min=0.725ms  *** <1ms ***
+  w2_018: min=1.97ms
+  w2_019: min=3.83ms
+  w3_011: min=1.29ms
+  w3_012: min=1.30ms
+  w3_013: min=1.41ms
+  w3_014: min=3.21ms
+  w3_015: min=2.82ms
+  w3_027: min=5.95ms
+  w4_021: min=1.40ms
+  w4_022: min=10.13ms
+  w4_023: min=19.94ms
+  w4_024: min=61.89ms
+  w4_025: min=17.79ms
+  w4_058: min=6.71ms
+  w6_016: min=8.35ms
+  w6_017: min=3.55ms
+  w6_018: min=17.88ms
+  w6_019: min=0.990ms  *** <1ms ***
+  w6_020: min=3.03ms
+  w6_022: min=2.53ms
+  --- 30/30 OK, 5 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_clickbench_sf30.csv
+
+============================================================
+  microbench_clickbench_sf60 (30 queries, 5 reps)
+  16:42:59
+============================================================
+  w1_001: min=0.725ms  *** <1ms ***
+  w1_002: min=15.97ms
+  w1_003: min=17.92ms
+  w1_004: min=49.98ms
+  w1_005: min=17.57ms
+  w1_006: min=77.65ms
+  w2_007: min=6.40ms
+  w2_008: min=13.11ms
+  w2_009: min=31.95ms
+  w2_010: min=27.26ms
+  w2_018: min=18.47ms
+  w2_019: min=33.74ms
+  w3_011: min=33.04ms
+  w3_012: min=32.91ms
+  w3_013: min=35.19ms
+  w3_014: min=43.17ms
+  w3_015: min=39.77ms
+  w3_027: min=40.03ms
+  w4_021: min=137.00ms
+  w4_022: min=90.41ms
+  w4_023: min=157.21ms
+  w4_024: min=157.99ms
+  w4_025: min=168.04ms
+  w4_058: min=62.93ms
+  w6_016: min=96.97ms
+  w6_017: min=105.57ms
+  w6_018: min=174.01ms
+  w6_019: min=51.36ms
+  w6_020: min=113.76ms
+  w6_022: min=30.57ms
+  --- 30/30 OK, 1 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_clickbench_sf60.csv
+
+============================================================
+  microbench_clickbench_sf100 (30 queries, 5 reps)
+  16:53:00
+============================================================
+  w1_001: min=0.853ms  *** <1ms ***
+  w1_002: min=28.32ms
+  w1_003: min=29.07ms
+  w1_004: min=113.18ms
+  w1_005: min=35.67ms
+  w1_006: min=177.86ms
+  w2_007: min=10.68ms
+  w2_008: min=29.19ms
+  w2_009: min=59.06ms
+  w2_010: min=64.17ms
+  w2_018: min=34.80ms
+  w2_019: min=78.45ms
+  w3_011: min=58.08ms
+  w3_012: min=55.16ms
+  w3_013: min=58.65ms
+  w3_014: min=65.87ms
+  w3_015: min=68.57ms
+  w3_027: min=67.48ms
+  w4_021: min=224.51ms
+  w4_022: min=160.71ms
+  w4_023: min=133.41ms
+  w4_024: min=477.78ms
+  w4_025: min=275.69ms
+  w4_058: min=124.61ms
+  w6_016: min=203.80ms
+  w6_017: min=191.08ms
+  w6_018: min=260.06ms
+  w6_019: min=102.80ms
+  w6_020: min=222.14ms
+  w6_022: min=75.68ms
+  --- 30/30 OK, 1 sub-1ms
+  [SAVED] /home/ubuntu/gpu_db/results/microbench_timing/microbench_clickbench_sf100.csv
+
+============================================================
+  COMPLETE: 2026-04-03 17:16:24.485268
+  Total: 480 rows, 477 OK, 44 sub-1ms queries
+  Merged: /home/ubuntu/gpu_db/results/microbench_timing/microbench_timing_all.csv
+============================================================

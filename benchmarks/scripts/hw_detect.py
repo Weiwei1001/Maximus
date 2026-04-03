@@ -413,7 +413,8 @@ _CLICKBENCH_QUERIES_SMALL = [
 # ClickBench >=100GB: all 43 queries (q0-q42).
 _CLICKBENCH_QUERIES_LARGE = [f"q{i}" for i in range(0, 43)]
 
-# Microbench TPC-H: 55 queries.
+# Microbench TPC-H: 53 queries.
+# Removed w5b_045, w5b_047: cuDF column size limit overflow on join results.
 _MICROBENCH_TPCH_QUERIES = [
     "w1_002", "w1_004", "w1_005", "w1_006", "w1_007", "w1_008", "w1_011",
     "w2_003", "w2_012", "w2_013", "w2_014", "w2_015", "w2_016", "w2_017",
@@ -422,16 +423,17 @@ _MICROBENCH_TPCH_QUERIES = [
     "w5a_029", "w5a_034", "w5a_035", "w5a_036", "w5a_037", "w5a_038",
     "w5a_048", "w5a_049", "w5a_050", "w5a_056",
     "w5b_030", "w5b_039", "w5b_040", "w5b_041", "w5b_042", "w5b_043",
-    "w5b_044", "w5b_045", "w5b_047", "w5b_051",
+    "w5b_044", "w5b_051",
     "w6_020", "w6_021", "w6_026", "w6_031", "w6_032", "w6_046", "w6_060",
 ]
 
 # Microbench H2O: 34 queries.
+# Removed w4_031: large_string type unsupported by cuDF at SF=10gb.
 _MICROBENCH_H2O_QUERIES = [
     "w1_001", "w1_002", "w1_003", "w1_004", "w1_005", "w1_006", "w1_007",
     "w2_008", "w2_009", "w2_010", "w2_011", "w2_012", "w2_013", "w2_014",
     "w3_016", "w3_017", "w3_018", "w3_019", "w3_020", "w3_021", "w3_023",
-    "w4_027", "w4_028", "w4_029", "w4_030", "w4_031", "w4_032", "w4_033",
+    "w4_027", "w4_028", "w4_029", "w4_030", "w4_032", "w4_033",
     "w6_015", "w6_022", "w6_024", "w6_025", "w6_026", "w6_034", "w6_035",
 ]
 
@@ -465,11 +467,9 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
     clickbench_queries = (_CLICKBENCH_QUERIES_LARGE if large_gpu
                           else _CLICKBENCH_QUERIES_SMALL)
 
-    # ClickBench SF mapping: sample% → equivalent TPC-H SF
-    # Based on data size ratio: clickbench_csv_size / tpch_sf1_csv_size (3.2GB)
-    # 10% ≈ 7.1GB → SF≈2, 30% ≈ 21GB → SF≈7, 60% ≈ 43GB → SF≈13, 100% ≈ 71GB → SF≈22
-    # Directory naming uses sample percentage for data generation.
-    _CLICKBENCH_SFS = [10, 30, 60, 100]
+    # ClickBench SF = equivalent TPC-H SF based on csv_size / tpch_sf1_size.
+    # SF=2 (10% sample, 7GB), SF=6 (30%, 20GB), SF=13 (60%, 42GB), SF=22 (100%, 70GB).
+    _CLICKBENCH_SFS = [2, 6, 13, 22]
 
     benchmarks: dict[str, dict] = {
         "tpch": {

@@ -1,0 +1,1542 @@
+======================================================================
+  GH200 Category C v2: 12 SQL × 12 GPU Configs
+  GPU: NVIDIA GH200 480GB (idx=0, 97871MB)
+  PL: 100-900W
+  SM: 345-1980MHz
+  Queries: 12
+    tpch SF=10: q1, q3, q6, q9, q13, q16
+    h2o SF=4gb: q1, q3, q5, q6, q7, q9
+  Configs: 11 (deduped)
+    [ 1] PL=150W SM=auto
+    [ 2] PL=200W SM=auto
+    [ 3] PL=250W SM=auto
+    [ 4] PL=300W SM=auto
+    [ 5] PL=400W SM=auto
+    [ 6] PL=900W SM=auto
+    [ 7] PL=900W SM=600MHz
+    [ 8] PL=900W SM=1110MHz
+    [ 9] PL=900W SM=1980MHz
+    [10] PL=200W SM=1110MHz
+    [11] PL=300W SM=600MHz
+  Engines: ['maximus', 'sirius']
+  Storage: ['gpu', 'cpu']
+  Total runs: 528 (timing) + 528 (metrics)
+  Results: /home/ubuntu/gpu_db/results/gh200_12sql_sweep
+  Started: 2026-04-01 06:42:33.959056
+======================================================================
+
+======================================================================
+  PHASE 1: TIMING (3 runs, take 3rd)
+======================================================================
+
+######################################################################
+# TIMING: pl150w_smauto (06:42:33)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=69.52ms min=69.52ms
+    q3: 3rd=27.12ms min=25.69ms
+    q6: 3rd=23.74ms min=16.60ms
+    q9: 3rd=69.02ms min=69.02ms
+    q13: 3rd=316.02ms min=302.96ms
+    q16: 3rd=59.71ms min=47.38ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=67.05ms min=58.77ms
+    q3: 3rd=19.81ms min=19.81ms
+    q6: 3rd=12.31ms min=12.31ms
+    q9: 3rd=267.89ms min=266.44ms
+    q13: 3rd=289.49ms min=284.88ms
+    q16: 3rd=124.95ms min=124.95ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=144.00ms min=139.00ms
+    q3: 3rd=39.00ms min=39.00ms
+    q6: 3rd=6.00ms min=6.00ms
+    q9: 3rd=797.00ms min=789.00ms
+    q13: 3rd=97.00ms min=97.00ms
+    q16: 3rd=135.00ms min=131.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=159.00ms min=141.00ms
+    q3: 3rd=40.00ms min=38.00ms
+    q6: 3rd=4.00ms min=4.00ms
+    q9: 3rd=788.00ms min=787.00ms
+    q13: 3rd=98.00ms min=97.00ms
+    q16: 3rd=137.00ms min=131.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=54.71ms min=37.53ms
+    q3: 3rd=106.61ms min=98.59ms
+    q5: 3rd=37.44ms min=37.44ms
+    q6: 3rd=907.86ms min=892.92ms
+    q7: 3rd=89.79ms min=89.79ms
+    q9: 3rd=148.53ms min=148.53ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=152.34ms min=152.34ms
+    q3: 3rd=371.52ms min=362.99ms
+    q5: 3rd=216.46ms min=215.12ms
+    q6: 3rd=980.86ms min=968.18ms
+    q7: 3rd=318.27ms min=304.48ms
+    q9: 3rd=134.18ms min=129.50ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=22.00ms min=20.00ms
+    q3: 3rd=124.00ms min=115.00ms
+    q5: 3rd=44.00ms min=43.00ms
+    q6: 3rd=55.00ms min=52.00ms
+    q7: 3rd=101.00ms min=90.00ms
+    q9: 3rd=115.00ms min=112.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=23.00ms min=20.00ms
+    q3: 3rd=106.00ms min=106.00ms
+    q5: 3rd=39.00ms min=39.00ms
+    q6: 3rd=48.00ms min=48.00ms
+    q7: 3rd=99.00ms min=90.00ms
+    q9: 3rd=115.00ms min=112.00ms
+
+######################################################################
+# TIMING: pl200w_smauto (06:47:23)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=50.00ms min=47.70ms
+    q3: 3rd=29.55ms min=15.63ms
+    q6: 3rd=15.18ms min=11.69ms
+    q9: 3rd=65.29ms min=41.32ms
+    q13: 3rd=194.52ms min=190.35ms
+    q16: 3rd=36.48ms min=34.14ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=49.29ms min=46.11ms
+    q3: 3rd=19.70ms min=19.70ms
+    q6: 3rd=12.33ms min=12.33ms
+    q9: 3rd=262.94ms min=262.67ms
+    q13: 3rd=177.32ms min=177.32ms
+    q16: 3rd=124.62ms min=124.62ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=112.00ms min=104.00ms
+    q3: 3rd=28.00ms min=27.00ms
+    q6: 3rd=4.00ms min=4.00ms
+    q9: 3rd=734.00ms min=727.00ms
+    q13: 3rd=82.00ms min=77.00ms
+    q16: 3rd=78.00ms min=78.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=98.00ms min=97.00ms
+    q3: 3rd=27.00ms min=27.00ms
+    q6: 3rd=4.00ms min=4.00ms
+    q9: 3rd=734.00ms min=721.00ms
+    q13: 3rd=82.00ms min=77.00ms
+    q16: 3rd=80.00ms min=80.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=23.13ms min=22.97ms
+    q3: 3rd=89.68ms min=87.01ms
+    q5: 3rd=19.06ms min=19.06ms
+    q6: 3rd=671.66ms min=664.09ms
+    q7: 3rd=72.89ms min=67.93ms
+    q9: 3rd=90.27ms min=82.58ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=152.96ms min=152.80ms
+    q3: 3rd=359.28ms min=359.28ms
+    q5: 3rd=217.06ms min=216.25ms
+    q6: 3rd=769.22ms min=769.22ms
+    q7: 3rd=302.45ms min=293.85ms
+    q9: 3rd=77.90ms min=75.19ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=18.00ms min=16.00ms
+    q3: 3rd=112.00ms min=109.00ms
+    q5: 3rd=23.00ms min=23.00ms
+    q6: 3rd=33.00ms min=33.00ms
+    q7: 3rd=80.00ms min=78.00ms
+    q9: 3rd=75.00ms min=73.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=17.00ms min=16.00ms
+    q3: 3rd=123.00ms min=122.00ms
+    q5: 3rd=25.00ms min=21.00ms
+    q6: 3rd=33.00ms min=31.00ms
+    q7: 3rd=81.00ms min=81.00ms
+    q9: 3rd=73.00ms min=73.00ms
+
+######################################################################
+# TIMING: pl250w_smauto (06:52:08)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=34.50ms min=33.81ms
+    q3: 3rd=14.73ms min=13.98ms
+    q6: 3rd=8.20ms min=7.81ms
+    q9: 3rd=35.05ms min=32.07ms
+    q13: 3rd=159.34ms min=151.83ms
+    q16: 3rd=30.12ms min=29.86ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=45.29ms min=45.06ms
+    q3: 3rd=19.85ms min=19.73ms
+    q6: 3rd=12.35ms min=12.28ms
+    q9: 3rd=259.79ms min=259.57ms
+    q13: 3rd=154.64ms min=154.64ms
+    q16: 3rd=124.69ms min=124.69ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=80.00ms min=80.00ms
+    q3: 3rd=24.00ms min=24.00ms
+    q6: 3rd=3.00ms min=3.00ms
+    q9: 3rd=689.00ms min=688.00ms
+    q13: 3rd=58.00ms min=54.00ms
+    q16: 3rd=65.00ms min=63.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=82.00ms min=81.00ms
+    q3: 3rd=23.00ms min=23.00ms
+    q6: 3rd=3.00ms min=3.00ms
+    q9: 3rd=702.00ms min=684.00ms
+    q13: 3rd=59.00ms min=56.00ms
+    q16: 3rd=65.00ms min=63.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=18.99ms min=18.99ms
+    q3: 3rd=64.57ms min=63.14ms
+    q5: 3rd=15.12ms min=15.12ms
+    q6: 3rd=511.66ms min=488.25ms
+    q7: 3rd=46.72ms min=45.67ms
+    q9: 3rd=72.37ms min=60.67ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=152.48ms min=152.48ms
+    q3: 3rd=348.67ms min=346.85ms
+    q5: 3rd=220.81ms min=219.37ms
+    q6: 3rd=637.77ms min=635.32ms
+    q7: 3rd=290.57ms min=290.57ms
+    q9: 3rd=65.99ms min=65.99ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=15.00ms min=14.00ms
+    q3: 3rd=105.00ms min=105.00ms
+    q5: 3rd=20.00ms min=19.00ms
+    q6: 3rd=29.00ms min=28.00ms
+    q7: 3rd=79.00ms min=78.00ms
+    q9: 3rd=63.00ms min=63.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=15.00ms min=14.00ms
+    q3: 3rd=117.00ms min=105.00ms
+    q5: 3rd=20.00ms min=18.00ms
+    q6: 3rd=28.00ms min=28.00ms
+    q7: 3rd=77.00ms min=76.00ms
+    q9: 3rd=63.00ms min=62.00ms
+
+######################################################################
+# TIMING: pl300w_smauto (06:56:49)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=33.44ms min=32.80ms
+    q3: 3rd=11.96ms min=11.45ms
+    q6: 3rd=6.78ms min=6.78ms
+    q9: 3rd=30.71ms min=27.46ms
+    q13: 3rd=143.32ms min=137.05ms
+    q16: 3rd=28.55ms min=27.90ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=45.41ms min=45.41ms
+    q3: 3rd=19.71ms min=19.71ms
+    q6: 3rd=12.35ms min=12.33ms
+    q9: 3rd=260.28ms min=260.28ms
+    q13: 3rd=143.73ms min=143.73ms
+    q16: 3rd=121.26ms min=121.14ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=75.00ms min=74.00ms
+    q3: 3rd=22.00ms min=21.00ms
+    q6: 3rd=4.00ms min=4.00ms
+    q9: 3rd=692.00ms min=684.00ms
+    q13: 3rd=50.00ms min=50.00ms
+    q16: 3rd=58.00ms min=58.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=75.00ms min=71.00ms
+    q3: 3rd=22.00ms min=22.00ms
+    q6: 3rd=4.00ms min=4.00ms
+    q9: 3rd=687.00ms min=679.00ms
+    q13: 3rd=51.00ms min=50.00ms
+    q16: 3rd=59.00ms min=59.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=17.35ms min=17.35ms
+    q3: 3rd=58.94ms min=58.94ms
+    q5: 3rd=12.34ms min=11.52ms
+    q6: 3rd=410.30ms min=406.37ms
+    q7: 3rd=43.49ms min=43.49ms
+    q9: 3rd=57.64ms min=53.83ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=152.78ms min=152.53ms
+    q3: 3rd=347.69ms min=347.69ms
+    q5: 3rd=216.14ms min=216.12ms
+    q6: 3rd=556.19ms min=556.19ms
+    q7: 3rd=290.74ms min=289.87ms
+    q9: 3rd=63.88ms min=62.88ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=14.00ms min=14.00ms
+    q3: 3rd=100.00ms min=100.00ms
+    q5: 3rd=18.00ms min=17.00ms
+    q6: 3rd=26.00ms min=26.00ms
+    q7: 3rd=86.00ms min=76.00ms
+    q9: 3rd=57.00ms min=57.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=14.00ms min=14.00ms
+    q3: 3rd=106.00ms min=106.00ms
+    q5: 3rd=19.00ms min=17.00ms
+    q6: 3rd=27.00ms min=26.00ms
+    q7: 3rd=76.00ms min=76.00ms
+    q9: 3rd=57.00ms min=56.00ms
+
+######################################################################
+# TIMING: pl400w_smauto (07:01:28)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=27.98ms min=27.98ms
+    q3: 3rd=10.50ms min=10.50ms
+    q6: 3rd=5.28ms min=5.20ms
+    q9: 3rd=25.95ms min=25.95ms
+    q13: 3rd=119.44ms min=116.85ms
+    q16: 3rd=27.45ms min=27.36ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=45.17ms min=45.17ms
+    q3: 3rd=19.87ms min=19.75ms
+    q6: 3rd=12.33ms min=12.30ms
+    q9: 3rd=259.01ms min=259.01ms
+    q13: 3rd=127.53ms min=125.96ms
+    q16: 3rd=121.94ms min=121.83ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=66.00ms min=64.00ms
+    q3: 3rd=22.00ms min=22.00ms
+    q6: 3rd=3.00ms min=3.00ms
+    q9: 3rd=677.00ms min=670.00ms
+    q13: 3rd=44.00ms min=44.00ms
+    q16: 3rd=52.00ms min=52.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=66.00ms min=65.00ms
+    q3: 3rd=21.00ms min=21.00ms
+    q6: 3rd=4.00ms min=3.00ms
+    q9: 3rd=668.00ms min=663.00ms
+    q13: 3rd=43.00ms min=43.00ms
+    q16: 3rd=52.00ms min=52.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=16.06ms min=16.06ms
+    q3: 3rd=57.75ms min=57.75ms
+    q5: 3rd=10.04ms min=10.04ms
+    q6: 3rd=342.64ms min=337.97ms
+    q7: 3rd=42.77ms min=42.77ms
+    q9: 3rd=46.83ms min=46.25ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=150.61ms min=150.40ms
+    q3: 3rd=345.72ms min=344.54ms
+    q5: 3rd=217.51ms min=216.95ms
+    q6: 3rd=499.28ms min=498.83ms
+    q7: 3rd=309.43ms min=293.75ms
+    q9: 3rd=61.01ms min=60.86ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=15.00ms min=14.00ms
+    q3: 3rd=113.00ms min=104.00ms
+    q5: 3rd=17.00ms min=16.00ms
+    q6: 3rd=25.00ms min=25.00ms
+    q7: 3rd=77.00ms min=77.00ms
+    q9: 3rd=55.00ms min=55.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=14.00ms min=14.00ms
+    q3: 3rd=91.00ms min=91.00ms
+    q5: 3rd=17.00ms min=17.00ms
+    q6: 3rd=25.00ms min=25.00ms
+    q7: 3rd=77.00ms min=77.00ms
+    q9: 3rd=55.00ms min=55.00ms
+
+######################################################################
+# TIMING: pl900w_smauto (07:06:06)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=27.78ms min=27.78ms
+    q3: 3rd=10.30ms min=10.30ms
+    q6: 3rd=5.13ms min=5.13ms
+    q9: 3rd=25.77ms min=25.77ms
+    q13: 3rd=110.48ms min=110.48ms
+    q16: 3rd=27.26ms min=27.26ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=45.24ms min=45.06ms
+    q3: 3rd=19.77ms min=19.73ms
+    q6: 3rd=12.33ms min=12.33ms
+    q9: 3rd=260.63ms min=260.63ms
+    q13: 3rd=123.69ms min=123.65ms
+    q16: 3rd=123.68ms min=123.68ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=64.00ms min=64.00ms
+    q3: 3rd=22.00ms min=21.00ms
+    q6: 3rd=4.00ms min=3.00ms
+    q9: 3rd=670.00ms min=670.00ms
+    q13: 3rd=43.00ms min=43.00ms
+    q16: 3rd=51.00ms min=51.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=64.00ms min=63.00ms
+    q3: 3rd=22.00ms min=22.00ms
+    q6: 3rd=3.00ms min=3.00ms
+    q9: 3rd=678.00ms min=675.00ms
+    q13: 3rd=43.00ms min=43.00ms
+    q16: 3rd=51.00ms min=51.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=15.68ms min=15.68ms
+    q3: 3rd=57.49ms min=57.49ms
+    q5: 3rd=9.61ms min=9.61ms
+    q6: 3rd=326.85ms min=326.85ms
+    q7: 3rd=42.52ms min=42.52ms
+    q9: 3rd=46.03ms min=46.03ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=152.64ms min=152.47ms
+    q3: 3rd=350.43ms min=348.51ms
+    q5: 3rd=217.19ms min=217.19ms
+    q6: 3rd=493.51ms min=492.07ms
+    q7: 3rd=293.90ms min=293.88ms
+    q9: 3rd=61.33ms min=61.20ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=14.00ms min=14.00ms
+    q3: 3rd=103.00ms min=103.00ms
+    q5: 3rd=17.00ms min=17.00ms
+    q6: 3rd=25.00ms min=25.00ms
+    q7: 3rd=76.00ms min=76.00ms
+    q9: 3rd=55.00ms min=55.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=15.00ms min=14.00ms
+    q3: 3rd=103.00ms min=101.00ms
+    q5: 3rd=17.00ms min=17.00ms
+    q6: 3rd=25.00ms min=25.00ms
+    q7: 3rd=77.00ms min=77.00ms
+    q9: 3rd=55.00ms min=55.00ms
+
+######################################################################
+# TIMING: pl900w_sm600 (07:10:45)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=75.96ms min=75.88ms
+    q3: 3rd=28.29ms min=28.29ms
+    q6: 3rd=14.57ms min=14.57ms
+    q9: 3rd=75.40ms min=75.24ms
+    q13: 3rd=332.47ms min=332.38ms
+    q16: 3rd=78.48ms min=78.47ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=110.58ms min=110.58ms
+    q3: 3rd=45.04ms min=45.04ms
+    q6: 3rd=26.43ms min=26.43ms
+    q9: 3rd=311.04ms min=310.69ms
+    q13: 3rd=354.35ms min=354.17ms
+    q16: 3rd=177.41ms min=177.41ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=169.00ms min=168.00ms
+    q3: 3rd=57.00ms min=57.00ms
+    q6: 3rd=9.00ms min=8.00ms
+    q9: 3rd=832.00ms min=824.00ms
+    q13: 3rd=111.00ms min=111.00ms
+    q16: 3rd=132.00ms min=132.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=170.00ms min=169.00ms
+    q3: 3rd=57.00ms min=56.00ms
+    q6: 3rd=8.00ms min=8.00ms
+    q9: 3rd=850.00ms min=833.00ms
+    q13: 3rd=111.00ms min=111.00ms
+    q16: 3rd=132.00ms min=131.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=46.36ms min=46.30ms
+    q3: 3rd=100.71ms min=100.71ms
+    q5: 3rd=26.13ms min=26.13ms
+    q6: 3rd=754.26ms min=754.26ms
+    q7: 3rd=77.74ms min=77.74ms
+    q9: 3rd=125.52ms min=125.52ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=185.07ms min=185.01ms
+    q3: 3rd=402.42ms min=400.99ms
+    q5: 3rd=240.97ms min=240.06ms
+    q6: 3rd=924.58ms min=923.91ms
+    q7: 3rd=335.74ms min=335.36ms
+    q9: 3rd=156.13ms min=156.13ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=39.00ms min=38.00ms
+    q3: 3rd=143.00ms min=143.00ms
+    q5: 3rd=38.00ms min=38.00ms
+    q6: 3rd=55.00ms min=55.00ms
+    q7: 3rd=103.00ms min=103.00ms
+    q9: 3rd=118.00ms min=118.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=38.00ms min=38.00ms
+    q3: 3rd=133.00ms min=133.00ms
+    q5: 3rd=38.00ms min=38.00ms
+    q6: 3rd=56.00ms min=55.00ms
+    q7: 3rd=108.00ms min=108.00ms
+    q9: 3rd=118.00ms min=118.00ms
+
+######################################################################
+# TIMING: pl900w_sm1110 (07:15:57)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=43.02ms min=43.02ms
+    q3: 3rd=16.18ms min=16.18ms
+    q6: 3rd=8.30ms min=8.30ms
+    q9: 3rd=42.28ms min=42.22ms
+    q13: 3rd=183.33ms min=183.33ms
+    q16: 3rd=44.23ms min=44.19ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=65.36ms min=65.32ms
+    q3: 3rd=27.51ms min=27.49ms
+    q6: 3rd=16.58ms min=16.58ms
+    q9: 3rd=275.49ms min=275.31ms
+    q13: 3rd=197.76ms min=197.55ms
+    q16: 3rd=139.01ms min=138.88ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=97.00ms min=97.00ms
+    q3: 3rd=33.00ms min=33.00ms
+    q6: 3rd=5.00ms min=5.00ms
+    q9: 3rd=738.00ms min=719.00ms
+    q13: 3rd=64.00ms min=63.00ms
+    q16: 3rd=76.00ms min=76.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=97.00ms min=96.00ms
+    q3: 3rd=33.00ms min=33.00ms
+    q6: 3rd=5.00ms min=5.00ms
+    q9: 3rd=744.00ms min=720.00ms
+    q13: 3rd=63.00ms min=63.00ms
+    q16: 3rd=77.00ms min=77.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=26.00ms min=25.92ms
+    q3: 3rd=63.62ms min=63.62ms
+    q5: 3rd=14.80ms min=14.80ms
+    q6: 3rd=426.08ms min=426.08ms
+    q7: 3rd=47.52ms min=47.52ms
+    q9: 3rd=70.96ms min=69.55ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=160.03ms min=160.03ms
+    q3: 3rd=353.87ms min=353.36ms
+    q5: 3rd=221.91ms min=220.97ms
+    q6: 3rd=593.85ms min=593.27ms
+    q7: 3rd=294.09ms min=294.09ms
+    q9: 3rd=90.38ms min=90.38ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=22.00ms min=22.00ms
+    q3: 3rd=111.00ms min=106.00ms
+    q5: 3rd=25.00ms min=24.00ms
+    q6: 3rd=35.00ms min=35.00ms
+    q7: 3rd=81.00ms min=76.00ms
+    q9: 3rd=76.00ms min=75.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=22.00ms min=22.00ms
+    q3: 3rd=117.00ms min=110.00ms
+    q5: 3rd=24.00ms min=24.00ms
+    q6: 3rd=35.00ms min=35.00ms
+    q7: 3rd=83.00ms min=82.00ms
+    q9: 3rd=76.00ms min=76.00ms
+
+######################################################################
+# TIMING: pl900w_sm1980 (07:20:45)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=29.19ms min=29.19ms
+    q3: 3rd=10.90ms min=10.90ms
+    q6: 3rd=5.42ms min=5.42ms
+    q9: 3rd=27.26ms min=27.26ms
+    q13: 3rd=117.03ms min=117.03ms
+    q16: 3rd=28.80ms min=28.80ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=46.74ms min=46.68ms
+    q3: 3rd=20.26ms min=20.26ms
+    q6: 3rd=12.57ms min=12.57ms
+    q9: 3rd=263.91ms min=263.91ms
+    q13: 3rd=129.21ms min=129.21ms
+    q16: 3rd=123.09ms min=122.62ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=66.00ms min=66.00ms
+    q3: 3rd=23.00ms min=22.00ms
+    q6: 3rd=4.00ms min=4.00ms
+    q9: 3rd=675.00ms min=666.00ms
+    q13: 3rd=45.00ms min=45.00ms
+    q16: 3rd=52.00ms min=52.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=67.00ms min=67.00ms
+    q3: 3rd=22.00ms min=22.00ms
+    q6: 3rd=4.00ms min=4.00ms
+    q9: 3rd=675.00ms min=672.00ms
+    q13: 3rd=46.00ms min=45.00ms
+    q16: 3rd=53.00ms min=53.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=16.71ms min=16.71ms
+    q3: 3rd=57.75ms min=57.75ms
+    q5: 3rd=10.03ms min=10.03ms
+    q6: 3rd=331.31ms min=331.17ms
+    q7: 3rd=42.27ms min=42.27ms
+    q9: 3rd=46.51ms min=46.51ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=152.66ms min=152.66ms
+    q3: 3rd=343.94ms min=343.32ms
+    q5: 3rd=216.34ms min=215.24ms
+    q6: 3rd=497.86ms min=497.06ms
+    q7: 3rd=290.16ms min=289.81ms
+    q9: 3rd=62.35ms min=62.11ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=15.00ms min=14.00ms
+    q3: 3rd=101.00ms min=101.00ms
+    q5: 3rd=18.00ms min=17.00ms
+    q6: 3rd=26.00ms min=25.00ms
+    q7: 3rd=71.00ms min=71.00ms
+    q9: 3rd=56.00ms min=55.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=15.00ms min=15.00ms
+    q3: 3rd=104.00ms min=104.00ms
+    q5: 3rd=17.00ms min=17.00ms
+    q6: 3rd=26.00ms min=25.00ms
+    q7: 3rd=79.00ms min=75.00ms
+    q9: 3rd=55.00ms min=55.00ms
+
+######################################################################
+# TIMING: pl200w_sm1110 (07:25:21)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=60.53ms min=51.66ms
+    q3: 3rd=25.09ms min=25.09ms
+    q6: 3rd=12.64ms min=12.64ms
+    q9: 3rd=59.49ms min=59.49ms
+    q13: 3rd=195.78ms min=191.91ms
+    q16: 3rd=44.42ms min=44.42ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=65.37ms min=65.37ms
+    q3: 3rd=27.46ms min=27.46ms
+    q6: 3rd=16.88ms min=16.64ms
+    q9: 3rd=275.26ms min=275.21ms
+    q13: 3rd=198.17ms min=197.70ms
+    q16: 3rd=139.16ms min=139.16ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=121.00ms min=110.00ms
+    q3: 3rd=33.00ms min=33.00ms
+    q6: 3rd=6.00ms min=5.00ms
+    q9: 3rd=761.00ms min=743.00ms
+    q13: 3rd=81.00ms min=78.00ms
+    q16: 3rd=92.00ms min=79.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=115.00ms min=115.00ms
+    q3: 3rd=33.00ms min=33.00ms
+    q6: 3rd=5.00ms min=5.00ms
+    q9: 3rd=754.00ms min=747.00ms
+    q13: 3rd=79.00ms min=77.00ms
+    q16: 3rd=81.00ms min=81.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=32.24ms min=31.13ms
+    q3: 3rd=90.18ms min=86.13ms
+    q5: 3rd=21.11ms min=21.11ms
+    q6: 3rd=675.03ms min=665.62ms
+    q7: 3rd=68.33ms min=68.29ms
+    q9: 3rd=95.26ms min=93.95ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=162.09ms min=162.03ms
+    q3: 3rd=365.42ms min=365.42ms
+    q5: 3rd=222.72ms min=221.89ms
+    q6: 3rd=801.39ms min=798.02ms
+    q7: 3rd=313.17ms min=306.29ms
+    q9: 3rd=91.84ms min=91.84ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=22.00ms min=22.00ms
+    q3: 3rd=119.00ms min=113.00ms
+    q5: 3rd=25.00ms min=24.00ms
+    q6: 3rd=36.00ms min=35.00ms
+    q7: 3rd=98.00ms min=90.00ms
+    q9: 3rd=76.00ms min=76.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=23.00ms min=22.00ms
+    q3: 3rd=115.00ms min=115.00ms
+    q5: 3rd=25.00ms min=24.00ms
+    q6: 3rd=36.00ms min=35.00ms
+    q7: 3rd=97.00ms min=87.00ms
+    q9: 3rd=77.00ms min=76.00ms
+
+######################################################################
+# TIMING: pl300w_sm600 (07:30:13)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1: 3rd=76.06ms min=76.01ms
+    q3: 3rd=28.27ms min=28.27ms
+    q6: 3rd=14.57ms min=14.56ms
+    q9: 3rd=75.12ms min=75.12ms
+    q13: 3rd=332.45ms min=332.45ms
+    q16: 3rd=78.43ms min=78.41ms
+
+  --- maximus/tpch/sf10/cpu ---
+    q1: 3rd=110.35ms min=110.35ms
+    q3: 3rd=45.08ms min=45.08ms
+    q6: 3rd=26.51ms min=26.51ms
+    q9: 3rd=312.43ms min=312.43ms
+    q13: 3rd=354.37ms min=354.30ms
+    q16: 3rd=176.75ms min=176.64ms
+
+  --- sirius/tpch/sf10/gpu ---
+    q1: 3rd=167.00ms min=167.00ms
+    q3: 3rd=57.00ms min=56.00ms
+    q6: 3rd=8.00ms min=8.00ms
+    q9: 3rd=830.00ms min=824.00ms
+    q13: 3rd=111.00ms min=111.00ms
+    q16: 3rd=132.00ms min=132.00ms
+
+  --- sirius/tpch/sf10/cpu ---
+    q1: 3rd=170.00ms min=167.00ms
+    q3: 3rd=57.00ms min=57.00ms
+    q6: 3rd=8.00ms min=8.00ms
+    q9: 3rd=835.00ms min=834.00ms
+    q13: 3rd=111.00ms min=111.00ms
+    q16: 3rd=132.00ms min=132.00ms
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1: 3rd=46.28ms min=46.28ms
+    q3: 3rd=100.69ms min=100.69ms
+    q5: 3rd=26.14ms min=26.14ms
+    q6: 3rd=754.10ms min=754.09ms
+    q7: 3rd=78.06ms min=78.06ms
+    q9: 3rd=124.76ms min=124.76ms
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1: 3rd=181.89ms min=181.57ms
+    q3: 3rd=393.60ms min=393.60ms
+    q5: 3rd=234.96ms min=234.96ms
+    q6: 3rd=924.51ms min=923.95ms
+    q7: 3rd=329.96ms min=329.55ms
+    q9: 3rd=156.75ms min=156.75ms
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1: 3rd=38.00ms min=38.00ms
+    q3: 3rd=141.00ms min=141.00ms
+    q5: 3rd=38.00ms min=38.00ms
+    q6: 3rd=56.00ms min=56.00ms
+    q7: 3rd=108.00ms min=108.00ms
+    q9: 3rd=119.00ms min=118.00ms
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1: 3rd=39.00ms min=38.00ms
+    q3: 3rd=141.00ms min=132.00ms
+    q5: 3rd=38.00ms min=38.00ms
+    q6: 3rd=56.00ms min=55.00ms
+    q7: 3rd=109.00ms min=104.00ms
+    q9: 3rd=117.00ms min=117.00ms
+
+[SAVED] /home/ubuntu/gpu_db/results/gh200_12sql_sweep/timing.csv (528 rows)
+
+======================================================================
+  PHASE 2: METRICS (sustained execution + energy)
+======================================================================
+
+######################################################################
+# METRICS: pl150w_smauto (07:35:24)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (72r)... 66.4ms P=148W E=9.824J u=98%
+    q3 (100r)... 32.6ms P=158W E=5.164J u=97%
+    q6 (100r)... 17.8ms P=160W E=2.852J u=97%
+    q9 (73r)... 70.1ms P=149W E=10.445J u=98%
+    q13 (17r)... 305.3ms P=148W E=45.332J u=99%
+    q16 (100r)... 43.2ms P=145W E=6.278J u=96%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (86r)... 52.5ms P=121W E=6.369J u=4%
+    q3 (100r)... 19.6ms P=120W E=2.352J u=1%
+    q6 (100r)... 12.2ms P=120W E=1.463J u=1%
+    q9 (19r)... 259.2ms P=120W E=31.228J u=2%
+    q13 (18r)... 280.3ms P=141W E=39.535J u=48%
+    q16 (41r)... 122.6ms P=125W E=15.378J u=7%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (36r)... 139.0ms P=146W E=20.311J u=95%
+    q3 (100r)... 38.0ms P=135W E=5.133J u=55%
+    q6 (100r)... 4.0ms P=127W E=0.507J u=29%
+    q9 (7r)... 785.0ms P=133W E=104.410J u=20%
+    q13 (52r)... 95.0ms P=147W E=13.923J u=93%
+    q16 (39r)... 125.0ms P=145W E=18.113J u=95%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (36r)... 140.0ms P=146W E=20.493J u=96%
+    q3 (100r)... 37.0ms P=135W E=4.992J u=55%
+    q6 (100r)... 5.0ms P=126W E=0.629J u=28%
+    q9 (7r)... 789.0ms P=133W E=104.895J u=20%
+    q13 (52r)... 95.0ms P=149W E=14.145J u=96%
+    q16 (39r)... 126.0ms P=145W E=18.332J u=94%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 31.0ms P=147W E=4.554J u=99%
+    q3 (51r)... 97.9ms P=178W E=17.403J u=92%
+    q5 (100r)... 34.4ms P=165W E=5.677J u=100%
+    q6 (6r)... 902.0ms P=169W E=152.198J u=99%
+    q7 (56r)... 85.9ms P=174W E=14.962J u=94%
+    q9 (34r)... 144.2ms P=154W E=22.169J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (33r)... 148.7ms P=121W E=17.932J u=1%
+    q3 (14r)... 359.5ms P=122W E=43.970J u=4%
+    q5 (24r)... 213.1ms P=120W E=25.676J u=1%
+    q6 (6r)... 987.9ms P=135W E=133.280J u=26%
+    q7 (17r)... 297.0ms P=122W E=36.261J u=4%
+    q9 (39r)... 127.1ms P=123W E=15.680J u=8%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 20.0ms P=136W E=2.717J u=56%
+    q3 (44r)... 98.0ms P=149W E=14.573J u=32%
+    q5 (100r)... 36.0ms P=145W E=5.236J u=93%
+    q6 (97r)... 45.0ms P=146W E=6.573J u=95%
+    q7 (56r)... 79.0ms P=147W E=11.601J u=42%
+    q9 (45r)... 110.0ms P=147W E=16.183J u=96%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 19.0ms P=136W E=2.582J u=57%
+    q3 (48r)... 106.0ms P=149W E=15.784J u=31%
+    q5 (100r)... 35.0ms P=145W E=5.088J u=93%
+    q6 (100r)... 46.0ms P=146W E=6.739J u=96%
+    q7 (56r)... 81.0ms P=147W E=11.872J u=42%
+    q9 (45r)... 110.0ms P=147W E=16.174J u=96%
+
+######################################################################
+# METRICS: pl200w_smauto (07:53:04)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (100r)... 47.3ms P=174W E=8.248J u=98%
+    q3 (100r)... 15.8ms P=180W E=2.840J u=96%
+    q6 (100r)... 10.2ms P=186W E=1.899J u=96%
+    q9 (100r)... 42.0ms P=176W E=7.410J u=97%
+    q13 (27r)... 189.5ms P=189W E=35.850J u=98%
+    q16 (100r)... 33.3ms P=182W E=6.080J u=95%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (100r)... 45.1ms P=124W E=5.575J u=3%
+    q3 (100r)... 19.5ms P=121W E=2.360J u=1%
+    q6 (100r)... 12.2ms P=120W E=1.464J u=1%
+    q9 (20r)... 258.0ms P=122W E=31.380J u=1%
+    q13 (29r)... 173.0ms P=148W E=25.646J u=27%
+    q16 (41r)... 123.0ms P=129W E=15.830J u=7%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (49r)... 97.0ms P=181W E=17.552J u=96%
+    q3 (100r)... 27.0ms P=151W E=4.085J u=46%
+    q6 (100r)... 4.0ms P=134W E=0.536J u=23%
+    q9 (7r)... 723.0ms P=138W E=100.069J u=13%
+    q13 (65r)... 73.0ms P=171W E=12.459J u=95%
+    q16 (65r)... 79.0ms P=182W E=14.377J u=92%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (52r)... 96.0ms P=179W E=17.226J u=95%
+    q3 (100r)... 25.0ms P=150W E=3.753J u=47%
+    q6 (100r)... 4.0ms P=135W E=0.540J u=26%
+    q9 (7r)... 723.0ms P=139W E=100.538J u=11%
+    q13 (65r)... 68.0ms P=171W E=11.605J u=95%
+    q16 (63r)... 65.0ms P=173W E=11.266J u=79%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 23.3ms P=174W E=4.067J u=99%
+    q3 (58r)... 87.0ms P=190W E=16.502J u=91%
+    q5 (100r)... 20.9ms P=186W E=3.904J u=99%
+    q6 (8r)... 661.9ms P=196W E=129.457J u=99%
+    q7 (74r)... 68.5ms P=193W E=13.194J u=92%
+    q9 (61r)... 82.1ms P=189W E=15.475J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (33r)... 149.1ms P=121W E=18.112J u=1%
+    q3 (14r)... 345.8ms P=123W E=42.651J u=4%
+    q5 (24r)... 217.2ms P=122W E=26.394J u=1%
+    q6 (7r)... 768.4ms P=140W E=107.698J u=22%
+    q7 (18r)... 291.8ms P=123W E=35.892J u=3%
+    q9 (67r)... 72.5ms P=126W E=9.148J u=5%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 15.0ms P=156W E=2.342J u=51%
+    q3 (46r)... 103.0ms P=157W E=16.195J u=29%
+    q5 (100r)... 22.0ms P=166W E=3.660J u=62%
+    q6 (100r)... 32.0ms P=188W E=6.020J u=91%
+    q7 (65r)... 78.0ms P=158W E=12.295J u=31%
+    q9 (69r)... 72.0ms P=186W E=13.412J u=94%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 15.0ms P=157W E=2.359J u=52%
+    q3 (41r)... 100.0ms P=155W E=15.540J u=28%
+    q5 (100r)... 21.0ms P=167W E=3.500J u=61%
+    q6 (100r)... 32.0ms P=190W E=6.077J u=93%
+    q7 (62r)... 74.0ms P=161W E=11.915J u=35%
+    q9 (69r)... 72.0ms P=186W E=13.422J u=94%
+
+######################################################################
+# METRICS: pl250w_smauto (08:11:45)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (100r)... 34.2ms P=224W E=7.655J u=97%
+    q3 (100r)... 13.5ms P=219W E=2.956J u=95%
+    q6 (100r)... 7.1ms P=210W E=1.491J u=95%
+    q9 (100r)... 31.1ms P=226W E=7.020J u=96%
+    q13 (33r)... 153.0ms P=232W E=35.503J u=98%
+    q16 (100r)... 29.5ms P=227W E=6.686J u=93%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (100r)... 44.9ms P=125W E=5.597J u=3%
+    q3 (100r)... 19.6ms P=121W E=2.374J u=1%
+    q6 (100r)... 12.2ms P=120W E=1.464J u=1%
+    q9 (20r)... 260.5ms P=122W E=31.715J u=1%
+    q13 (33r)... 149.9ms P=160W E=23.927J u=25%
+    q16 (41r)... 124.0ms P=130W E=16.142J u=6%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (63r)... 78.0ms P=229W E=17.830J u=94%
+    q3 (100r)... 24.0ms P=159W E=3.817J u=42%
+    q6 (100r)... 3.0ms P=138W E=0.413J u=20%
+    q9 (8r)... 687.0ms P=145W E=99.323J u=8%
+    q13 (93r)... 54.0ms P=225W E=12.141J u=94%
+    q16 (80r)... 63.0ms P=212W E=13.363J u=76%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (62r)... 78.0ms P=228W E=17.819J u=94%
+    q3 (100r)... 24.0ms P=161W E=3.863J u=42%
+    q6 (100r)... 3.0ms P=135W E=0.405J u=21%
+    q9 (8r)... 688.0ms P=144W E=99.284J u=10%
+    q13 (90r)... 53.0ms P=196W E=10.371J u=69%
+    q16 (80r)... 62.0ms P=212W E=13.156J u=75%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 18.6ms P=222W E=4.112J u=99%
+    q3 (80r)... 60.9ms P=229W E=13.930J u=87%
+    q5 (100r)... 13.0ms P=221W E=2.865J u=99%
+    q6 (11r)... 493.2ms P=232W E=114.181J u=100%
+    q7 (100r)... 45.3ms P=236W E=10.694J u=89%
+    q9 (83r)... 61.9ms P=224W E=13.896J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (33r)... 149.5ms P=122W E=18.209J u=1%
+    q3 (15r)... 346.7ms P=125W E=43.199J u=3%
+    q5 (23r)... 219.0ms P=122W E=26.630J u=1%
+    q6 (8r)... 631.3ms P=154W E=97.527J u=26%
+    q7 (18r)... 288.4ms P=124W E=35.884J u=2%
+    q9 (76r)... 61.8ms P=129W E=7.955J u=5%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 14.0ms P=171W E=2.399J u=48%
+    q3 (48r)... 94.0ms P=172W E=16.191J u=26%
+    q5 (100r)... 19.0ms P=188W E=3.581J u=57%
+    q6 (100r)... 28.0ms P=229W E=6.405J u=91%
+    q7 (65r)... 71.0ms P=180W E=12.768J u=32%
+    q9 (80r)... 61.0ms P=207W E=12.652J u=72%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 14.0ms P=173W E=2.428J u=46%
+    q3 (48r)... 93.0ms P=170W E=15.809J u=27%
+    q5 (100r)... 17.0ms P=185W E=3.148J u=57%
+    q6 (100r)... 28.0ms P=202W E=5.650J u=68%
+    q7 (66r)... 72.0ms P=181W E=13.030J u=33%
+    q9 (81r)... 61.0ms P=207W E=12.651J u=71%
+
+######################################################################
+# METRICS: pl300w_smauto (08:30:33)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (100r)... 30.9ms P=261W E=8.065J u=97%
+    q3 (100r)... 12.1ms P=256W E=3.111J u=94%
+    q6 (100r)... 6.3ms P=241W E=1.514J u=95%
+    q9 (100r)... 30.2ms P=263W E=7.935J u=96%
+    q13 (37r)... 138.1ms P=274W E=37.768J u=98%
+    q16 (100r)... 27.5ms P=260W E=7.151J u=93%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (100r)... 45.1ms P=125W E=5.651J u=3%
+    q3 (100r)... 19.7ms P=121W E=2.378J u=1%
+    q6 (100r)... 12.2ms P=120W E=1.464J u=1%
+    q9 (20r)... 257.4ms P=122W E=31.360J u=2%
+    q13 (35r)... 140.6ms P=168W E=23.664J u=22%
+    q16 (42r)... 123.7ms P=132W E=16.284J u=6%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (68r)... 72.0ms P=264W E=18.999J u=94%
+    q3 (100r)... 22.0ms P=225W E=4.945J u=76%
+    q6 (100r)... 3.0ms P=138W E=0.413J u=20%
+    q9 (8r)... 678.0ms P=148W E=100.501J u=8%
+    q13 (100r)... 49.0ms P=264W E=12.957J u=92%
+    q16 (87r)... 58.0ms P=231W E=13.398J u=74%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (71r)... 71.0ms P=264W E=18.745J u=93%
+    q3 (100r)... 22.0ms P=174W E=3.824J u=40%
+    q6 (100r)... 3.0ms P=141W E=0.422J u=19%
+    q9 (8r)... 679.0ms P=148W E=100.616J u=8%
+    q13 (100r)... 48.0ms P=266W E=12.769J u=93%
+    q16 (85r)... 58.0ms P=232W E=13.464J u=74%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 17.0ms P=250W E=4.248J u=99%
+    q3 (85r)... 58.2ms P=275W E=15.986J u=87%
+    q5 (100r)... 11.6ms P=252W E=2.928J u=99%
+    q6 (13r)... 408.2ms P=273W E=111.334J u=99%
+    q7 (100r)... 43.2ms P=274W E=11.825J u=87%
+    q9 (93r)... 53.4ms P=271W E=14.483J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (33r)... 149.3ms P=122W E=18.227J u=1%
+    q3 (15r)... 348.3ms P=125W E=43.546J u=3%
+    q5 (24r)... 215.7ms P=122W E=26.273J u=1%
+    q6 (9r)... 557.1ms P=149W E=83.059J u=16%
+    q7 (18r)... 291.8ms P=125W E=36.509J u=3%
+    q9 (80r)... 61.5ms P=130W E=8.001J u=4%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 14.0ms P=184W E=2.570J u=44%
+    q3 (50r)... 93.0ms P=179W E=16.603J u=25%
+    q5 (100r)... 17.0ms P=209W E=3.557J u=55%
+    q6 (100r)... 25.0ms P=269W E=6.715J u=89%
+    q7 (66r)... 72.0ms P=191W E=13.734J u=32%
+    q9 (88r)... 56.0ms P=283W E=15.844J u=93%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 14.0ms P=185W E=2.584J u=45%
+    q3 (48r)... 93.0ms P=180W E=16.733J u=25%
+    q5 (100r)... 17.0ms P=206W E=3.499J u=55%
+    q6 (100r)... 25.0ms P=273W E=6.820J u=92%
+    q7 (66r)... 72.0ms P=191W E=13.761J u=33%
+    q9 (90r)... 56.0ms P=283W E=15.858J u=92%
+
+######################################################################
+# METRICS: pl400w_smauto (08:49:34)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (100r)... 27.9ms P=318W E=8.862J u=96%
+    q3 (100r)... 10.3ms P=308W E=3.170J u=94%
+    q6 (100r)... 5.2ms P=281W E=1.477J u=93%
+    q9 (100r)... 25.8ms P=329W E=8.496J u=95%
+    q13 (43r)... 118.7ms P=356W E=42.238J u=98%
+    q16 (100r)... 27.1ms P=284W E=7.673J u=92%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (100r)... 45.0ms P=126W E=5.678J u=3%
+    q3 (100r)... 19.7ms P=121W E=2.380J u=1%
+    q6 (100r)... 12.2ms P=120W E=1.467J u=1%
+    q9 (20r)... 259.3ms P=122W E=31.526J u=2%
+    q13 (40r)... 125.5ms P=204W E=25.612J u=29%
+    q16 (42r)... 121.0ms P=133W E=16.031J u=6%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (79r)... 64.0ms P=331W E=21.158J u=92%
+    q3 (100r)... 21.0ms P=173W E=3.639J u=40%
+    q6 (100r)... 3.0ms P=141W E=0.423J u=18%
+    q9 (8r)... 672.0ms P=154W E=103.446J u=7%
+    q13 (100r)... 44.0ms P=327W E=14.405J u=91%
+    q16 (97r)... 52.0ms P=277W E=14.419J u=72%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (77r)... 64.0ms P=329W E=21.073J u=92%
+    q3 (100r)... 21.0ms P=171W E=3.599J u=38%
+    q6 (100r)... 3.0ms P=141W E=0.423J u=22%
+    q9 (8r)... 671.0ms P=154W E=103.163J u=7%
+    q13 (100r)... 44.0ms P=262W E=11.548J u=64%
+    q16 (97r)... 51.0ms P=174W E=8.897J u=24%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 15.6ms P=288W E=4.493J u=99%
+    q3 (87r)... 56.7ms P=335W E=18.992J u=87%
+    q5 (100r)... 10.2ms P=305W E=3.109J u=98%
+    q6 (15r)... 337.7ms P=350W E=118.016J u=99%
+    q7 (100r)... 41.7ms P=340W E=14.199J u=87%
+    q9 (100r)... 46.4ms P=355W E=16.489J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (34r)... 151.3ms P=123W E=18.569J u=1%
+    q3 (15r)... 344.9ms P=126W E=43.500J u=3%
+    q5 (24r)... 215.1ms P=122W E=26.172J u=1%
+    q6 (11r)... 497.4ms P=161W E=80.308J u=15%
+    q7 (18r)... 286.6ms P=126W E=36.150J u=3%
+    q9 (83r)... 59.9ms P=132W E=7.925J u=4%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 14.0ms P=186W E=2.604J u=45%
+    q3 (49r)... 91.0ms P=192W E=17.492J u=26%
+    q5 (100r)... 16.0ms P=243W E=3.892J u=51%
+    q6 (100r)... 25.0ms P=262W E=6.557J u=65%
+    q7 (65r)... 71.0ms P=206W E=14.645J u=32%
+    q9 (91r)... 55.0ms P=333W E=18.315J u=91%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 14.0ms P=185W E=2.591J u=45%
+    q3 (55r)... 100.0ms P=193W E=19.269J u=25%
+    q5 (100r)... 16.0ms P=237W E=3.786J u=52%
+    q6 (100r)... 25.0ms P=263W E=6.581J u=63%
+    q7 (65r)... 71.0ms P=250W E=17.762J u=48%
+    q9 (91r)... 55.0ms P=332W E=18.264J u=91%
+
+######################################################################
+# METRICS: pl900w_smauto (09:08:50)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (100r)... 27.7ms P=324W E=8.974J u=96%
+    q3 (100r)... 10.2ms P=316W E=3.231J u=94%
+    q6 (100r)... 5.1ms P=296W E=1.503J u=94%
+    q9 (100r)... 25.6ms P=343W E=8.766J u=96%
+    q13 (46r)... 110.3ms P=434W E=47.914J u=98%
+    q16 (100r)... 27.0ms P=285W E=7.708J u=92%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (100r)... 45.1ms P=126W E=5.684J u=3%
+    q3 (100r)... 19.6ms P=121W E=2.366J u=1%
+    q6 (100r)... 12.2ms P=120W E=1.473J u=1%
+    q9 (20r)... 262.5ms P=122W E=31.972J u=1%
+    q13 (41r)... 123.4ms P=194W E=23.892J u=23%
+    q16 (41r)... 123.7ms P=132W E=16.339J u=6%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (79r)... 63.0ms P=349W E=21.956J u=93%
+    q3 (100r)... 21.0ms P=172W E=3.605J u=39%
+    q6 (100r)... 3.0ms P=140W E=0.421J u=18%
+    q9 (8r)... 671.0ms P=155W E=104.115J u=7%
+    q13 (100r)... 43.0ms P=274W E=11.765J u=63%
+    q16 (99r)... 50.0ms P=286W E=14.298J u=71%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (80r)... 63.0ms P=274W E=17.245J u=63%
+    q3 (100r)... 21.0ms P=175W E=3.681J u=39%
+    q6 (100r)... 3.0ms P=141W E=0.423J u=21%
+    q9 (8r)... 672.0ms P=155W E=104.484J u=6%
+    q13 (100r)... 43.0ms P=273W E=11.722J u=63%
+    q16 (99r)... 51.0ms P=327W E=16.689J u=86%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 15.6ms P=294W E=4.586J u=99%
+    q3 (87r)... 57.6ms P=336W E=19.329J u=86%
+    q5 (100r)... 9.6ms P=355W E=3.401J u=98%
+    q6 (16r)... 326.5ms P=437W E=142.618J u=99%
+    q7 (100r)... 42.2ms P=348W E=14.692J u=86%
+    q9 (100r)... 43.9ms P=434W E=19.046J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (33r)... 150.5ms P=124W E=18.601J u=1%
+    q3 (15r)... 345.3ms P=126W E=43.608J u=3%
+    q5 (24r)... 214.7ms P=122W E=26.159J u=1%
+    q6 (11r)... 491.2ms P=171W E=83.945J u=15%
+    q7 (18r)... 291.2ms P=126W E=36.804J u=3%
+    q9 (82r)... 60.1ms P=133W E=7.989J u=4%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 14.0ms P=186W E=2.598J u=44%
+    q3 (49r)... 93.0ms P=191W E=17.750J u=24%
+    q5 (100r)... 16.0ms P=238W E=3.803J u=51%
+    q6 (100r)... 25.0ms P=320W E=7.995J u=90%
+    q7 (66r)... 71.0ms P=208W E=14.766J u=32%
+    q9 (91r)... 55.0ms P=337W E=18.519J u=92%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 14.0ms P=186W E=2.608J u=46%
+    q3 (50r)... 92.0ms P=194W E=17.849J u=26%
+    q5 (100r)... 16.0ms P=242W E=3.872J u=50%
+    q6 (100r)... 25.0ms P=264W E=6.592J u=65%
+    q7 (65r)... 71.0ms P=207W E=14.731J u=32%
+    q9 (91r)... 54.0ms P=340W E=18.346J u=92%
+
+######################################################################
+# METRICS: pl900w_sm600 (09:28:11)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (66r)... 75.8ms P=134W E=10.186J u=98%
+    q3 (100r)... 28.2ms P=146W E=4.116J u=97%
+    q6 (100r)... 14.5ms P=145W E=2.099J u=96%
+    q9 (67r)... 75.2ms P=135W E=10.179J u=98%
+    q13 (16r)... 332.3ms P=130W E=43.177J u=99%
+    q16 (64r)... 78.2ms P=113W E=8.847J u=97%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (46r)... 110.5ms P=78W E=8.641J u=7%
+    q3 (100r)... 45.1ms P=75W E=3.396J u=3%
+    q6 (100r)... 26.4ms P=75W E=1.977J u=2%
+    q9 (17r)... 313.2ms P=76W E=23.765J u=4%
+    q13 (15r)... 353.8ms P=97W E=34.422J u=36%
+    q16 (29r)... 177.6ms P=80W E=14.251J u=15%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (30r)... 165.0ms P=115W E=18.946J u=66%
+    q3 (88r)... 56.0ms P=105W E=5.888J u=65%
+    q6 (100r)... 8.0ms P=90W E=0.721J u=43%
+    q9 (7r)... 832.0ms P=96W E=79.753J u=24%
+    q13 (46r)... 111.0ms P=125W E=13.874J u=77%
+    q16 (38r)... 132.0ms P=132W E=17.440J u=83%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (30r)... 165.0ms P=115W E=18.922J u=67%
+    q3 (90r)... 56.0ms P=105W E=5.893J u=62%
+    q6 (100r)... 8.0ms P=91W E=0.730J u=42%
+    q9 (7r)... 831.0ms P=96W E=79.669J u=25%
+    q13 (46r)... 111.0ms P=125W E=13.925J u=76%
+    q16 (39r)... 132.0ms P=132W E=17.446J u=83%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 46.2ms P=131W E=6.042J u=99%
+    q3 (50r)... 100.5ms P=160W E=16.036J u=93%
+    q5 (100r)... 26.1ms P=160W E=4.166J u=99%
+    q6 (7r)... 753.7ms P=162W E=122.211J u=99%
+    q7 (65r)... 77.5ms P=165W E=12.779J u=93%
+    q9 (40r)... 122.7ms P=145W E=17.804J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (28r)... 184.4ms P=76W E=14.012J u=3%
+    q3 (13r)... 399.4ms P=80W E=31.799J u=5%
+    q5 (21r)... 242.4ms P=76W E=18.450J u=2%
+    q6 (6r)... 923.4ms P=100W E=92.622J u=24%
+    q7 (15r)... 335.1ms P=79W E=26.417J u=4%
+    q9 (33r)... 155.9ms P=81W E=12.697J u=9%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 38.0ms P=103W E=3.924J u=71%
+    q3 (35r)... 132.0ms P=114W E=15.023J u=36%
+    q5 (100r)... 38.0ms P=127W E=4.823J u=72%
+    q6 (91r)... 55.0ms P=128W E=7.024J u=80%
+    q7 (49r)... 109.0ms P=120W E=13.053J u=41%
+    q9 (43r)... 117.0ms P=126W E=14.701J u=74%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 38.0ms P=103W E=3.922J u=70%
+    q3 (38r)... 138.0ms P=115W E=15.936J u=38%
+    q5 (100r)... 38.0ms P=127W E=4.819J u=72%
+    q6 (91r)... 55.0ms P=128W E=7.030J u=79%
+    q7 (47r)... 103.0ms P=122W E=12.578J u=44%
+    q9 (43r)... 117.0ms P=126W E=14.778J u=74%
+
+######################################################################
+# METRICS: pl900w_sm1110 (09:45:09)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (100r)... 42.9ms P=179W E=7.666J u=97%
+    q3 (100r)... 16.1ms P=182W E=2.929J u=95%
+    q6 (100r)... 8.2ms P=177W E=1.449J u=94%
+    q9 (100r)... 42.1ms P=181W E=7.614J u=97%
+    q13 (28r)... 183.3ms P=182W E=33.296J u=98%
+    q16 (100r)... 44.1ms P=145W E=6.403J u=95%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (77r)... 65.5ms P=82W E=5.353J u=4%
+    q3 (100r)... 27.5ms P=79W E=2.165J u=2%
+    q6 (100r)... 16.6ms P=78W E=1.297J u=1%
+    q9 (19r)... 274.1ms P=79W E=21.739J u=2%
+    q13 (26r)... 197.5ms P=111W E=21.959J u=28%
+    q16 (37r)... 138.6ms P=85W E=11.733J u=8%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (52r)... 95.0ms P=144W E=13.645J u=64%
+    q3 (100r)... 33.0ms P=113W E=3.732J u=50%
+    q6 (100r)... 5.0ms P=92W E=0.461J u=31%
+    q9 (7r)... 728.0ms P=101W E=73.407J u=13%
+    q13 (80r)... 63.0ms P=156W E=9.850J u=70%
+    q16 (66r)... 77.0ms P=143W E=11.004J u=58%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (53r)... 95.0ms P=175W E=16.616J u=94%
+    q3 (100r)... 33.0ms P=113W E=3.729J u=52%
+    q6 (100r)... 5.0ms P=92W E=0.462J u=30%
+    q9 (7r)... 725.0ms P=101W E=73.478J u=14%
+    q13 (80r)... 63.0ms P=156W E=9.831J u=70%
+    q16 (65r)... 77.0ms P=166W E=12.744J u=79%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 25.8ms P=164W E=4.233J u=99%
+    q3 (79r)... 63.7ms P=212W E=13.493J u=88%
+    q5 (100r)... 14.8ms P=202W E=2.987J u=99%
+    q6 (12r)... 425.8ms P=232W E=98.818J u=100%
+    q7 (100r)... 47.4ms P=222W E=10.494J u=89%
+    q9 (72r)... 68.5ms P=205W E=14.034J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (32r)... 159.4ms P=80W E=12.679J u=2%
+    q3 (15r)... 353.1ms P=83W E=29.202J u=3%
+    q5 (23r)... 224.6ms P=79W E=17.788J u=2%
+    q6 (9r)... 594.4ms P=108W E=64.195J u=17%
+    q7 (18r)... 294.0ms P=82W E=24.251J u=3%
+    q9 (56r)... 89.5ms P=85W E=7.622J u=6%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 22.0ms P=115W E=2.521J u=58%
+    q3 (48r)... 100.0ms P=127W E=12.702J u=28%
+    q5 (100r)... 23.0ms P=144W E=3.314J u=62%
+    q6 (100r)... 35.0ms P=152W E=5.310J u=72%
+    q7 (66r)... 76.0ms P=138W E=10.477J u=34%
+    q9 (67r)... 75.0ms P=179W E=13.421J u=94%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 22.0ms P=115W E=2.532J u=58%
+    q3 (46r)... 98.0ms P=126W E=12.365J u=28%
+    q5 (100r)... 23.0ms P=144W E=3.317J u=62%
+    q6 (100r)... 35.0ms P=151W E=5.294J u=72%
+    q7 (61r)... 76.0ms P=137W E=10.384J u=34%
+    q9 (66r)... 75.0ms P=180W E=13.480J u=94%
+
+######################################################################
+# METRICS: pl900w_sm1980 (10:03:14)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (100r)... 29.1ms P=319W E=9.284J u=96%
+    q3 (100r)... 10.8ms P=313W E=3.372J u=94%
+    q6 (100r)... 5.4ms P=294W E=1.578J u=94%
+    q9 (100r)... 27.2ms P=337W E=9.153J u=96%
+    q13 (43r)... 116.7ms P=419W E=48.919J u=98%
+    q16 (100r)... 28.7ms P=279W E=7.992J u=93%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (100r)... 46.8ms P=126W E=5.901J u=3%
+    q3 (100r)... 20.3ms P=121W E=2.445J u=1%
+    q6 (100r)... 12.5ms P=120W E=1.506J u=1%
+    q9 (19r)... 262.5ms P=122W E=31.937J u=2%
+    q13 (39r)... 129.1ms P=193W E=24.939J u=22%
+    q16 (41r)... 122.5ms P=133W E=16.265J u=7%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (76r)... 66.0ms P=334W E=22.073J u=92%
+    q3 (100r)... 22.0ms P=176W E=3.871J u=40%
+    q6 (100r)... 3.0ms P=142W E=0.426J u=23%
+    q9 (8r)... 677.0ms P=156W E=105.401J u=9%
+    q13 (100r)... 45.0ms P=340W E=15.292J u=93%
+    q16 (97r)... 53.0ms P=286W E=15.137J u=71%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (75r)... 66.0ms P=265W E=17.473J u=62%
+    q3 (100r)... 22.0ms P=173W E=3.801J u=40%
+    q6 (100r)... 3.0ms P=141W E=0.424J u=20%
+    q9 (8r)... 672.0ms P=155W E=104.319J u=10%
+    q13 (100r)... 45.0ms P=338W E=15.196J u=92%
+    q16 (95r)... 53.0ms P=285W E=15.095J u=70%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 16.6ms P=290W E=4.798J u=99%
+    q3 (87r)... 57.1ms P=338W E=19.314J u=87%
+    q5 (100r)... 10.0ms P=351W E=3.507J u=98%
+    q6 (16r)... 330.9ms P=433W E=143.294J u=100%
+    q7 (100r)... 42.1ms P=349W E=14.672J u=87%
+    q9 (100r)... 45.7ms P=426W E=19.475J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (33r)... 151.2ms P=123W E=18.674J u=1%
+    q3 (15r)... 345.3ms P=126W E=43.521J u=3%
+    q5 (24r)... 215.1ms P=121W E=26.101J u=1%
+    q6 (11r)... 496.0ms P=170W E=84.420J u=15%
+    q7 (18r)... 288.9ms P=126W E=36.367J u=2%
+    q9 (81r)... 61.3ms P=133W E=8.147J u=4%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 14.0ms P=185W E=2.587J u=46%
+    q3 (50r)... 92.0ms P=197W E=18.082J u=27%
+    q5 (100r)... 17.0ms P=238W E=4.048J u=53%
+    q6 (100r)... 25.0ms P=262W E=6.554J u=65%
+    q7 (71r)... 71.0ms P=211W E=14.981J u=33%
+    q9 (91r)... 55.0ms P=339W E=18.670J u=93%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 14.0ms P=190W E=2.664J u=46%
+    q3 (49r)... 94.0ms P=193W E=18.140J u=25%
+    q5 (100r)... 17.0ms P=240W E=4.073J u=53%
+    q6 (100r)... 25.0ms P=264W E=6.606J u=64%
+    q7 (67r)... 72.0ms P=210W E=15.108J u=32%
+    q9 (91r)... 55.0ms P=337W E=18.517J u=92%
+
+######################################################################
+# METRICS: pl200w_sm1110 (10:22:24)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (97r)... 44.8ms P=160W E=7.181J u=98%
+    q3 (100r)... 16.6ms P=163W E=2.709J u=96%
+    q6 (100r)... 10.4ms P=162W E=1.687J u=96%
+    q9 (85r)... 44.3ms P=159W E=7.038J u=98%
+    q13 (27r)... 187.7ms P=174W E=32.707J u=99%
+    q16 (100r)... 44.1ms P=144W E=6.371J u=95%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (77r)... 65.5ms P=82W E=5.352J u=4%
+    q3 (100r)... 27.5ms P=79W E=2.161J u=2%
+    q6 (100r)... 16.5ms P=78W E=1.292J u=1%
+    q9 (19r)... 280.0ms P=79W E=22.201J u=2%
+    q13 (26r)... 197.6ms P=111W E=21.851J u=28%
+    q16 (36r)... 140.5ms P=85W E=11.903J u=9%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (46r)... 111.0ms P=134W E=14.839J u=67%
+    q3 (100r)... 33.0ms P=113W E=3.713J u=52%
+    q6 (100r)... 5.0ms P=92W E=0.461J u=31%
+    q9 (7r)... 742.0ms P=100W E=74.472J u=15%
+    q13 (65r)... 72.0ms P=146W E=10.532J u=76%
+    q16 (64r)... 82.0ms P=159W E=13.022J u=81%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (44r)... 104.0ms P=134W E=13.901J u=65%
+    q3 (100r)... 33.0ms P=113W E=3.737J u=53%
+    q6 (100r)... 5.0ms P=93W E=0.467J u=30%
+    q9 (7r)... 739.0ms P=101W E=74.283J u=15%
+    q13 (65r)... 69.0ms P=146W E=10.075J u=76%
+    q16 (62r)... 82.0ms P=133W E=10.886J u=54%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 25.8ms P=153W E=3.944J u=99%
+    q3 (59r)... 85.7ms P=177W E=15.163J u=91%
+    q5 (100r)... 17.7ms P=168W E=2.987J u=99%
+    q6 (8r)... 667.7ms P=182W E=121.337J u=100%
+    q7 (74r)... 67.0ms P=181W E=12.092J u=92%
+    q9 (54r)... 84.9ms P=174W E=14.817J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (31r)... 160.0ms P=79W E=12.721J u=2%
+    q3 (14r)... 366.3ms P=83W E=30.356J u=4%
+    q5 (23r)... 221.0ms P=80W E=17.571J u=1%
+    q6 (7r)... 791.6ms P=106W E=83.707J u=23%
+    q7 (17r)... 294.1ms P=82W E=24.168J u=3%
+    q9 (55r)... 89.3ms P=85W E=7.616J u=6%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 21.0ms P=116W E=2.428J u=58%
+    q3 (45r)... 100.0ms P=125W E=12.469J u=32%
+    q5 (100r)... 23.0ms P=145W E=3.344J u=63%
+    q6 (100r)... 35.0ms P=152W E=5.308J u=73%
+    q7 (56r)... 77.0ms P=133W E=10.208J u=38%
+    q9 (66r)... 75.0ms P=155W E=11.593J u=73%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 21.0ms P=115W E=2.423J u=58%
+    q3 (44r)... 110.0ms P=123W E=13.534J u=31%
+    q5 (100r)... 23.0ms P=145W E=3.335J u=63%
+    q6 (100r)... 35.0ms P=152W E=5.320J u=73%
+    q7 (58r)... 76.0ms P=133W E=10.125J u=39%
+    q9 (66r)... 75.0ms P=154W E=11.586J u=73%
+
+######################################################################
+# METRICS: pl300w_sm600 (10:40:23)
+######################################################################
+
+  --- maximus/tpch/sf10/gpu ---
+    q1 (66r)... 75.8ms P=135W E=10.219J u=98%
+    q3 (100r)... 28.2ms P=146W E=4.128J u=98%
+    q6 (100r)... 14.5ms P=147W E=2.126J u=96%
+    q9 (67r)... 75.1ms P=135W E=10.165J u=98%
+    q13 (16r)... 332.3ms P=131W E=43.537J u=99%
+    q16 (64r)... 78.2ms P=114W E=8.919J u=97%
+
+  --- maximus/tpch/sf10/cpu ---
+    q1 (46r)... 110.5ms P=78W E=8.640J u=7%
+    q3 (100r)... 45.0ms P=75W E=3.389J u=2%
+    q6 (100r)... 26.5ms P=75W E=1.978J u=2%
+    q9 (17r)... 308.1ms P=76W E=23.307J u=4%
+    q13 (15r)... 353.9ms P=97W E=34.350J u=36%
+    q16 (29r)... 175.5ms P=80W E=14.097J u=14%
+
+  --- sirius/tpch/sf10/gpu ---
+    q1 (30r)... 165.0ms P=115W E=18.930J u=66%
+    q3 (90r)... 57.0ms P=105W E=5.984J u=65%
+    q6 (100r)... 8.0ms P=92W E=0.736J u=41%
+    q9 (7r)... 826.0ms P=96W E=79.478J u=24%
+    q13 (46r)... 111.0ms P=125W E=13.901J u=77%
+    q16 (38r)... 131.0ms P=138W E=18.025J u=91%
+
+  --- sirius/tpch/sf10/cpu ---
+    q1 (30r)... 166.0ms P=115W E=19.138J u=67%
+    q3 (88r)... 57.0ms P=105W E=6.010J u=66%
+    q6 (100r)... 8.0ms P=93W E=0.742J u=42%
+    q9 (6r)... 833.0ms P=96W E=80.038J u=25%
+    q13 (46r)... 111.0ms P=126W E=13.944J u=77%
+    q16 (38r)... 132.0ms P=131W E=17.346J u=83%
+
+  --- maximus/h2o/sf4gb/gpu ---
+    q1 (100r)... 46.2ms P=130W E=6.010J u=99%
+    q3 (50r)... 100.9ms P=161W E=16.207J u=92%
+    q5 (100r)... 26.1ms P=160W E=4.183J u=99%
+    q6 (7r)... 754.1ms P=161W E=121.787J u=99%
+    q7 (65r)... 77.7ms P=165W E=12.829J u=93%
+    q9 (41r)... 122.8ms P=146W E=17.954J u=99%
+
+  --- maximus/h2o/sf4gb/cpu ---
+    q1 (28r)... 183.9ms P=76W E=13.935J u=3%
+    q3 (13r)... 399.4ms P=79W E=31.673J u=5%
+    q5 (22r)... 240.0ms P=76W E=18.176J u=2%
+    q6 (6r)... 923.3ms P=100W E=92.474J u=24%
+    q7 (16r)... 330.5ms P=79W E=26.051J u=5%
+    q9 (32r)... 155.4ms P=81W E=12.659J u=10%
+
+  --- sirius/h2o/sf4gb/gpu ---
+    q1 (100r)... 38.0ms P=104W E=3.934J u=71%
+    q3 (36r)... 143.0ms P=112W E=15.956J u=35%
+    q5 (100r)... 37.0ms P=127W E=4.689J u=72%
+    q6 (90r)... 55.0ms P=128W E=7.023J u=79%
+    q7 (47r)... 104.0ms P=122W E=12.655J u=43%
+    q9 (43r)... 117.0ms P=126W E=14.777J u=74%
+
+  --- sirius/h2o/sf4gb/cpu ---
+    q1 (100r)... 38.0ms P=103W E=3.925J u=70%
+    q3 (38r)... 131.0ms P=116W E=15.163J u=38%
+    q5 (100r)... 37.0ms P=127W E=4.689J u=73%
+    q6 (91r)... 55.0ms P=128W E=7.023J u=79%
+    q7 (49r)... 104.0ms P=123W E=12.821J u=45%
+    q9 (43r)... 117.0ms P=126W E=14.713J u=74%
+
+[SAVED] /home/ubuntu/gpu_db/results/gh200_12sql_sweep/metrics.csv (528 rows)
+[SAVED] /home/ubuntu/gpu_db/results/gh200_12sql_sweep/samples.csv (179099 samples)
+
+======================================================================
+  COMPLETE: 2026-04-01 10:57:19.610580
+  Timing:  /home/ubuntu/gpu_db/results/gh200_12sql_sweep/timing.csv
+  Metrics: /home/ubuntu/gpu_db/results/gh200_12sql_sweep/metrics.csv
+  Samples: /home/ubuntu/gpu_db/results/gh200_12sql_sweep/samples.csv
+======================================================================
