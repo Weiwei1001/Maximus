@@ -113,9 +113,6 @@ set(maximus_src_files_cuda
     gpu/cudf/csv.cpp
     gpu/cudf/parquet.cpp
 
-    # gpu compression
-    gpu/compression/transfer_compressor.cpp
-
     # cudf operators
     operators/gpu/cudf/group_by_operator.cpp
     operators/gpu/cudf/order_by_operator.cpp

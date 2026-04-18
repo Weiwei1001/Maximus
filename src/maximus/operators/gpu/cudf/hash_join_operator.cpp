@@ -1,6 +1,7 @@
 #include <cudf/concatenate.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/join.hpp>
+#include <cudf/join/filtered_join.hpp>
+#include <cudf/join/join.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/utilities/default_stream.hpp>
 #include <maximus/gpu/cuda_api.hpp>
@@ -183,7 +184,9 @@ std::shared_ptr<::cudf::table> join_and_gather_right(
     return std::make_shared<::cudf::table>(std::move(joined_cols));
 }
 
-// cuDF 24.12: use free functions left_semi_join / left_anti_join
+// cuDF 26.x: left_semi_join / left_anti_join free functions were removed;
+// use cudf::filtered_join with the probe table as input. The build table
+// argument to filtered_join is the "filter" side.
 static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
     ::cudf::table_view const& left_input,
     ::cudf::table_view const& right_input,
@@ -193,9 +196,11 @@ static std::shared_ptr<::cudf::table> semi_join_and_gather_left_impl(
     bool anti) {
     auto left_keys  = left_input.select(left_key_indices);
     auto right_keys = right_input.select(right_key_indices);
-    auto left_join_indices = anti
-        ? ::cudf::left_anti_join(left_keys, right_keys, compare_nulls)
-        : ::cudf::left_semi_join(left_keys, right_keys, compare_nulls);
+    ::cudf::filtered_join fj(right_keys, compare_nulls,
+                             ::cudf::set_as_build_table::RIGHT,
+                             ::cudf::get_default_stream());
+    auto left_join_indices = anti ? fj.anti_join(left_keys)
+                                  : fj.semi_join(left_keys);
     return std::make_shared<::cudf::table>(
         gather_column(left_input, std::move(*left_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
@@ -209,10 +214,12 @@ static std::shared_ptr<::cudf::table> semi_join_and_gather_right_impl(
     bool anti) {
     auto left_keys  = left_input.select(left_key_indices);
     auto right_keys = right_input.select(right_key_indices);
-    // For right semi/anti, swap: treat right as left
-    auto right_join_indices = anti
-        ? ::cudf::left_anti_join(right_keys, left_keys, compare_nulls)
-        : ::cudf::left_semi_join(right_keys, left_keys, compare_nulls);
+    // For right semi/anti, swap sides: the left table is now the filter.
+    ::cudf::filtered_join fj(left_keys, compare_nulls,
+                             ::cudf::set_as_build_table::RIGHT,
+                             ::cudf::get_default_stream());
+    auto right_join_indices = anti ? fj.anti_join(right_keys)
+                                   : fj.semi_join(right_keys);
     return std::make_shared<::cudf::table>(
         gather_column(right_input, std::move(*right_join_indices), ::cudf::out_of_bounds_policy::DONT_CHECK));
 }
