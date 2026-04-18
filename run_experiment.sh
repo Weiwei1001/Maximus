@@ -13,10 +13,11 @@
 #   ClickBench:  1, 5, 10, 20   (SF = final CSV data size in GB)
 #
 # Usage:
-#   bash run_experiment.sh                 # full A + B
+#   bash run_experiment.sh                 # full A + B + C (energy sweep)
 #   bash run_experiment.sh --test          # quick smoke test
 #   bash run_experiment.sh --skip-setup    # assume setup already done
 #   bash run_experiment.sh --skip-data     # assume data already generated
+#   bash run_experiment.sh --skip-category-c   # only A + B
 #
 # Idempotent: safe to re-run after an interruption.
 # =============================================================================
@@ -27,12 +28,14 @@ MAXIMUS_DIR="$SCRIPT_DIR"
 
 SKIP_SETUP=0
 SKIP_DATA=0
+SKIP_CATEGORY_C=0
 TEST_FLAG=""
 
 for arg in "$@"; do
     case "$arg" in
         --skip-setup) SKIP_SETUP=1 ;;
         --skip-data) SKIP_DATA=1 ;;
+        --skip-category-c|--no-energy-sweep) SKIP_CATEGORY_C=1 ;;
         --test) TEST_FLAG="--test" ;;
         -h|--help)
             sed -n '2,22p' "$0"; exit 0 ;;
@@ -75,9 +78,14 @@ if [ "$SKIP_DATA" -eq 0 ] && [ -f "$MAXIMUS_DIR/benchmarks/data/generate_all.sh"
     }
 fi
 
-# ─── Phase 4: Category A + B experiments (skip C) ───────────────────────────
-banner "Phase 4: Category A + B experiments (energy sweep skipped)"
-bash "$MAXIMUS_DIR/benchmarks/scripts/run_all_benchmarks.sh" --skip-category-c $TEST_FLAG
+# ─── Phase 4: experiments (A + B, and optionally C) ─────────────────────────
+if [ "$SKIP_CATEGORY_C" -eq 1 ]; then
+    banner "Phase 4: Category A + B experiments (Category C skipped)"
+    bash "$MAXIMUS_DIR/benchmarks/scripts/run_all_benchmarks.sh" --skip-category-c $TEST_FLAG
+else
+    banner "Phase 4: Category A + B + C experiments (full run)"
+    bash "$MAXIMUS_DIR/benchmarks/scripts/run_all_benchmarks.sh" $TEST_FLAG
+fi
 
-banner "DONE — Category A + B experiments complete"
+banner "DONE — experiments complete"
 echo "Results: $MAXIMUS_DIR/results"

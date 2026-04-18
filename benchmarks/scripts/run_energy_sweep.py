@@ -31,21 +31,38 @@ from pathlib import Path
 # ── Constants ─────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-DEFAULT_POWER_LIMITS = [250, 275, 300, 325, 360, 450]
-DEFAULT_SM_CLOCKS = [600, 1200, 1800, 2400, 3090]
-DEFAULT_MEM_CLOCKS: list[int] = []  # empty = don't lock memory clocks
-DEFAULT_POWER_LIMIT = 360  # RTX 5080 default
 GPU_ID = "1"
+
+# Category C default: 5 SM clocks × 5 power limits = 25 configurations.
+#
+# * Power limits are NOT spread uniformly across the full [min_pl, max_pl]
+#   range. In practice DB workloads never burn max TDP in steady state,
+#   so we pin the top at the GPU default (TDP) and sample 4 more points
+#   linearly spaced from the hardware minimum up to default. This keeps
+#   the sweep in the region that actually reflects real energy trade-offs.
+# * SM clocks span the supported range linearly with 5 points.
+#
+# Both lists are built dynamically at runtime in `_build_default_sweep()`
+# from the GPU's own nvidia-smi-reported min/max clocks and power limits,
+# so the script works on any GPU without hard-coding 5080 / A100 etc.
+DEFAULT_POWER_LIMITS: list[int] = []   # resolved at runtime
+DEFAULT_SM_CLOCKS: list[int] = []      # resolved at runtime
+DEFAULT_MEM_CLOCKS: list[int] = []     # empty = don't lock memory clocks
+DEFAULT_POWER_LIMIT: int = 0           # resolved at runtime (TDP)
+_N_POWER_LIMITS = 5
+_N_SM_CLOCKS = 5
 
 MAXIMUS_BENCHMARKS = {
     "tpch": [1, 2],
     "h2o": ["1gb", "2gb"],
     "clickbench": [5],
+    "case_bench": [1],   # tiny queries; one SF is plenty for the energy sweep
 }
 SIRIUS_BENCHMARKS = {
     "tpch": [1, 2],
     "h2o": ["1gb", "2gb"],
     "clickbench": [5],
+    "case_bench": [1],
 }
 
 # Unified summary CSV columns
@@ -600,7 +617,46 @@ def parse_int_list(s: str) -> list[int]:
     return [int(x.strip()) for x in s.split(",")]
 
 
+def _build_default_sweep():
+    """Populate DEFAULT_POWER_LIMITS, DEFAULT_SM_CLOCKS and DEFAULT_POWER_LIMIT
+    from the GPU's reported min/max clocks and power envelope.
+
+    Power limits: `default (TDP)` plus 4 points linearly spaced between the
+    minimum power limit and TDP (inclusive, so the last of the 4 is also
+    the default — we dedupe). For TDP=300W, PL_min=100W this yields
+    [100, 150, 200, 250, 300].
+
+    SM clocks: 5 points linearly spaced from SM_min to SM_max.
+    """
+    global DEFAULT_POWER_LIMITS, DEFAULT_SM_CLOCKS, DEFAULT_POWER_LIMIT
+    import hw_detect  # local import so module-level import cycle stays clean
+    info = hw_detect.detect_gpu()
+    pl_min = int(info.get("power_min_w", 100))
+    pl_def = int(info.get("power_default_w") or info.get("power_max_w", 300))
+    sm_clocks = info.get("sm_clocks") or []
+    sm_min = int(sm_clocks[0]) if sm_clocks else 210
+    sm_max = int(sm_clocks[-1]) if sm_clocks else 1410
+
+    # Power: 5 points from pl_min to pl_def inclusive, linear.
+    if _N_POWER_LIMITS <= 1:
+        pls = [pl_def]
+    else:
+        step = (pl_def - pl_min) / (_N_POWER_LIMITS - 1)
+        pls = sorted({int(round(pl_min + i * step)) for i in range(_N_POWER_LIMITS)})
+    # SM: 5 points from sm_min to sm_max inclusive, linear.
+    if _N_SM_CLOCKS <= 1:
+        sms = [sm_max]
+    else:
+        step = (sm_max - sm_min) / (_N_SM_CLOCKS - 1)
+        sms = sorted({int(round(sm_min + i * step)) for i in range(_N_SM_CLOCKS)})
+
+    DEFAULT_POWER_LIMITS = pls
+    DEFAULT_SM_CLOCKS = sms
+    DEFAULT_POWER_LIMIT = pl_def
+
+
 def main():
+    _build_default_sweep()
     parser = argparse.ArgumentParser(
         description="GPU energy sweep: explore (power-limit, SM-clock) configurations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -637,9 +693,9 @@ Examples:
     )
     parser.add_argument(
         "--benchmarks", nargs="+",
-        default=["tpch", "h2o", "clickbench"],
-        choices=["tpch", "h2o", "clickbench"],
-        help="Benchmarks to run (default: tpch h2o clickbench)",
+        default=["tpch", "h2o", "clickbench", "case_bench"],
+        choices=["tpch", "h2o", "clickbench", "case_bench"],
+        help="Benchmarks to run (default: tpch h2o clickbench case_bench)",
     )
     parser.add_argument(
         "--results-dir", type=str,
