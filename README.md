@@ -57,7 +57,7 @@ Flags are combinable: `--test --baseline` runs a minimal smoke test without ener
 | Benchmark | Scale Factors | Data Path |
 |-----------|--------------|-----------|
 | TPC-H | 1, 5, 10, 20 | `tests/tpch/csv-{sf}` |
-| H2O | 1gb, 2gb, 3gb, 4gb | `tests/h2o/csv-{sf}` |
+| H2O | 1gb, 2gb, 4gb, 8gb | `tests/h2o/csv-{sf}` |
 | ClickBench | 1, 5, 10, 20 | `tests/clickbench/csv-{sf}` |
 
 ### Three Experiment Categories
@@ -151,7 +151,7 @@ E_query = P_steady x t_query
 | Suite | Total | Executable | Unimplemented | Scale Factors |
 |-------|-------|------------|---------------|---------------|
 | TPC-H | 22 (q1-q22) | 22 | -- | 1, 5, 10, 20 |
-| H2O | 10 (q1-q10) | 9 | q8 | 1gb, 2gb, 3gb, 4gb |
+| H2O | 10 (q1-q10) | 9 | q8 | 1gb, 2gb, 4gb, 8gb |
 | ClickBench | 43 (q0-q42) | 39 | q18, q27, q28, q42 | 1, 5, 10, 20 |
 
 Unimplemented queries are due to missing cuDF functions (not OOM). These are excluded from benchmark runs.

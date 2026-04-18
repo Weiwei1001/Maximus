@@ -11,8 +11,8 @@ Usage:
 
 Default scale factors (larger than standard bench to avoid 0ms queries):
     microbench_tpch:       10, 20
-    microbench_h2o:        10gb, 20gb
-    microbench_clickbench: 20, 30
+    microbench_h2o:        4gb, 8gb
+    microbench_clickbench: 10, 20
 """
 from __future__ import annotations
 
@@ -446,7 +446,7 @@ def main():
                         default="microbench_tpch,microbench_h2o,microbench_clickbench",
                         help="Comma-separated benchmark names")
     parser.add_argument("--scale-factors", type=str, default=None,
-                        help="Comma-separated SFs (default per bench: tpch=10,20 h2o=10gb,20gb click=20,30)")
+                        help="Comma-separated SFs (default per bench: tpch=10,20 h2o=4gb,8gb click=10,20)")
     parser.add_argument("--n-reps", type=int, default=3,
                         help="Maximus repetitions (default: 3)")
     parser.add_argument("--n-passes", type=int, default=3,

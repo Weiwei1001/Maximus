@@ -3,12 +3,13 @@
 Generate ClickBench benchmark data.
 
 Downloads the ClickBench hits.parquet (if not present), then creates
-sampled CSV datasets at specified percentages. Converts EventTime/EventDate
-to timestamp format required by Maximus.
+sampled CSV datasets at specified scale factors. SF = target CSV size in GB
+(full 100% sample ≈ 70 GB, so sample_pct = sf / 70). Converts EventTime/
+EventDate to timestamp format required by Maximus.
 
 Usage:
-    python generate_clickbench_data.py --output-dir /path/to/output --percentages 10 20
-    python generate_clickbench_data.py --output-dir /path/to/output --parquet /path/to/hits.parquet --percentages 10 20
+    python generate_clickbench_data.py --output-dir /path/to/output --scales 1 5 10 20
+    python generate_clickbench_data.py --output-dir /path/to/output --parquet /path/to/hits.parquet --scales 1 5 10 20
 """
 import argparse
 import subprocess
@@ -18,6 +19,14 @@ from pathlib import Path
 import duckdb
 
 PARQUET_URL = "https://datasets.clickhouse.com/hits_compatible/hits.parquet"
+
+# Full 100% ClickBench CSV is ≈70 GB; SF (GB) → sample_pct = sf / 70.
+CLICKBENCH_FULL_CSV_GB = 70.0
+
+
+def sf_to_pct(sf_gb: int) -> float:
+    """Convert ClickBench SF (target CSV GB) to sample percentage (0..100)."""
+    return min(100.0, 100.0 * sf_gb / CLICKBENCH_FULL_CSV_GB)
 
 
 def download_parquet(dest: Path):
@@ -32,23 +41,33 @@ def download_parquet(dest: Path):
     print(f"  Downloaded: {size_gb:.1f} GB")
 
 
-def export_clickbench(parquet_path: Path, output_dir: Path, pct: int):
-    """Export a percentage sample of ClickBench data to CSV with timestamp conversion."""
-    sf_dir = output_dir / f"sf{pct}"
+def export_clickbench(parquet_path: Path, output_dir: Path, sf_gb: int):
+    """Export a sized sample of ClickBench data to CSV with timestamp conversion.
+
+    `sf_gb` is the target CSV size in GB; the sample percentage is derived
+    from the known full-CSV size (~70 GB).
+    """
+    sf_dir = output_dir / f"csv-{sf_gb}"
     sf_dir.mkdir(parents=True, exist_ok=True)
     csv_path = sf_dir / "t.csv"
 
     if csv_path.exists():
-        print(f"  {pct}%: CSV already exists, skipping")
+        print(f"  SF={sf_gb}GB: CSV already exists, skipping")
         return
 
-    print(f"  {pct}%: Creating sampled dataset...")
+    pct = sf_to_pct(sf_gb)
+    print(f"  SF={sf_gb}GB (~{pct:.2f}% sample): Creating sampled dataset...")
     t0 = time.time()
 
     con = duckdb.connect(":memory:")
 
-    # Load parquet and sample
-    con.execute(f"CREATE TABLE hits AS SELECT * FROM read_parquet('{parquet_path}') USING SAMPLE {pct} PERCENT (bernoulli)")
+    if pct >= 100.0:
+        con.execute(f"CREATE TABLE hits AS SELECT * FROM read_parquet('{parquet_path}')")
+    else:
+        con.execute(
+            f"CREATE TABLE hits AS SELECT * FROM read_parquet('{parquet_path}') "
+            f"USING SAMPLE {pct} PERCENT (bernoulli)"
+        )
 
     # Get column info for timestamp conversion
     cols_info = con.execute("PRAGMA table_info(hits)").fetchall()
@@ -78,7 +97,7 @@ def export_clickbench(parquet_path: Path, output_dir: Path, pct: int):
 
     size_gb = csv_path.stat().st_size / (1024 ** 3)
     elapsed = time.time() - t0
-    print(f"  {pct}%: Done ({row_count:,} rows, {size_gb:.1f} GB, {elapsed:.1f}s)")
+    print(f"  SF={sf_gb}GB: Done ({row_count:,} rows, {size_gb:.1f} GB, {elapsed:.1f}s)")
 
 
 def main():
@@ -86,8 +105,8 @@ def main():
     parser.add_argument("--output-dir", type=str, required=True, help="Output directory for CSV files")
     parser.add_argument("--parquet", type=str, default=None,
                         help="Path to hits.parquet (will download if not specified)")
-    parser.add_argument("--percentages", type=int, nargs="+", default=[5, 10, 20],
-                        help="Percentage samples to create (default: 5 10 20)")
+    parser.add_argument("--scales", type=int, nargs="+", default=[1, 5, 10, 20],
+                        help="Scale factors = target CSV size in GB (default: 1 5 10 20)")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -100,11 +119,11 @@ def main():
         parquet_path = output_dir / "hits.parquet"
         download_parquet(parquet_path)
 
-    print(f"Generating ClickBench data: {args.percentages}%")
+    print(f"Generating ClickBench data: SF={args.scales} GB")
     print(f"Output: {output_dir}")
 
-    for pct in args.percentages:
-        export_clickbench(parquet_path, output_dir, pct)
+    for sf_gb in args.scales:
+        export_clickbench(parquet_path, output_dir, sf_gb)
 
     print("All ClickBench data generated.")
 

@@ -4,7 +4,7 @@ GH200 Full Benchmark: All queries, default GPU config (PL=900W, SM=auto).
 
 Benchmarks:
   - tpch SF=1,10 (22 queries each)
-  - h2o SF=1gb,2gb,3gb,4gb (9 queries each)
+  - h2o SF=1gb,2gb,4gb,8gb (9 queries each)
   - clickbench SF=10 (39 queries)
 
 Engines: Maximus + Sirius
@@ -61,7 +61,7 @@ BENCHMARKS = get_benchmark_config(VRAM_MB)
 # Scope
 EXPERIMENT = {
     "tpch": [1, 10],
-    "h2o": ["1gb", "2gb", "3gb", "4gb"],
+    "h2o": ["1gb", "2gb", "4gb", "8gb"],
     "clickbench": [10],
 }
 ENGINES = ["maximus", "sirius"]

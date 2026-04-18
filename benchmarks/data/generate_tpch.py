@@ -8,7 +8,7 @@ Steps:
   3. Verify schema and run a sample TPC-H Q1
 
 Usage:
-  python generate_tpch.py                           # Default: SF 1,2,10,20
+  python generate_tpch.py                           # Default: SF 1,5,10,20
   python generate_tpch.py -o ./tpch_data            # Custom output directory
   python generate_tpch.py -sf 1 2                   # Specific scale factors
   python generate_tpch.py --skip-install --no-run-query
@@ -111,8 +111,8 @@ def main():
     parser.add_argument("--output-dir", "-o", type=str, default=".",
                         help="DuckDB output directory (default: current dir)")
     parser.add_argument("--scale-factors", "-sf", type=float, nargs="+",
-                        default=[1.0, 2.0, 10.0, 20.0], metavar="SF",
-                        help="Scale factors (default: 1 2 10 20)")
+                        default=[1.0, 5.0, 10.0, 20.0], metavar="SF",
+                        help="Scale factors (default: 1 5 10 20)")
     parser.add_argument("--skip-install", action="store_true",
                         help="Skip pip install of duckdb")
     parser.add_argument("--no-run-query", action="store_true",

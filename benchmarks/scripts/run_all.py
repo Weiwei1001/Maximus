@@ -59,19 +59,19 @@ MAXIMUS_BENCHMARKS = {
     "tpch": {
         "data_base": MAXIMUS_DIR / "tests" / "tpch",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [1, 2, 10, 20],
+        "scale_factors": [1, 5, 10, 20],
         "queries": [f"q{i}" for i in range(1, 23)],
     },
     "h2o": {
         "data_base": MAXIMUS_DIR / "tests" / "h2o",
         "data_pattern": "csv-{sf}",
-        "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
+        "scale_factors": ["1gb", "2gb", "4gb", "8gb"],
         "queries": [f"q{i}" for i in [1, 2, 3, 4, 5, 6, 7, 9, 10]],
     },
     "clickbench": {
         "data_base": MAXIMUS_DIR / "tests" / "clickbench",
         "data_pattern": "csv-{sf}",
-        "scale_factors": [10, 20, 50, 100],
+        "scale_factors": [1, 5, 10, 20],
         "queries": [f"q{i}" for i in range(0, 43) if i not in (18, 27, 28, 42)],
     },
 }
@@ -81,19 +81,19 @@ SIRIUS_BENCHMARKS = {
         "db_dir": SIRIUS_DATA_DIR / "tpch_duckdb",
         "db_pattern": "tpch_sf{sf}.duckdb",
         "query_dir": SIRIUS_DATA_DIR / "tpch_sql" / "queries" / "1",
-        "scale_factors": [1, 2, 10, 20],
+        "scale_factors": [1, 5, 10, 20],
     },
     "h2o": {
         "db_dir": SIRIUS_DATA_DIR / "h2o_duckdb",
         "db_pattern": "h2o_{sf}.duckdb",
         "query_dir": SIRIUS_DATA_DIR / "h2o_sql" / "queries" / "1",
-        "scale_factors": ["1gb", "2gb", "3gb", "4gb"],
+        "scale_factors": ["1gb", "2gb", "4gb", "8gb"],
     },
     "clickbench": {
         "db_dir": SIRIUS_DATA_DIR / "click_duckdb",
         "db_pattern": "clickbench_{sf}.duckdb",
         "query_dir": SIRIUS_DATA_DIR / "click_sql" / "queries" / "1",
-        "scale_factors": [10, 20, 50, 100],
+        "scale_factors": [1, 5, 10, 20],
     },
 }
 

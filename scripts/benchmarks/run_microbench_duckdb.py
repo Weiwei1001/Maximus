@@ -45,7 +45,7 @@ INTERSECTION_CLICKBENCH = {
 INTERSECTION = {"h2o": INTERSECTION_H2O, "tpch": INTERSECTION_TPCH, "clickbench": INTERSECTION_CLICKBENCH}
 
 BENCH_SCALES = {
-    "h2o": ["sf1", "sf2", "sf3"],
+    "h2o": ["sf1", "sf2", "sf4"],
     "tpch": ["sf1", "sf5", "sf10"],
     "clickbench": ["sf1", "sf5", "sf10", "sf20"],
 }

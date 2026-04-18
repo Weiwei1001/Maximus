@@ -31,7 +31,7 @@ BENCHMARK_CONFIGS = {
     },
     "h2o": {
         "queries": H2O_QUERIES,
-        "scales": ["sf1", "sf2", "sf3", "sf4"],
+        "scales": ["sf1", "sf2", "sf4", "sf8"],
         "data_subdir": "h2o",
     },
     "clickbench": {
@@ -42,17 +42,17 @@ BENCHMARK_CONFIGS = {
 }
 
 # Queries to skip: Maximus OOM (<=100GB) + Sirius FALLBACK (always excluded for fair comparison)
-# Sirius FALLBACK: tpch q01@sf20, h2o q10@sf2/sf3/sf4
+# Sirius FALLBACK: tpch q01@sf20, h2o q10@sf2/sf4/sf8
 ALWAYS_SKIP = {
     ("tpch", "sf20"): {"q1"},      # Sirius FALLBACK
     ("h2o", "sf2"): {"q10"},       # Sirius FALLBACK
-    ("h2o", "sf3"): {"q10"},       # Sirius FALLBACK
     ("h2o", "sf4"): {"q10"},       # Sirius FALLBACK
+    ("h2o", "sf8"): {"q10"},       # Sirius FALLBACK
 }
 # Additional queries skipped only when GPU <= 100GB (Maximus OOM)
 OOM_SKIP = {
     ("tpch", "sf20"): {"q17", "q18", "q19", "q21"},
-    ("h2o", "sf4"): {"q3", "q7"},  # q10 already in ALWAYS_SKIP
+    ("h2o", "sf8"): {"q3", "q7"},  # q10 already in ALWAYS_SKIP
 }
 
 

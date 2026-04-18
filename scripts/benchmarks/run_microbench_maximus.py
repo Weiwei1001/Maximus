@@ -43,7 +43,7 @@ CLICKBENCH_QUERIES = [
 ]
 
 BENCHMARKS = {
-    "microbench_h2o": {"queries": H2O_QUERIES, "data_subdir": "h2o", "scales": ["sf1", "sf2", "sf3"]},
+    "microbench_h2o": {"queries": H2O_QUERIES, "data_subdir": "h2o", "scales": ["sf1", "sf2", "sf4"]},
     "microbench_tpch": {"queries": TPCH_QUERIES, "data_subdir": "tpch", "scales": ["sf1", "sf5", "sf10"]},
     "microbench_clickbench": {"queries": CLICKBENCH_QUERIES, "data_subdir": "clickbench", "scales": ["sf1", "sf5", "sf10", "sf20"]},
 }

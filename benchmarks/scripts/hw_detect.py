@@ -467,9 +467,9 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
     clickbench_queries = (_CLICKBENCH_QUERIES_LARGE if large_gpu
                           else _CLICKBENCH_QUERIES_SMALL)
 
-    # ClickBench SF = equivalent TPC-H SF based on csv_size / tpch_sf1_size.
-    # SF=2 (10% sample, 7GB), SF=6 (30%, 20GB), SF=13 (60%, 42GB), SF=22 (100%, 70GB).
-    _CLICKBENCH_SFS = [2, 6, 13, 22]
+    # ClickBench SF = target CSV data size in GB.
+    # SF=1 (≈1GB / 1.4%), SF=5 (≈5GB / 7.1%), SF=10 (≈10GB / 14.3%), SF=20 (≈20GB / 28.6%).
+    _CLICKBENCH_SFS = [1, 5, 10, 20]
 
     benchmarks: dict[str, dict] = {
         "tpch": {
@@ -478,7 +478,7 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
                         else list(_TPCH_QUERIES)),
         },
         "h2o": {
-            "scale_factors": ["1gb", "2gb", "4gb", "10gb"],
+            "scale_factors": ["1gb", "2gb", "4gb", "8gb"],
             "queries": (_TEST_QUERIES["h2o"] if test_mode
                         else list(_H2O_QUERIES)),
         },
@@ -493,7 +493,7 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
                         else list(_MICROBENCH_TPCH_QUERIES)),
         },
         "microbench_h2o": {
-            "scale_factors": ["1gb", "2gb", "4gb", "10gb"],
+            "scale_factors": ["1gb", "2gb", "4gb", "8gb"],
             "queries": (_TEST_QUERIES["microbench_h2o"] if test_mode
                         else list(_MICROBENCH_H2O_QUERIES)),
         },

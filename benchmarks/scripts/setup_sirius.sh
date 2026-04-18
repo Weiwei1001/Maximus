@@ -185,7 +185,7 @@ done
 # H2O databases
 echo "  Generating H2O databases..."
 mkdir -p h2o_duckdb
-for sf in 1gb 2gb 3gb 4gb; do
+for sf in 1gb 2gb 4gb 8gb; do
     DB="h2o_duckdb/h2o_${sf}.duckdb"
     if [ -f "$DB" ]; then
         echo "    $DB already exists, skipping"

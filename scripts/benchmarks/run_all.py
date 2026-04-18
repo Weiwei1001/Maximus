@@ -44,9 +44,9 @@ def main():
     parser.add_argument("--clickbench-parquet", type=str, default=None,
                         help="Path to hits.parquet for ClickBench")
     # TPC-H scale factors
-    parser.add_argument("--tpch-scales", type=int, nargs="+", default=[1, 2, 5, 10, 20])
-    parser.add_argument("--h2o-scales", type=int, nargs="+", default=[1, 2, 3, 4])
-    parser.add_argument("--click-percentages", type=int, nargs="+", default=[5, 10, 20])
+    parser.add_argument("--tpch-scales", type=int, nargs="+", default=[1, 5, 10, 20])
+    parser.add_argument("--h2o-scales", type=int, nargs="+", default=[1, 2, 4, 8])
+    parser.add_argument("--click-scales", type=int, nargs="+", default=[1, 5, 10, 20])
     args = parser.parse_args()
 
     scripts_dir = Path(__file__).parent
@@ -82,7 +82,7 @@ def main():
 
         if "clickbench" in args.benchmarks:
             cb_args = ["--output-dir", str(data_dir / "clickbench"),
-                        "--percentages"] + [str(p) for p in args.click_percentages]
+                        "--scales"] + [str(p) for p in args.click_scales]
             if args.clickbench_parquet:
                 cb_args += ["--parquet", args.clickbench_parquet]
             run_script(str(scripts_dir / "generate_clickbench_data.py"), cb_args)

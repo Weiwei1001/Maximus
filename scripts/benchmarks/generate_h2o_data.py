@@ -94,8 +94,8 @@ def generate_h2o(output_dir: Path, scale: int):
 def main():
     parser = argparse.ArgumentParser(description="Generate H2O groupby benchmark data as CSV")
     parser.add_argument("--output-dir", type=str, required=True, help="Output directory for CSV files")
-    parser.add_argument("--scales", type=int, nargs="+", default=[1, 2, 3, 4],
-                        help="Scale factors in GB (default: 1 2 3 4)")
+    parser.add_argument("--scales", type=int, nargs="+", default=[1, 2, 4, 8],
+                        help="Scale factors in GB (default: 1 2 4 8)")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)

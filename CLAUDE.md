@@ -105,8 +105,8 @@ Abstract base classes (`abstract_*.hpp` in `src/maximus/operators/`) define the 
 | Benchmark | Scale Factors | Data Path | Notes |
 |-----------|--------------|-----------|-------|
 | TPC-H | 1, 5, 10, 20 | `tests/tpch/csv-{sf}` | SF = data size in GB |
-| H2O | 1gb, 2gb, 4gb, 10gb | `tests/h2o/csv-{sf}` | |
-| ClickBench | 2, 6, 13, 22 | `tests/clickbench/csv-{sf}` | SF = equiv TPC-H SF (sample 10%,30%,60%,100%) |
+| H2O | 1gb, 2gb, 4gb, 8gb | `tests/h2o/csv-{sf}` | |
+| ClickBench | 1, 5, 10, 20 | `tests/clickbench/csv-{sf}` | SF = final CSV size in GB (full CSV ≈70 GB) |
 
 ## GPU Memory and Storage Device
 

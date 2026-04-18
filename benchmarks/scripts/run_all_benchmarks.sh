@@ -15,8 +15,9 @@
 #   C – Energy sweep: 3 GPU power limits × 5 SM clock frequencies
 #
 # Usage:
-#   bash run_all_benchmarks.sh          # Full run
-#   bash run_all_benchmarks.sh --test   # Quick smoke test (3 queries per bench)
+#   bash run_all_benchmarks.sh                     # Full run (A + B + C)
+#   bash run_all_benchmarks.sh --test              # Quick smoke test (3 queries per bench)
+#   bash run_all_benchmarks.sh --skip-category-c   # Skip energy sweep (A + B only)
 #
 set -o pipefail
 
@@ -41,9 +42,11 @@ mkdir -p "$LOG_DIR"
 
 # ── Parse arguments ────────────────────────────────────────────────────────
 TEST_FLAG=""
+SKIP_CATEGORY_C=0
 for arg in "$@"; do
     case "$arg" in
         --test) TEST_FLAG="--test" ;;
+        --skip-category-c|--no-energy-sweep) SKIP_CATEGORY_C=1 ;;
         *) echo "Unknown argument: $arg"; exit 1 ;;
     esac
 done
@@ -76,7 +79,7 @@ for sf in $TPCH_SFS; do
 done
 
 # H2O: CSV for Maximus (tests/h2o/csv-{sf})
-H2O_SFS="1gb 2gb 3gb 4gb"
+H2O_SFS="1gb 2gb 4gb 8gb"
 H2O_MISSING=""
 for sf in $H2O_SFS; do
     if [ ! -d "$MAXIMUS_DIR/tests/h2o/csv-$sf" ]; then
@@ -330,14 +333,19 @@ fi
 #  Only for tpch and h2o benchmarks
 # ══════════════════════════════════════════════════════════════════════════
 
-echo ""
-echo "======== CATEGORY C: Energy Sweep (3 PL × 5 freq) ========"
+if [ "$SKIP_CATEGORY_C" -eq 1 ]; then
+    echo ""
+    echo "======== CATEGORY C: Energy Sweep — SKIPPED (--skip-category-c) ========"
+else
+    echo ""
+    echo "======== CATEGORY C: Energy Sweep (3 PL × 5 freq) ========"
 
-run_step "C1_energy_sweep" \
-    python3 run_energy_sweep.py $TEST_FLAG \
-    --benchmarks tpch h2o \
-    --results-dir "$RESULTS_DIR/energy_sweep" \
-    --resume
+    run_step "C1_energy_sweep" \
+        python3 run_energy_sweep.py $TEST_FLAG \
+        --benchmarks tpch h2o \
+        --results-dir "$RESULTS_DIR/energy_sweep" \
+        --resume
+fi
 
 # ══════════════════════════════════════════════════════════════════════════
 #  Energy Summary: aggregate Category A metrics into unified energy report

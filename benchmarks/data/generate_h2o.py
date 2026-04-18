@@ -4,7 +4,7 @@ H2O groupby benchmark data generation.
 Generates DuckDB databases and CSV files for H2O groupby aggregation benchmarks.
 
 Usage:
-    python generate_h2o.py                          # Default: 1gb 2gb 3gb 4gb
+    python generate_h2o.py                          # Default: 1gb 2gb 4gb 8gb
     python generate_h2o.py 1gb 2gb                  # Specific sizes
     python generate_h2o.py --format csv             # CSV output (for Maximus)
     python generate_h2o.py --format duckdb          # DuckDB output (for Sirius)
@@ -26,6 +26,7 @@ TARGETS = {
     "3gb":  105_000_000,
     "4gb":  140_000_000,
     "5gb":  175_000_000,
+    "8gb":  280_000_000,
     "10gb": 350_000_000,
     "20gb": 700_000_000,
 }
@@ -98,7 +99,7 @@ def generate_h2o_csv(out_dir: Path, target: str, n_rows: int):
 
 def main():
     parser = argparse.ArgumentParser(description="H2O groupby data generation")
-    parser.add_argument("targets", nargs="*", default=list(TARGETS.keys())[:4],
+    parser.add_argument("targets", nargs="*", default=["1gb", "2gb", "4gb", "8gb"],
                         help=f"Target sizes (choices: {', '.join(TARGETS.keys())})")
     parser.add_argument("--output-dir", "-o", type=str, default=".",
                         help="Output directory")

@@ -2,17 +2,20 @@
 """
 ClickBench data generation.
 Downloads the ClickBench dataset and creates DuckDB databases and CSV files
-at various scale factors (equivalent TPC-H SF based on data size ratio).
+at various scale factors, where SF = final CSV data size in GB.
 
-Scale factor mapping (SF = csv_size_gb / tpch_sf1_size_gb ≈ 3.2):
-  SF=2  ≈ 10% sample  ≈  7 GB CSV
-  SF=6  ≈ 30% sample  ≈ 20 GB CSV
-  SF=13 ≈ 60% sample  ≈ 42 GB CSV
-  SF=22 ≈ 100% sample ≈ 70 GB CSV
+Scale factor semantics: SF=N means the produced t.csv is ≈ N GB.
+Full 100% ClickBench CSV ≈ 70 GB, so sample_pct = N / 70.
+
+Default SFs:
+  SF=1   →  ≈1 GB CSV  (≈1.4% sample)
+  SF=5   →  ≈5 GB CSV  (≈7.1% sample)
+  SF=10  →  ≈10 GB CSV (≈14.3% sample)
+  SF=20  →  ≈20 GB CSV (≈28.6% sample)
 
 Usage:
-    python generate_clickbench.py                      # Default SFs: 2,6,13,22
-    python generate_clickbench.py --scales 2 6 13 22   # Explicit SFs
+    python generate_clickbench.py                      # Default SFs: 1,5,10,20
+    python generate_clickbench.py --scales 1 5 10 20   # Explicit SFs (GB)
     python generate_clickbench.py --format csv         # CSV for Maximus
     python generate_clickbench.py --format duckdb      # DuckDB for Sirius
     python generate_clickbench.py --parquet-path /path/to/clickbench.parquet
@@ -27,25 +30,14 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 CLICKBENCH_URL = "https://datasets.clickhouse.com/hits_compatible/hits.parquet"
 
-# ClickBench SF → sample percentage mapping.
-# SF is defined as: csv_data_size / tpch_sf1_csv_size (≈3.2 GB).
-_SF_TO_SAMPLE_PCT = {
-    2: 10,
-    6: 30,
-    13: 60,
-    22: 100,
-}
+# Full 100% ClickBench CSV size in GB. Used to translate SF (= target CSV GB)
+# into a sample fraction: sample_pct = sf_gb / full_csv_gb.
+_CLICKBENCH_FULL_CSV_GB = 70.0
 
 
 def sf_to_sample_pct(sf: int) -> float:
-    """Convert a ClickBench SF to a sample fraction (0..1).
-
-    Uses the predefined mapping for known SFs, otherwise computes:
-      sample_pct = sf * 3.2 / 70.1 * 100   (based on full dataset = 70.1 GB).
-    """
-    if sf in _SF_TO_SAMPLE_PCT:
-        return _SF_TO_SAMPLE_PCT[sf] / 100.0
-    return min(1.0, sf * 3.2 / 70.1)
+    """Convert a ClickBench SF (target CSV size in GB) to a sample fraction (0..1)."""
+    return min(1.0, float(sf) / _CLICKBENCH_FULL_CSV_GB)
 
 
 def download_parquet(parquet_path: Path):
@@ -93,12 +85,42 @@ def generate_duckdb(parquet_path: Path, out_dir: Path, scale_factors: list):
 
 
 def generate_csv(parquet_path: Path, out_dir: Path, scale_factors: list):
-    """Generate CSV files at various scale factors for Maximus."""
+    """Generate CSV files at various scale factors for Maximus.
+
+    EventTime/EventDate are converted from raw Unix-second integers to ISO
+    timestamp strings so the Arrow CSV reader (CPU storage path) can parse
+    them as `timestamp[ns]`. Newlines inside string columns are stripped to
+    avoid breaking row delimiters.
+    """
     import duckdb
     con = duckdb.connect(":memory:")
     total = con.execute(
         f"SELECT count(*) FROM read_parquet('{parquet_path}')").fetchone()[0]
+    cols_info = con.execute(
+        f"DESCRIBE SELECT * FROM read_parquet('{parquet_path}') LIMIT 1"
+    ).fetchall()
     con.close()
+
+    select_parts = []
+    for col in cols_info:
+        name = col[0]
+        dtype = str(col[1]).upper()
+        if name == "EventTime":
+            select_parts.append(
+                f"strftime(to_timestamp({name}), '%Y-%m-%dT%H:%M:%S.000000000') AS {name}"
+            )
+        elif name == "EventDate":
+            select_parts.append(
+                f"strftime(CAST(make_date(1970, 1, 1) + INTERVAL ({name}) DAY AS TIMESTAMP), "
+                f"'%Y-%m-%dT%H:%M:%S.000000000') AS {name}"
+            )
+        elif "VARCHAR" in dtype or "TEXT" in dtype:
+            select_parts.append(
+                f"REPLACE(REPLACE({name}, chr(10), ' '), chr(13), ' ') AS {name}"
+            )
+        else:
+            select_parts.append(name)
+    select_sql = ", ".join(select_parts)
 
     for sf in scale_factors:
         csv_dir = out_dir / f"csv-{sf}"
@@ -107,13 +129,17 @@ def generate_csv(parquet_path: Path, out_dir: Path, scale_factors: list):
         pct = sf_to_sample_pct(sf)
         con = duckdb.connect(":memory:")
         if pct >= 1.0:
-            con.execute(f"COPY (SELECT * FROM read_parquet('{parquet_path}')) "
-                        f"TO '{csv_path}' (HEADER, DELIMITER ',')")
+            con.execute(
+                f"COPY (SELECT {select_sql} FROM read_parquet('{parquet_path}')) "
+                f"TO '{csv_path}' (HEADER, DELIMITER ',')"
+            )
         else:
             limit_n = max(1, int(total * pct))
-            con.execute(f"COPY (SELECT * FROM read_parquet('{parquet_path}') "
-                        f"LIMIT {limit_n}) TO '{csv_path}' "
-                        f"(HEADER, DELIMITER ',')")
+            con.execute(
+                f"COPY (SELECT {select_sql} FROM read_parquet('{parquet_path}') "
+                f"LIMIT {limit_n}) TO '{csv_path}' "
+                f"(HEADER, DELIMITER ',')"
+            )
         con.close()
         size_mb = csv_path.stat().st_size / (1024 ** 2)
         print(f"  Created csv-{sf}/t.csv "
@@ -123,8 +149,8 @@ def generate_csv(parquet_path: Path, out_dir: Path, scale_factors: list):
 def main():
     parser = argparse.ArgumentParser(description="ClickBench data generation")
     parser.add_argument("--scales", type=int, nargs="+",
-                        default=[2, 6, 13, 22],
-                        help="Scale factors (equiv TPC-H SF, default: 2 6 13 22)")
+                        default=[1, 5, 10, 20],
+                        help="Scale factors (target CSV size in GB, default: 1 5 10 20)")
     parser.add_argument("--output-dir", "-o", type=str, default=".",
                         help="Output directory")
     parser.add_argument("--format", choices=["csv", "duckdb", "both"],
