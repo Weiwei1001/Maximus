@@ -242,7 +242,11 @@ def main():
                         print(f"  {q}: not found in timing CSV (skip)")
             else:
                 print(f"\n--- Timing ({CALIBRATION_REPS} reps, -s cpu) ---")
-                timeout = max(300, 120 * len(queries))
+                # CPU-storage pays full PCIe reload per rep; big SFs can take
+                # minutes per heavy query (e.g. TPC-H q19 @ SF=20). 300s/query
+                # batch budget + 600s individual-retry budget so large SFs
+                # don't get truncated.
+                timeout = max(600, 300 * len(queries))
                 output, rc = run_maxbench(bench_name, queries, CALIBRATION_REPS,
                                           data_path, storage="cpu", timeout=timeout)
                 parsed = parse_maxbench_output(output)
@@ -253,7 +257,7 @@ def main():
                     for q in queries:
                         if q not in parsed["query_times"]:
                             o2, _ = run_maxbench_single(bench_name, q, CALIBRATION_REPS,
-                                                         data_path, storage="cpu", timeout=120)
+                                                         data_path, storage="cpu", timeout=600)
                             parsed["query_times"].update(parse_maxbench_output(o2)["query_times"])
 
                 ok = 0
@@ -308,7 +312,7 @@ def main():
 
                 start_time = time.time()
                 output, rc = run_maxbench_single(bench_name, q, n_reps,
-                                                  data_path, storage="cpu", timeout=600)
+                                                  data_path, storage="cpu", timeout=1200)
                 elapsed = time.time() - start_time
 
                 stop_event.set()

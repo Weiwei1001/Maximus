@@ -149,6 +149,12 @@ log "Step 3: Installing Python dependencies..."
 pip install --quiet duckdb pynvml matplotlib pandas numpy 2>/dev/null || \
 pip3 install --quiet duckdb pynvml matplotlib pandas numpy
 
+# Also install into the Claude Code venv at /venv/main if present — run_all_benchmarks.sh
+# activates it and calls `python3`, which must resolve deps there.
+if [ -x "/venv/main/bin/pip" ]; then
+    /venv/main/bin/pip install --quiet duckdb pynvml matplotlib pandas numpy || true
+fi
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 4: Install cuDF (GPU dataframe library)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -292,11 +298,24 @@ WORKSPACE="$(dirname "$SCRIPT_DIR")"
 # Arrow
 export LD_LIBRARY_PATH="$HOME/arrow_install/lib:$HOME/arrow_install/lib64:${LD_LIBRARY_PATH:-}"
 
-# cuDF (pip-installed) — auto-detect Python version
-PIP_BASE="$(python3 -c 'import site; print(site.getsitepackages()[0])' 2>/dev/null || python3 -c 'import sysconfig; print(sysconfig.get_path("purelib"))' 2>/dev/null || echo "/usr/local/lib/python$(python3 -c 'import sys;print(f\"{sys.version_info.major}.{sys.version_info.minor}\")')/dist-packages")"
-if [ -d "$PIP_BASE/nvidia/libnvcomp/lib64" ]; then
-    export LD_LIBRARY_PATH="$PIP_BASE/nvidia/libnvcomp/lib64:$PIP_BASE/libkvikio/lib64:$LD_LIBRARY_PATH"
+# cuDF (pip-installed) — probe every candidate site-packages so venv activation
+# doesn't mask RAPIDS wheels installed to system python.
+_MAXIMUS_PIP_CANDIDATES=""
+for _cand in \
+    /usr/local/lib/python3.12/dist-packages \
+    /usr/lib/python3.12/dist-packages \
+    /usr/local/lib/python3/dist-packages \
+    "$(python3 -c 'import site; print(site.getsitepackages()[0])' 2>/dev/null)" \
+    "$(python3 -c 'import sysconfig; print(sysconfig.get_path(\"purelib\"))' 2>/dev/null)"; do
+    if [ -n "$_cand" ] && [ -d "$_cand/nvidia/libnvcomp/lib64" ]; then
+        _MAXIMUS_PIP_CANDIDATES="$_cand"
+        break
+    fi
+done
+if [ -n "$_MAXIMUS_PIP_CANDIDATES" ]; then
+    export LD_LIBRARY_PATH="$_MAXIMUS_PIP_CANDIDATES/nvidia/libnvcomp/lib64:$_MAXIMUS_PIP_CANDIDATES/libkvikio/lib64:$_MAXIMUS_PIP_CANDIDATES/libcudf/lib64:$_MAXIMUS_PIP_CANDIDATES/librmm/lib64:$LD_LIBRARY_PATH"
 fi
+unset _MAXIMUS_PIP_CANDIDATES _cand
 
 # cuDF (conda)
 if [ -n "$CONDA_PREFIX" ]; then
@@ -312,7 +331,10 @@ export RESULTS_DIR="$SCRIPT_DIR/results"
 echo "Environment configured."
 echo "  MAXIMUS_DIR=$MAXIMUS_DIR"
 echo "  MAXBENCH=$MAXBENCH"
-[ -x "$SIRIUS_BIN" ] && echo "  SIRIUS_BIN=$SIRIUS_BIN"
+if [ -x "$SIRIUS_BIN" ]; then
+    echo "  SIRIUS_BIN=$SIRIUS_BIN"
+fi
+true  # ensure sourced script exits 0 even if last test was false (set -e safe)
 ENVEOF
 chmod +x "$MAXIMUS_DIR/setup_env.sh"
 source "$MAXIMUS_DIR/setup_env.sh"

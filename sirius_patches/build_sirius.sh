@@ -34,18 +34,45 @@ echo "[build_sirius] Building Sirius DuckDB..."
 cd "$REPO_DIR"
 git submodule update --init --recursive
 
-# ── 1. Install system deps (requires sudo/root) ──
+# ── 1. Install system deps ──
+#
+# Sirius' cmake configure fails silently ("provides a separate development
+# package or SDK, be sure it has been installed") when any of these is missing.
+# We install the full set up front (idempotent) so the build is reliable on
+# a fresh machine without depending on setup.sh having run exactly these
+# packages already. If `sudo` is unavailable we run as-is (root in container).
 echo "[build_sirius] Installing system dependencies..."
-apt-get update -qq
-apt-get install -y -qq libnuma-dev libconfig++-dev >/dev/null
+SUDO=""
+if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+    SUDO="sudo"
+fi
+$SUDO apt-get update
+$SUDO apt-get install -y --no-install-recommends \
+    build-essential g++ ninja-build pkg-config ca-certificates wget curl git \
+    libnuma-dev libconfig++-dev libssl-dev zlib1g-dev \
+    libboost-all-dev libsnappy-dev libbrotli-dev libthrift-dev libre2-dev \
+    rapidjson-dev python3 python3-pip
 
-# Ensure CUDA 12.6 nvcc + dev packages (cuDF 26.x CCCL headers need >= 12.6)
+# Ensure CUDA 12.6 nvcc + dev packages (cuDF 26.x CCCL headers need >= 12.6).
 NVCC_VER=$(nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//')
 NVCC_MINOR=$(echo "$NVCC_VER" | cut -d. -f2)
 if [ "${NVCC_MINOR:-0}" -lt 6 ]; then
-    echo "[build_sirius] Installing CUDA 12.6 nvcc..."
-    apt-get install -y -qq cuda-nvcc-12-6 cuda-nvml-dev-12-6 libcurand-dev-12-6 cuda-cudart-dev-12-6 >/dev/null
+    echo "[build_sirius] Installing CUDA 12.6 nvcc + dev packages..."
+    $SUDO apt-get install -y --no-install-recommends \
+        cuda-nvcc-12-6 cuda-nvml-dev-12-6 libcurand-dev-12-6 cuda-cudart-dev-12-6
 fi
+
+# Verify the critical headers/libs landed; fail fast rather than at cmake time.
+for check in \
+    "/usr/include/libconfig.h++:libconfig++-dev" \
+    "/usr/include/numa.h:libnuma-dev"; do
+    path="${check%%:*}"; pkg="${check##*:}"
+    if [ ! -f "$path" ]; then
+        echo "[build_sirius] ERROR: $path missing after installing $pkg." >&2
+        echo "                 Try: $SUDO apt-get install -y $pkg" >&2
+        exit 1
+    fi
+done
 
 # Abseil >= 20230125 (for absl::any_invocable)
 if ! pkg-config --atleast-version=20230125 absl_any_invocable 2>/dev/null; then
@@ -153,26 +180,36 @@ for pkg_dir in \
 done
 
 # ── 7. Configure ──
-echo "[build_sirius] Configuring..."
+echo "[build_sirius] Configuring (full log: $REPO_DIR/logs/sirius_cmake.log)..."
+mkdir -p "$REPO_DIR/logs"
 cd "$SIRIUS_DIR/duckdb"
-cmake -B ../build/release -GNinja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DEXTENSION_STATIC_BUILD=ON \
-    -DDUCKDB_EXTENSION_CONFIGS="../extension_config.cmake" \
-    -DCMAKE_CUDA_ARCHITECTURES="$GPU_ARCH" \
-    -DCMAKE_PREFIX_PATH="$CMAKE_PREFIXES" \
-    -DCMAKE_MODULE_PATH="$SIRIUS_DIR/cmake" \
-    2>&1 | tail -5
+if ! cmake -B ../build/release -GNinja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DEXTENSION_STATIC_BUILD=ON \
+        -DDUCKDB_EXTENSION_CONFIGS="../extension_config.cmake" \
+        -DCMAKE_CUDA_ARCHITECTURES="$GPU_ARCH" \
+        -DCMAKE_PREFIX_PATH="$CMAKE_PREFIXES" \
+        -DCMAKE_MODULE_PATH="$SIRIUS_DIR/cmake" \
+        > "$REPO_DIR/logs/sirius_cmake.log" 2>&1; then
+    echo "[build_sirius] cmake configure FAILED. Tail of log:" >&2
+    tail -40 "$REPO_DIR/logs/sirius_cmake.log" >&2
+    exit 1
+fi
 
 # ── 8. Build ──
-echo "[build_sirius] Building (this may take 5-15 minutes)..."
-ninja -C ../build/release -j$(nproc) 2>&1 | tail -5
+echo "[build_sirius] Building (full log: $REPO_DIR/logs/sirius_ninja.log; ~5-15 min)..."
+if ! ninja -C ../build/release -j"$(nproc)" \
+        > "$REPO_DIR/logs/sirius_ninja.log" 2>&1; then
+    echo "[build_sirius] ninja build FAILED. Tail of log:" >&2
+    tail -60 "$REPO_DIR/logs/sirius_ninja.log" >&2
+    exit 1
+fi
 
 # ── 9. Verify ──
 if [ -x "$DUCKDB_BIN" ]; then
     VERSION=$("$DUCKDB_BIN" --version 2>/dev/null || echo "unknown")
     echo "[build_sirius] SUCCESS: $DUCKDB_BIN ($VERSION)"
 else
-    echo "[build_sirius] FAILED: duckdb binary not found"
+    echo "[build_sirius] FAILED: duckdb binary not found (ninja returned 0 but target missing)"
     exit 1
 fi
