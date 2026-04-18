@@ -165,6 +165,7 @@ if has_sirius; then
     if [ ! -d "$MAXIMUS_DIR/tests/tpch_sql/queries/1" ] || \
        [ ! -d "$MAXIMUS_DIR/tests/h2o_sql/queries/1" ] || \
        [ ! -d "$MAXIMUS_DIR/tests/click_sql/queries/1" ] || \
+       [ ! -d "$MAXIMUS_DIR/tests/case_bench_sql/queries/1" ] || \
        [ ! -d "$MAXIMUS_DIR/tests/microbench_tpch_sql/queries/1" ]; then
         echo "  [DATAGEN] Generating Sirius SQL query files..."
         python3 "$SCRIPT_DIR/generate_sirius_sql.py" \
@@ -244,8 +245,13 @@ GPU_VRAM_MB=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 
 echo "  GPU VRAM: ${GPU_VRAM_MB:-unknown} MiB"
 echo "  Buffer sizing and benchmark configs are auto-adjusted by hw_detect.py"
 
-# All benchmarks: standard + microbench (both Maximus and Sirius)
-ALL_BENCH="tpch h2o clickbench microbench_tpch microbench_h2o microbench_clickbench"
+# Benchmarks used per category.
+#   A (GPU-data): full set — standard SQL + microbench + case_bench.
+#   B (CPU-data): standard SQL + case_bench only; microbenches are already
+#                 small, fast queries where a CPU-reload measurement adds no
+#                 new information, so we skip them here.
+ALL_BENCH="tpch h2o clickbench case_bench microbench_tpch microbench_h2o microbench_clickbench"
+CPU_BENCH="tpch h2o clickbench case_bench"
 
 # Helper function
 run_step() {
@@ -308,22 +314,22 @@ fi
 echo ""
 echo "======== CATEGORY B: Data on CPU (timing + metrics) ========"
 
-# B1: Maximus CPU-data timing (standard + microbench)
+# B1: Maximus CPU-data timing (standard + case_bench, skip microbench)
 run_step "B1_maximus_cpu_timing" \
     python3 run_maximus_cpu_data.py $TEST_FLAG --timing-only --results-dir "$RESULTS_DIR" \
-    $ALL_BENCH
+    $CPU_BENCH
 
-# B2: Maximus CPU-data metrics (standard + microbench) — reuse B1 timing to skip calibration
+# B2: Maximus CPU-data metrics — reuse B1 timing to skip calibration
 run_step "B2_maximus_cpu_metrics" \
     python3 run_maximus_cpu_data.py $TEST_FLAG --target-time 5 --results-dir "$RESULTS_DIR" \
     --timing-csv "$RESULTS_DIR/maximus_cpu_data_timing.csv" \
-    $ALL_BENCH
+    $CPU_BENCH
 
-# B3: Sirius CPU-data timing + metrics (measured together)
+# B3: Sirius CPU-data timing + metrics (standard + case_bench)
 if has_sirius; then
     run_step "B3_sirius_cpu_data" \
         python3 run_sirius_cpu_data.py $TEST_FLAG --n-reps 10 --results-dir "$RESULTS_DIR" \
-        $ALL_BENCH
+        $CPU_BENCH
 else
     echo "  [SKIP] B3: Sirius CPU-data: binary not found"
 fi
@@ -342,7 +348,7 @@ else
 
     run_step "C1_energy_sweep" \
         python3 run_energy_sweep.py $TEST_FLAG \
-        --benchmarks tpch h2o \
+        --benchmarks tpch h2o clickbench case_bench \
         --results-dir "$RESULTS_DIR/energy_sweep" \
         --resume
 fi

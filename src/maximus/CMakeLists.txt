@@ -90,6 +90,9 @@ set(maximus_src_files
         # h2o
         h2o/h2o_queries.cpp
 
+        # case_bench
+        case_bench/case_bench_queries.cpp
+
         # microbench
         microbench/microbench_h2o.cpp
         microbench/microbench_tpch.cpp

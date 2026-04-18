@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
         cxxopts::value<std::string>()->default_value({"maximus"}))(
         "r,n_reps", "Number of repetitions", cxxopts::value<int>()->default_value("1"))(
         "benchmark",
-        "which benchmark to run? (tpch, h2o, clickbench, microbench_tpch, microbench_h2o, microbench_clickbench)",
+        "which benchmark to run? (tpch, h2o, clickbench, case_bench, microbench_tpch, microbench_h2o, microbench_clickbench)",
         cxxopts::value<std::string>()->default_value("tpch"))(
         "q,queries",
         "name of the query in the benchmark",

@@ -446,11 +446,17 @@ _MICROBENCH_CLICKBENCH_QUERIES = [
     "w6_016", "w6_017", "w6_018", "w6_019", "w6_020", "w6_022",
 ]
 
+# case_bench: curated queries where GPU energy advantage is expected to be
+# weak (tiny tables, point lookups, small-cardinality group-bys, narrow
+# top-N). Uses TPC-H tables — no dedicated data generation.
+_CASE_BENCH_QUERIES = ["q1", "q2", "q3", "q4", "q5"]
+
 # Test-mode queries (3 per benchmark for quick validation).
 _TEST_QUERIES = {
     "tpch": ["q1", "q3", "q6"],
     "h2o": ["q1", "q3", "q5"],
     "clickbench": ["q1", "q6", "q20"],
+    "case_bench": ["q1", "q2", "q3"],
     "microbench_tpch": ["w1_002", "w3_001", "w5a_029"],
     "microbench_h2o": ["w1_001", "w3_016", "w6_022"],
     "microbench_clickbench": ["w1_001", "w3_011", "w6_016"],
@@ -486,6 +492,12 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
             "scale_factors": _CLICKBENCH_SFS,
             "queries": (_TEST_QUERIES["clickbench"] if test_mode
                         else list(clickbench_queries)),
+        },
+        "case_bench": {
+            # Reuses TPC-H data; SF semantics = same as tpch.
+            "scale_factors": [1, 5, 10, 20],
+            "queries": (_TEST_QUERIES["case_bench"] if test_mode
+                        else list(_CASE_BENCH_QUERIES)),
         },
         "microbench_tpch": {
             "scale_factors": [1, 5, 10, 20],
@@ -525,12 +537,16 @@ def get_benchmark_config(
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _base_benchmark_name(benchmark: str) -> str:
-    """Map microbench names to their base benchmark for data paths.
+    """Map microbench / case_bench names to their base benchmark for data
+    paths.
 
-    e.g. "microbench_tpch" -> "tpch", "h2o" -> "h2o".
+    e.g. "microbench_tpch" -> "tpch", "h2o" -> "h2o",
+         "case_bench" -> "tpch" (case_bench shares TPC-H tables).
     """
     if benchmark.startswith("microbench_"):
         return benchmark[len("microbench_"):]
+    if benchmark == "case_bench":
+        return "tpch"
     return benchmark
 
 
@@ -562,8 +578,9 @@ def sirius_query_dir(benchmark: str) -> Path:
 
     Example: sirius_query_dir("tpch")           -> {MAXIMUS_DIR}/tests/tpch_sql/queries/1/
              sirius_query_dir("microbench_tpch") -> {MAXIMUS_DIR}/tests/microbench_tpch_sql/queries/1/
+             sirius_query_dir("case_bench")     -> {MAXIMUS_DIR}/tests/case_bench_sql/queries/1/
     """
-    if benchmark.startswith("microbench_"):
+    if benchmark.startswith("microbench_") or benchmark == "case_bench":
         dir_name = f"{benchmark}_sql"
     else:
         base = _base_benchmark_name(benchmark)

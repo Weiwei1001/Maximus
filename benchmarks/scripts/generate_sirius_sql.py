@@ -336,6 +336,14 @@ def main():
     write_queries(out, "click_sql", CLICK_BUFFER, CLICK_QUERIES)
     total += len(CLICK_QUERIES)
 
+    # case_bench: a small curated set of queries where GPU advantage is
+    # weak. Uses TPC-H tables, reuses TPC-H buffer sizing.
+    cb_queries = load_microbench_queries(microbench_dir, "case_bench")
+    if cb_queries:
+        print(f"\n  case_bench ({len(cb_queries)} queries):")
+        write_queries(out, "case_bench_sql", TPCH_BUFFER, cb_queries)
+        total += len(cb_queries)
+
     # Microbenchmarks (read from microbench/ source directory)
     MICROBENCH_MAP = {
         "tpch": ("microbench_tpch_sql", TPCH_BUFFER),
