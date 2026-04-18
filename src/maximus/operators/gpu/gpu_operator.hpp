@@ -168,18 +168,23 @@ public:
 
         if (is_blocking_port(port)) {
             if (_host_input_batches[port].size() > 0) {
-                auto pool = _ctx->get_pinned_memory_pool();
-                assert(pool);
-                profiler::open_regions({"arrow::concatenate"});
-                auto concatenated_batch =
-                    to_record_batch(_host_input_batches[port], _ctx->get_pinned_memory_pool());
-                profiler::close_regions({"arrow::concatenate"});
-                assert(concatenated_batch);
-                DeviceTablePtr device_batch = DeviceTablePtr(std::move(concatenated_batch));
+                // Convert each host batch to a cudf::table individually and
+                // stash on the device side. We used to first concatenate all
+                // host batches into one giant arrow::RecordBatch via
+                // CombineChunksToBatch, but that silently truncates
+                // String columns whose merged bytes exceed int32 offsets
+                // (e.g. lineitem.l_comment at TPC-H SF=20: ~3.2 GB of
+                // string data → only ~80M of 120M rows survive).
+                // cudf::concatenate, which happens later in merge_batches,
+                // handles arbitrary-size strings natively on GPU.
                 profiler::close_regions({operator_name, "no_more_input"});
-                device_batch.convert_to<CudfTablePtr>(_ctx, _input_schemas[port]);
+                for (auto& rb : _host_input_batches[port]) {
+                    DeviceTablePtr device_batch = DeviceTablePtr(std::move(rb));
+                    device_batch.convert_to<CudfTablePtr>(_ctx, _input_schemas[port]);
+                    _device_input_batches[port].push_back(
+                        std::move(device_batch.as_cudf_table()));
+                }
                 profiler::open_regions({operator_name, "no_more_input"});
-                _device_input_batches[port].push_back(std::move(device_batch.as_cudf_table()));
                 _host_input_batches[port].clear();
             }
 
