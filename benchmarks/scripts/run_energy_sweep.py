@@ -31,7 +31,19 @@ from pathlib import Path
 # ── Constants ─────────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-GPU_ID = "1"
+# Auto-detect GPU index at runtime (was hardcoded to "1" for a previous
+# multi-GPU machine). Overridable via MAXIMUS_GPU_ID env var.
+def _resolve_gpu_id() -> str:
+    import os as _os
+    if "MAXIMUS_GPU_ID" in _os.environ:
+        return _os.environ["MAXIMUS_GPU_ID"]
+    try:
+        import hw_detect
+        return str(hw_detect.detect_gpu()["index"])
+    except Exception:
+        return "0"
+
+GPU_ID = _resolve_gpu_id()
 
 # Category C default: 5 SM clocks × 5 power limits = 25 configurations.
 #
@@ -655,8 +667,39 @@ def _build_default_sweep():
     DEFAULT_POWER_LIMIT = pl_def
 
 
+def _preflight_pl_check() -> bool:
+    """Try setting the GPU power limit to its current value (a no-op that
+    still requires privileged access). Returns True if that succeeds.
+    Emits a loud warning and returns False otherwise — in that case the
+    sweep will not be able to actually change PL/SM clocks and every
+    configuration will be skipped (the bug we hit in CI containers)."""
+    cur = subprocess.run(
+        ["nvidia-smi", "-i", GPU_ID, "--query-gpu=power.limit",
+         "--format=csv,noheader,nounits"],
+        capture_output=True, text=True,
+    )
+    if cur.returncode != 0:
+        print(f"[WARN] nvidia-smi query failed on GPU {GPU_ID}; skipping preflight")
+        return True
+    pl = cur.stdout.strip().split(".")[0]
+    rc = subprocess.run(
+        ["sudo", "nvidia-smi", "-i", GPU_ID, "-pl", pl],
+        capture_output=True, text=True,
+    )
+    if rc.returncode != 0:
+        print("=" * 72)
+        print("  [WARN] Cannot change GPU power limit. Energy sweep will SKIP")
+        print("         every config unless this machine has CAP_SYS_ADMIN or")
+        print("         a passwordless-sudo entry for `nvidia-smi`.")
+        print(f"         stderr: {rc.stderr.strip()}")
+        print("=" * 72)
+        return False
+    return True
+
+
 def main():
     _build_default_sweep()
+    ok = _preflight_pl_check()
     parser = argparse.ArgumentParser(
         description="GPU energy sweep: explore (power-limit, SM-clock) configurations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
