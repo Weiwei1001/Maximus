@@ -17,6 +17,7 @@
 # Usage:
 #   bash run_all_benchmarks.sh                     # Full run (A + B + C)
 #   bash run_all_benchmarks.sh --test              # Quick smoke test (3 queries per bench)
+#   bash run_all_benchmarks.sh --minimum           # 8-hour budget: SF_min+SF_max, no microbench, 3×3 C sweep
 #   bash run_all_benchmarks.sh --skip-category-c   # Skip energy sweep (A + B only)
 #
 set -o pipefail
@@ -42,17 +43,20 @@ mkdir -p "$LOG_DIR"
 
 # ── Parse arguments ────────────────────────────────────────────────────────
 TEST_FLAG=""
+MIN_FLAG=""
 SKIP_CATEGORY_C=0
 for arg in "$@"; do
     case "$arg" in
         --test) TEST_FLAG="--test" ;;
+        --minimum|--min) MIN_FLAG="--minimum" ;;
         --skip-category-c|--no-energy-sweep) SKIP_CATEGORY_C=1 ;;
         *) echo "Unknown argument: $arg"; exit 1 ;;
     esac
 done
+EXTRA_FLAGS="$EXTRA_FLAGS $MIN_FLAG"
 
 MODE="FULL"
-[ -n "$TEST_FLAG" ] && MODE="TEST"
+[ -n "$EXTRA_FLAGS" ] && MODE="TEST"
 
 DATA_DIR="$MAXIMUS_DIR/benchmarks/data"
 
@@ -280,13 +284,13 @@ echo "======== CATEGORY A: Data on GPU (timing + metrics) ========"
 
 # A1: Maximus timing (standard + microbench)
 run_step "A1_maximus_timing" \
-    python3 run_maximus_benchmark.py $TEST_FLAG --n-reps 3 --results-dir "$RESULTS_DIR" \
+    python3 run_maximus_benchmark.py $EXTRA_FLAGS --n-reps 3 --results-dir "$RESULTS_DIR" \
     $ALL_BENCH
 
 # A2: Sirius timing (standard SQL only, no microbench)
 if has_sirius; then
     run_step "A2_sirius_timing" \
-        python3 run_sirius_benchmark.py $TEST_FLAG --results-dir "$RESULTS_DIR" \
+        python3 run_sirius_benchmark.py $EXTRA_FLAGS --results-dir "$RESULTS_DIR" \
         $ALL_BENCH
 else
     echo "  [SKIP] A2: Sirius not built"
@@ -294,14 +298,14 @@ fi
 
 # A3: Maximus metrics (standard + microbench) — reuse A1 timing to skip calibration
 run_step "A3_maximus_metrics" \
-    python3 run_maximus_metrics.py $TEST_FLAG --target-time 5 --results-dir "$RESULTS_DIR" \
+    python3 run_maximus_metrics.py $EXTRA_FLAGS --target-time 5 --results-dir "$RESULTS_DIR" \
     --timing-csv "$RESULTS_DIR/maximus_benchmark.csv" \
     $ALL_BENCH
 
 # A4: Sirius metrics (standard SQL only)
 if has_sirius; then
     run_step "A4_sirius_metrics" \
-        python3 run_sirius_metrics.py $TEST_FLAG --target-time 5 --results-dir "$RESULTS_DIR" \
+        python3 run_sirius_metrics.py $EXTRA_FLAGS --target-time 5 --results-dir "$RESULTS_DIR" \
         $ALL_BENCH
 else
     echo "  [SKIP] A4: Sirius metrics: binary not found"
@@ -316,19 +320,19 @@ echo "======== CATEGORY B: Data on CPU (timing + metrics) ========"
 
 # B1: Maximus CPU-data timing (standard + case_bench, skip microbench)
 run_step "B1_maximus_cpu_timing" \
-    python3 run_maximus_cpu_data.py $TEST_FLAG --timing-only --results-dir "$RESULTS_DIR" \
+    python3 run_maximus_cpu_data.py $EXTRA_FLAGS --timing-only --results-dir "$RESULTS_DIR" \
     $CPU_BENCH
 
 # B2: Maximus CPU-data metrics — reuse B1 timing to skip calibration
 run_step "B2_maximus_cpu_metrics" \
-    python3 run_maximus_cpu_data.py $TEST_FLAG --target-time 5 --results-dir "$RESULTS_DIR" \
+    python3 run_maximus_cpu_data.py $EXTRA_FLAGS --target-time 5 --results-dir "$RESULTS_DIR" \
     --timing-csv "$RESULTS_DIR/maximus_cpu_data_timing.csv" \
     $CPU_BENCH
 
 # B3: Sirius CPU-data timing + metrics (standard + case_bench)
 if has_sirius; then
     run_step "B3_sirius_cpu_data" \
-        python3 run_sirius_cpu_data.py $TEST_FLAG --n-reps 10 --results-dir "$RESULTS_DIR" \
+        python3 run_sirius_cpu_data.py $EXTRA_FLAGS --n-reps 10 --results-dir "$RESULTS_DIR" \
         $CPU_BENCH
 else
     echo "  [SKIP] B3: Sirius CPU-data: binary not found"
@@ -347,7 +351,7 @@ else
     echo "======== CATEGORY C: Energy Sweep (3 PL × 5 freq) ========"
 
     run_step "C1_energy_sweep" \
-        python3 run_energy_sweep.py $TEST_FLAG \
+        python3 run_energy_sweep.py $EXTRA_FLAGS \
         --benchmarks tpch h2o clickbench case_bench \
         --results-dir "$RESULTS_DIR/energy_sweep" \
         --resume

@@ -761,7 +761,24 @@ Examples:
         "--storage", choices=["gpu", "cpu"], default="gpu",
         help="Storage device for Maximus tables (default: gpu)",
     )
+    parser.add_argument(
+        "--test", action="store_true",
+        help="Test mode: 3 queries/bench, 1 SF (smallest), single GPU config")
+    parser.add_argument(
+        "--minimum", action="store_true",
+        help="Minimum experiment: 3 SM clocks × 3 power limits (9 configs "
+             "vs the default 25) and SF_min only.")
     args = parser.parse_args()
+
+    # In minimum mode, thin the sweep grid to 3×3 and keep only 2 SFs per bench.
+    if args.minimum:
+        args.power_limits = [DEFAULT_POWER_LIMITS[0],
+                             DEFAULT_POWER_LIMITS[len(DEFAULT_POWER_LIMITS)//2],
+                             DEFAULT_POWER_LIMITS[-1]]
+        args.sm_clocks = [DEFAULT_SM_CLOCKS[0],
+                          DEFAULT_SM_CLOCKS[len(DEFAULT_SM_CLOCKS)//2],
+                          DEFAULT_SM_CLOCKS[-1]]
+        print(f"[MINIMUM] power_limits={args.power_limits}, sm_clocks={args.sm_clocks}")
 
     # Safety: always restore GPU defaults on exit
     try:

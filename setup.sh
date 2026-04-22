@@ -343,13 +343,18 @@ source "$MAXIMUS_DIR/setup_env.sh"
 # Step 9: Install Sirius (optional)
 # ─────────────────────────────────────────────────────────────────────────────
 if [ "$INSTALL_SIRIUS" = true ]; then
-    log "Step 9: Building Sirius (DuckDB GPU extension)..."
     SIRIUS_DIR="$MAXIMUS_DIR/sirius"
-    bash "$MAXIMUS_DIR/sirius_patches/build_sirius.sh"
     if [ -x "$SIRIUS_DIR/build/release/duckdb" ]; then
-        log "  Sirius built successfully: $SIRIUS_DIR/build/release/duckdb"
+        log "Step 9: Sirius already built at $SIRIUS_DIR/build/release/duckdb"
     else
-        log "  WARNING: Sirius build may have failed"
+        log "Step 9: Building Sirius (DuckDB GPU extension)..."
+        bash "$MAXIMUS_DIR/sirius_patches/build_sirius.sh"
+        if [ ! -x "$SIRIUS_DIR/build/release/duckdb" ]; then
+            log "FATAL: Sirius build did not produce $SIRIUS_DIR/build/release/duckdb"
+            log "       Inspect logs/sirius_cmake.log and logs/sirius_ninja.log."
+            exit 1
+        fi
+        log "  Sirius built successfully: $SIRIUS_DIR/build/release/duckdb"
     fi
 else
     log "Step 9: Skipping Sirius installation (--skip-sirius)"

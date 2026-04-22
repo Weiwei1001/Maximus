@@ -521,15 +521,31 @@ def _build_benchmarks(large_gpu: bool, test_mode: bool) -> dict[str, dict]:
 def get_benchmark_config(
     vram_mb: int,
     test_mode: bool = False,
+    minimum_mode: bool = False,
 ) -> dict[str, dict]:
     """Return benchmark configuration appropriate for the given GPU VRAM.
 
     Args:
         vram_mb: GPU VRAM in MiB.
         test_mode: If True, use 3 queries per benchmark for quick validation.
+        minimum_mode: If True, restrict to SF_min + SF_max only (2 SFs),
+            reuse TEST_QUERIES, and drop every microbench_* benchmark.
+            Designed so the whole A+B+C pipeline fits in ~8 hours.
     """
     large_gpu = vram_mb >= (100 * 1024)  # >= 100 GB
-    return _build_benchmarks(large_gpu, test_mode)
+    # minimum mode implies test-query reduction as well.
+    cfg = _build_benchmarks(large_gpu, test_mode or minimum_mode)
+    if minimum_mode:
+        # Drop microbench_* entirely.
+        for key in list(cfg.keys()):
+            if key.startswith("microbench_"):
+                del cfg[key]
+        # Keep only the smallest and largest SF for each remaining benchmark.
+        for key, spec in cfg.items():
+            sfs = spec["scale_factors"]
+            if len(sfs) >= 2:
+                spec["scale_factors"] = [sfs[0], sfs[-1]]
+    return cfg
 
 
 # ══════════════════════════════════════════════════════════════════════════════

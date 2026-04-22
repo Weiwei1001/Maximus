@@ -169,6 +169,8 @@ def main():
     parser.add_argument("--buffer-init", type=str, default=BUFFER_INIT)
     parser.add_argument("--test", action="store_true",
                         help="Test mode: use reduced query lists for quick validation")
+    parser.add_argument("--minimum", action="store_true",
+                        help="Minimum experiment: SF_min + SF_max, no microbench")
     args = parser.parse_args()
 
     sirius_dir = Path(args.sirius_dir)
@@ -183,7 +185,9 @@ def main():
         import sys; sys.exit(1)
 
     # Build dynamic benchmark config from hw_detect
-    bench_config = get_benchmark_config(_gpu_info["vram_mb"], test_mode=args.test)
+    bench_config = get_benchmark_config(_gpu_info["vram_mb"],
+                                        test_mode=args.test,
+                                        minimum_mode=args.minimum)
     BENCHMARKS = {k: v for k, v in bench_config.items() if k in _SIRIUS_BENCHMARKS}
 
     print("=" * 70)

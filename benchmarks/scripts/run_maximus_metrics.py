@@ -407,11 +407,15 @@ def main():
                         help="Path to A1 timing CSV (skip calibration phase)")
     parser.add_argument("--test", action="store_true",
                         help="Quick test with 3 queries per benchmark")
+    parser.add_argument("--minimum", action="store_true",
+                        help="Minimum experiment: SF_min + SF_max, no microbench")
     args = parser.parse_args()
 
     global BENCHMARKS
-    if args.test:
-        BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"], test_mode=True)
+    if args.test or args.minimum:
+        BENCHMARKS = get_benchmark_config(gpu_info["vram_mb"],
+                                          test_mode=args.test,
+                                          minimum_mode=args.minimum)
 
     results_dir = (Path(args.results_dir) if args.results_dir
                    else MAXIMUS_DIR / "benchmark_results")
