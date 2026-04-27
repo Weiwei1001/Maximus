@@ -280,24 +280,26 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             s["query"] = q
         all_samples.extend(samples)
 
-        # Memory leak detection (post-warmup steady-state slope).
-        # The old "first-quarter vs last-quarter" comparison flagged the
-        # one-shot RMM pool init jump (gpu_buffer_init / cudaMallocAsync warm-up)
-        # as a leak. Real per-rep leaks would still grow steadily AFTER the
-        # init has settled, so we:
-        #   1. Drop the first half of samples (init + warm-up window).
-        #   2. Compare the second-half mid-quarter to the final quarter.
-        #   3. Require both an absolute (>200 MB) and a relative (>2%) jump
-        #      to fire — RMM pool internal book-keeping has ~MB-scale jitter.
+        # Memory leak detection (post-peak slope).
+        # Pool init / first table-load is bursty and asynchronous — it can
+        # land anywhere in the sampling window depending on engine startup
+        # latency. Instead of guessing where init ends, compare the running
+        # peak to the average of the final samples. A real per-rep leak would
+        # show end > peak; a one-shot init followed by steady-state would
+        # show end == peak.
         if len(samples) >= 16:
-            mid = len(samples) // 2
-            quarter = max(2, (len(samples) - mid) // 2)
-            mem_mid = sum(s["mem_used_mb"] for s in samples[mid:mid + quarter]) / quarter
-            mem_last = sum(s["mem_used_mb"] for s in samples[-quarter:]) / quarter
-            mem_growth_mb = mem_last - mem_mid
-            if mem_growth_mb > 200 and mem_growth_mb > mem_mid * 0.02:
-                print(f"\n  ⚠ MEMORY LEAK DETECTED for {q} (post-warmup): "
-                      f"+{mem_growth_mb:.0f}MB ({mem_mid:.0f}→{mem_last:.0f}MB)")
+            mems = [s["mem_used_mb"] for s in samples]
+            peak_idx = max(range(len(mems)), key=lambda i: mems[i])
+            tail_n = len(mems) - peak_idx - 1
+            if tail_n >= max(4, len(mems) // 10):
+                post_peak = mems[peak_idx + 1:]
+                mem_peak = mems[peak_idx]
+                window = max(4, len(post_peak) // 4)
+                mem_end = sum(post_peak[-window:]) / window
+                mem_growth_mb = mem_end - mem_peak
+                if mem_growth_mb > 200 and mem_growth_mb > mem_peak * 0.02:
+                    print(f"\n  ⚠ MEMORY LEAK DETECTED for {q} (post-peak): "
+                          f"+{mem_growth_mb:.0f}MB ({mem_peak:.0f}→{mem_end:.0f}MB)")
 
         # Compute steady-state metrics via GPU utilization threshold
         if samples:
