@@ -386,12 +386,34 @@ def reset_cpu_freq() -> bool:
 def buffer_init_sql(vram_mb: int) -> str:
     """Return the Sirius gpu_buffer_init SQL call sized for the given VRAM.
 
-    Allocates 70% of VRAM as the primary buffer and 35% as the secondary,
-    each rounded to the nearest GB.
+    Workload-driven sizing (based on measured worst case in this repo):
+      - largest cached base table  : ~20 GB  (ClickBench SF=20 hits)
+      - largest live processing set: ~28 GB  (TPC-H SF=20 q3 / SF=10 q3
+                                             4-way joins on lineitem+orders;
+                                             cuDF managed-memory peak ~57 GB
+                                             includes the cached base, so live
+                                             intermediates are ~28-30 GB)
+
+    Big GPUs (>= 64 GB VRAM): pinned at 24 GB cache + 32 GB processing
+    (= 56 GB total), leaving ~24 GB headroom on an 80 GB A100/H100 for
+    CUDA context, RMM internal book-keeping, and short-lived spill.
+
+    Smaller GPUs (5080 16 GB, 5090 32 GB): scale down keeping ≤ 85% of VRAM
+    allocated; cache tables that don't fit spill to pinned host memory
+    automatically (gpu_buffer_manager.cpp:186-194).
+
+    Why not the old 70%/35% policy: on 80 GB A100 it asked for 56 + 28 = 84 GB,
+    which exceeds physical VRAM, forcing RMM to clip. The pool-init jump was
+    also being misread as a per-rep memory leak by the metrics scripts.
     """
-    primary_gb = max(1, round(vram_mb * 0.70 / 1024))
-    secondary_gb = max(1, round(vram_mb * 0.35 / 1024))
-    return f'call gpu_buffer_init("{primary_gb} GB", "{secondary_gb} GB");'
+    vram_gb = vram_mb / 1024.0
+    # Reserve ~15% for CUDA context + RMM internal + transient overflow.
+    budget_gb = max(2, int(vram_gb * 0.85))
+    # Cache is bounded by the largest base table (~20 GB); processing gets the
+    # rest, capped at 32 GB so we don't over-allocate on huge GPUs.
+    cache_gb = min(24, max(1, int(budget_gb * 0.4)))
+    processing_gb = min(32, max(1, budget_gb - cache_gb))
+    return f'call gpu_buffer_init("{cache_gb} GB", "{processing_gb} GB");'
 
 
 # ══════════════════════════════════════════════════════════════════════════════

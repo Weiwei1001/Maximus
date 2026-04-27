@@ -417,15 +417,23 @@ def main():
                     s["query"] = qname
                 all_samples.extend(samples)
 
-                # Memory leak detection
-                if len(samples) >= 8:
-                    quarter = len(samples) // 4
-                    mem_first = sum(s["mem_used_mb"] for s in samples[:quarter]) / quarter
+                # Memory leak detection (post-warmup steady-state slope).
+                # Sirius's gpu_buffer_init pre-allocates a multi-GB pool at
+                # process start, which the old "first-quarter vs last-quarter"
+                # comparison flagged as a leak (false positive on every query).
+                # A real per-rep leak would still grow AFTER the pool has been
+                # initialised, so we drop the first half (init + warm-up) and
+                # compare two windows in the second half. Both an absolute
+                # (>200 MB) and a relative (>2%) growth are required to fire.
+                if len(samples) >= 16:
+                    mid = len(samples) // 2
+                    quarter = max(2, (len(samples) - mid) // 2)
+                    mem_mid = sum(s["mem_used_mb"] for s in samples[mid:mid + quarter]) / quarter
                     mem_last = sum(s["mem_used_mb"] for s in samples[-quarter:]) / quarter
-                    mem_growth_mb = mem_last - mem_first
-                    if mem_growth_mb > 500:
-                        print(f"\n  ⚠ MEMORY LEAK DETECTED for {qname}: "
-                              f"+{mem_growth_mb:.0f}MB ({mem_first:.0f}→{mem_last:.0f}MB)")
+                    mem_growth_mb = mem_last - mem_mid
+                    if mem_growth_mb > 200 and mem_growth_mb > mem_mid * 0.02:
+                        print(f"\n  ⚠ MEMORY LEAK DETECTED for {qname} (post-warmup): "
+                              f"+{mem_growth_mb:.0f}MB ({mem_mid:.0f}→{mem_last:.0f}MB)")
 
                 # Compute steady-state metrics
                 if samples:

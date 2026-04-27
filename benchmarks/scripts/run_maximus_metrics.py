@@ -280,15 +280,24 @@ def run_metrics_for_benchmark(benchmark, sf, data_path, queries, target_time_s,
             s["query"] = q
         all_samples.extend(samples)
 
-        # Memory leak detection: compare first vs last quarter of samples
-        if len(samples) >= 8:
-            quarter = len(samples) // 4
-            mem_first = sum(s["mem_used_mb"] for s in samples[:quarter]) / quarter
+        # Memory leak detection (post-warmup steady-state slope).
+        # The old "first-quarter vs last-quarter" comparison flagged the
+        # one-shot RMM pool init jump (gpu_buffer_init / cudaMallocAsync warm-up)
+        # as a leak. Real per-rep leaks would still grow steadily AFTER the
+        # init has settled, so we:
+        #   1. Drop the first half of samples (init + warm-up window).
+        #   2. Compare the second-half mid-quarter to the final quarter.
+        #   3. Require both an absolute (>200 MB) and a relative (>2%) jump
+        #      to fire — RMM pool internal book-keeping has ~MB-scale jitter.
+        if len(samples) >= 16:
+            mid = len(samples) // 2
+            quarter = max(2, (len(samples) - mid) // 2)
+            mem_mid = sum(s["mem_used_mb"] for s in samples[mid:mid + quarter]) / quarter
             mem_last = sum(s["mem_used_mb"] for s in samples[-quarter:]) / quarter
-            mem_growth_mb = mem_last - mem_first
-            if mem_growth_mb > 500:
-                print(f"\n  ⚠ MEMORY LEAK DETECTED for {q}: "
-                      f"+{mem_growth_mb:.0f}MB ({mem_first:.0f}→{mem_last:.0f}MB)")
+            mem_growth_mb = mem_last - mem_mid
+            if mem_growth_mb > 200 and mem_growth_mb > mem_mid * 0.02:
+                print(f"\n  ⚠ MEMORY LEAK DETECTED for {q} (post-warmup): "
+                      f"+{mem_growth_mb:.0f}MB ({mem_mid:.0f}→{mem_last:.0f}MB)")
 
         # Compute steady-state metrics via GPU utilization threshold
         if samples:

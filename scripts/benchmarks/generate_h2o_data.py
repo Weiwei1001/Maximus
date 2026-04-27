@@ -6,7 +6,7 @@ Creates synthetic data matching the H2O benchmark schema:
   id1-id3 (VARCHAR), id4-id6 (INTEGER), v1-v2 (INTEGER), v3 (DOUBLE)
 
 Usage:
-    python generate_h2o_data.py --output-dir /path/to/output --scales 1 2 3 4
+    python generate_h2o_data.py --output-dir /path/to/output --scales 1 2 4 8
 """
 import argparse
 import time
@@ -14,20 +14,27 @@ from pathlib import Path
 
 import duckdb
 
-# Target GB -> row count mapping (~15.5 bytes/row in CSV)
+# Target GB -> row count mapping (~15.5 bytes/row in CSV).
+# Scales 1/2/4/8 are the canonical sizes used by the benchmark pipeline;
+# 3 is kept for backwards compatibility with older runs.
 SCALE_CONFIGS = {
     1: {"target_gb": 1, "n_rows": 65_000_000, "k": 300},
     2: {"target_gb": 2, "n_rows": 130_000_000, "k": 400},
     3: {"target_gb": 3, "n_rows": 190_000_000, "k": 400},
     4: {"target_gb": 4, "n_rows": 250_000_000, "k": 500},
+    8: {"target_gb": 8, "n_rows": 500_000_000, "k": 600},
 }
 
 CHUNK_SIZE = 50_000_000  # Generate in 50M row chunks for memory efficiency
 
 
 def generate_h2o(output_dir: Path, scale: int):
-    """Generate H2O groupby data at the given scale."""
-    sf_dir = output_dir / f"sf{scale}"
+    """Generate H2O groupby data at the given scale.
+
+    Output path matches the convention expected by maximus_data_dir():
+      <output_dir>/csv-{scale}gb/groupby.csv
+    """
+    sf_dir = output_dir / f"csv-{scale}gb"
     sf_dir.mkdir(parents=True, exist_ok=True)
     csv_path = sf_dir / "groupby.csv"
 
@@ -37,8 +44,8 @@ def generate_h2o(output_dir: Path, scale: int):
 
     if scale not in SCALE_CONFIGS:
         print(f"  Scale {scale}: Not in predefined configs, using linear estimation")
-        n_rows = int(scale * 65_000_000)
-        k = max(300, scale * 100)
+        n_rows = int(scale * 62_500_000)
+        k = max(300, scale * 75)
     else:
         cfg = SCALE_CONFIGS[scale]
         n_rows = cfg["n_rows"]
@@ -95,7 +102,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate H2O groupby benchmark data as CSV")
     parser.add_argument("--output-dir", type=str, required=True, help="Output directory for CSV files")
     parser.add_argument("--scales", type=int, nargs="+", default=[1, 2, 4, 8],
-                        help="Scale factors in GB (default: 1 2 4 8)")
+                        help="Scale factors in GB (default: 1 2 4 8 — pipeline canonical)")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)

@@ -89,7 +89,7 @@ Generates synthetic groupby benchmark data. Schema: id1-id3 (VARCHAR), id4-id6 (
 
 ```bash
 python3 scripts/benchmarks/generate_h2o_data.py \
-    --output-dir tests/h2o --scales 1 2 3 4
+    --output-dir tests/h2o --scales 1 2 4 8
 ```
 
 ```
