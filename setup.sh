@@ -160,13 +160,27 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 log "Step 4: Installing cuDF..."
 
-# Try pip first (simpler), fall back to conda
-if python3 -c "import cudf" 2>/dev/null; then
+# cuDF 26.x pip wheels require Python >= 3.10. If the system Python is older
+# (Ubuntu 22.04 ships 3.10, but containers like CUDA images often pin 3.8),
+# pip install will fail silently — skip it and go straight to conda which
+# brings its own Python.
+PY_VER=$(python3 -c 'import sys; print("%d%02d" % sys.version_info[:2])' 2>/dev/null || echo "0")
+if [ "$PY_VER" -lt 310 ]; then
+    log "  System Python too old for cuDF 26.x pip wheels (need >= 3.10, have $(python3 -V 2>&1))"
+    log "  Going directly to conda fallback (libcudf 24.12)..."
+    PIP_CUDF_OK=1  # force the conda branch
+elif python3 -c "import cudf" 2>/dev/null; then
     log "  cuDF already installed"
+    PIP_CUDF_OK=0
 elif pip install 'cudf-cu12==26.2.1' 'libcudf-cu12==26.2.1' 2>/dev/null; then
     log "  cuDF installed via pip"
+    PIP_CUDF_OK=0
 else
-    log "  pip install failed, trying conda..."
+    PIP_CUDF_OK=1
+fi
+
+if [ "$PIP_CUDF_OK" = "1" ]; then
+    log "  Installing cuDF via conda..."
     MINICONDA_DIR="${WORKSPACE}/miniconda3"
     if [ ! -x "${MINICONDA_DIR}/bin/conda" ]; then
         wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh

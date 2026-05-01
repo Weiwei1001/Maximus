@@ -160,24 +160,74 @@ if [ -z "$GPU_ARCH" ]; then
 fi
 echo "[build_sirius] GPU architecture: $GPU_ARCH"
 
-# ── 6. Build cmake prefix paths from pip-installed RAPIDS packages ──
+# ── 6. Build cmake prefix paths from pip-installed AND conda-installed RAPIDS ──
+# On systems where the system Python (e.g. 3.8) cannot install cuDF 26.x,
+# setup.sh falls back to conda env "maximus_gpu" with libcudf 24.12. We must
+# also add that env's cmake config dir, otherwise sirius cmake fails with
+# "Could not find a package configuration file provided by 'cudf'".
 CMAKE_PREFIXES=""
-for pkg_dir in \
-    "$SITE_PKGS/libcudf/lib64/cmake" \
-    "$SITE_PKGS/librmm/lib64/cmake" \
-    "$SITE_PKGS/nvidia/libnvcomp/lib64/cmake" \
-    "$SITE_PKGS/libcudf/lib64/rapids/cmake" \
-    "$SITE_PKGS/librmm/lib64/rapids/cmake" \
-    "$SITE_PKGS/libkvikio/lib64/cmake" \
-    "$SITE_PKGS/rapids_logger/lib64/cmake" \
-    "$SITE_PKGS/lib64/cmake" \
-    "$SITE_PKGS/nvidia/cuda_cccl/lib/cmake" \
-    "$SITE_PKGS/nvidia/libnvcomp/lib64/cmake/nvcomp" \
-    "/usr/local/lib/cmake"; do
+SEARCH_DIRS=(
+    "$SITE_PKGS/libcudf/lib64/cmake"
+    "$SITE_PKGS/librmm/lib64/cmake"
+    "$SITE_PKGS/nvidia/libnvcomp/lib64/cmake"
+    "$SITE_PKGS/libcudf/lib64/rapids/cmake"
+    "$SITE_PKGS/librmm/lib64/rapids/cmake"
+    "$SITE_PKGS/libkvikio/lib64/cmake"
+    "$SITE_PKGS/rapids_logger/lib64/cmake"
+    "$SITE_PKGS/lib64/cmake"
+    "$SITE_PKGS/nvidia/cuda_cccl/lib/cmake"
+    "$SITE_PKGS/nvidia/libnvcomp/lib64/cmake/nvcomp"
+    "/usr/local/lib/cmake"
+)
+
+# Detect conda env (CONDA_PREFIX if active, plus the canonical maximus_gpu env
+# from setup.sh's fallback path) and add its cmake config dirs.
+CONDA_CANDIDATES=()
+if [ -n "${CONDA_PREFIX:-}" ]; then
+    CONDA_CANDIDATES+=("$CONDA_PREFIX")
+fi
+for c in \
+    "${WORKSPACE:-$REPO_DIR/..}/miniconda3/envs/maximus_gpu" \
+    "$HOME/miniconda3/envs/maximus_gpu" \
+    "/opt/conda/envs/maximus_gpu"; do
+    [ -d "$c" ] && CONDA_CANDIDATES+=("$c")
+done
+for env in "${CONDA_CANDIDATES[@]}"; do
+    SEARCH_DIRS+=(
+        "$env/lib/cmake/cudf"
+        "$env/lib/cmake/rmm"
+        "$env/lib/cmake/nvcomp"
+        "$env/lib/cmake/kvikio"
+        "$env/lib/cmake/rapids_logger"
+        "$env/lib/cmake"
+        "$env"
+    )
+done
+
+for pkg_dir in "${SEARCH_DIRS[@]}"; do
     if [ -d "$pkg_dir" ]; then
         CMAKE_PREFIXES="${CMAKE_PREFIXES:+$CMAKE_PREFIXES;}$pkg_dir"
     fi
 done
+
+# Verify cudf-config.cmake actually exists somewhere we'll search; fail loudly
+# with diagnostics rather than letting cmake produce its terser error.
+CUDF_CFG=$(find ${CMAKE_PREFIXES//;/ } \
+    -maxdepth 4 -type f \( -name 'cudf-config.cmake' -o -name 'cudfConfig.cmake' \) \
+    2>/dev/null | head -1)
+if [ -z "$CUDF_CFG" ]; then
+    echo "[build_sirius] ERROR: cudf-config.cmake not found in any search path." >&2
+    echo "                 Searched (CMAKE_PREFIX_PATH):" >&2
+    echo "$CMAKE_PREFIXES" | tr ';' '\n' | sed 's/^/                   /' >&2
+    echo "" >&2
+    echo "Likely cause: cuDF was not installed. setup.sh installs cuDF in Step 4" >&2
+    echo "via either pip (cudf-cu12==26.2.1, requires Python >= 3.10) or conda" >&2
+    echo "fallback (libcudf=24.12 in env 'maximus_gpu'). Verify one of:" >&2
+    echo "  - python3 -c 'import cudf'                                    # pip path" >&2
+    echo "  - ls \$WORKSPACE/miniconda3/envs/maximus_gpu/lib/cmake/cudf/  # conda path" >&2
+    exit 1
+fi
+echo "[build_sirius] Found cudf cmake config: $CUDF_CFG"
 
 # ── 7. Configure ──
 echo "[build_sirius] Configuring (full log: $REPO_DIR/logs/sirius_cmake.log)..."
