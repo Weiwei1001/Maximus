@@ -4,29 +4,37 @@
 
 set -e
 
-# Auto-detect Python site-packages
-PIP_BASE="$(python3 -c 'import sysconfig; print(sysconfig.get_path("purelib"))')"
-echo "[configure] Auto-detected PIP_BASE=${PIP_BASE}"
+# Auto-detect Python site-packages. Try user-site first (pip install --user),
+# then system purelib (pip install as root). The first one that contains a real
+# libcudf install wins so PIP_BASE matches where libcudf actually lives.
+USER_SITE="$(python3 -m site --user-site 2>/dev/null || true)"
+SYS_PURELIB="$(python3 -c 'import sysconfig; print(sysconfig.get_path("purelib"))' 2>/dev/null || true)"
 
-# Try to find cudf cmake config in multiple possible locations
+PIP_BASE=""
 CUDF_DIR=""
-for candidate in \
-    "${PIP_BASE}/libcudf/lib64/cmake/cudf" \
-    "${PIP_BASE}/libcudf/lib/cmake/cudf" \
-    "${PIP_BASE}/cudf/lib64/cmake/cudf" \
-    "${PIP_BASE}/cudf/lib/cmake/cudf"; do
-    if [ -f "${candidate}/cudf-config.cmake" ]; then
-        CUDF_DIR="${candidate}"
-        break
-    fi
+for base in "${USER_SITE}" "${SYS_PURELIB}"; do
+    [ -z "${base}" ] && continue
+    for candidate in \
+        "${base}/libcudf/lib64/cmake/cudf" \
+        "${base}/libcudf/lib/cmake/cudf" \
+        "${base}/cudf/lib64/cmake/cudf" \
+        "${base}/cudf/lib/cmake/cudf"; do
+        if [ -f "${candidate}/cudf-config.cmake" ]; then
+            PIP_BASE="${base}"
+            CUDF_DIR="${candidate}"
+            break 2
+        fi
+    done
 done
 
 if [ -z "${CUDF_DIR}" ]; then
-    echo "[configure] ERROR: Could not find cudf-config.cmake under ${PIP_BASE}"
-    echo "[configure] Searched: libcudf/lib64/cmake/cudf, libcudf/lib/cmake/cudf, etc."
+    echo "[configure] ERROR: Could not find cudf-config.cmake."
+    echo "[configure] Searched user-site (${USER_SITE}) and system purelib (${SYS_PURELIB})"
+    echo "[configure] under libcudf/lib64/cmake/cudf, libcudf/lib/cmake/cudf, etc."
     echo "[configure] Make sure libcudf is installed: pip install libcudf-cu12"
     exit 1
 fi
+echo "[configure] Auto-detected PIP_BASE=${PIP_BASE}"
 echo "[configure] Found cudf at: ${CUDF_DIR}"
 
 # Helper: find cmake dir for a package, trying lib64 then lib
