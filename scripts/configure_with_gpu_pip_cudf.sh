@@ -75,6 +75,19 @@ RMM_INCLUDE_DIR="${PIP_BASE}/librmm/include"
 ARROW_PREFIX="${ARROW_PREFIX:-$HOME/arrow_install}"
 TASKFLOW_PREFIX="${TASKFLOW_PREFIX:-$HOME/taskflow_install}"
 
+# libkvikio is a transitive dep of libcudf (DT_NEEDED libkvikio.so). Without
+# -rpath-link, ld can't resolve kvikio:: symbols when linking executables
+# against libcudf, even though LD_LIBRARY_PATH covers the runtime case.
+KVIKIO_LIB_DIR=""
+for d in "${PIP_BASE}/libkvikio/lib64" "${PIP_BASE}/libkvikio/lib"; do
+    if [ -f "$d/libkvikio.so" ]; then KVIKIO_LIB_DIR="$d"; break; fi
+done
+LINKER_FLAGS=""
+if [ -n "${KVIKIO_LIB_DIR}" ]; then
+    LINKER_FLAGS="-Wl,-rpath-link,${KVIKIO_LIB_DIR} -Wl,-rpath,${KVIKIO_LIB_DIR}"
+    echo "[configure] libkvikio at: ${KVIKIO_LIB_DIR}"
+fi
+
 # CUDA arch: use env var, or detect from GPU, or default to 80
 if [ -z "${CMAKE_CUDA_ARCHITECTURES}" ]; then
     # Try to detect GPU compute capability
@@ -88,7 +101,10 @@ cmake -DCMAKE_BUILD_TYPE=Release \
   -DMAXIMUS_WITH_TESTS=ON \
   -DMAXIMUS_WITH_GPU=ON \
   -DCMAKE_CUDA_ARCHITECTURES="${CMAKE_CUDA_ARCHITECTURES}" \
-  -DCMAKE_PREFIX_PATH="${ARROW_PREFIX};${TASKFLOW_PREFIX};${PIP_BASE}/libcudf;${PIP_BASE}/librmm;${PIP_BASE}/nvidia/libnvcomp" \
+  -DCMAKE_PREFIX_PATH="${ARROW_PREFIX};${TASKFLOW_PREFIX};${PIP_BASE}/libcudf;${PIP_BASE}/librmm;${PIP_BASE}/libkvikio;${PIP_BASE}/nvidia/libnvcomp" \
+  -DCMAKE_EXE_LINKER_FLAGS="${LINKER_FLAGS}" \
+  -DCMAKE_SHARED_LINKER_FLAGS="${LINKER_FLAGS}" \
+  -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
   -Dcudf_DIR="${CUDF_DIR}" \
   -Dnvcomp_DIR="${nvcomp_DIR}" \
   -Drapids_logger_DIR="${rapids_logger_DIR}" \
