@@ -63,6 +63,16 @@ if [ -f "$MAXIMUS_DIR/.gitmodules" ]; then
     log "  Sirius submodule: $MAXIMUS_DIR/sirius"
 fi
 
+# Self-heal: tests/ is required by CMakeLists.txt (MAXIMUS_WITH_TESTS=ON) but a
+# stale working tree may be missing it. If it's tracked in HEAD but absent,
+# restore from the index so the build can find tests/CMakeLists.txt.
+if [ -d "$MAXIMUS_DIR/.git" ] || [ -f "$MAXIMUS_DIR/.git" ]; then
+    if ! [ -d "$MAXIMUS_DIR/tests" ] && git -C "$MAXIMUS_DIR" ls-tree HEAD tests >/dev/null 2>&1; then
+        log "  tests/ missing from working tree, restoring from HEAD..."
+        git -C "$MAXIMUS_DIR" checkout -- tests
+    fi
+fi
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 1: Check prerequisites
 # ─────────────────────────────────────────────────────────────────────────────
