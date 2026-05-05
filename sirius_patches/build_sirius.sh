@@ -114,7 +114,26 @@ if [ ! -f "$SPDLOG_CONFIG" ]; then
 fi
 
 # ── 3. Create nvcomp .so symlinks (pip only ships .so.5) ──
-SITE_PKGS=$(python3 -c "import sysconfig; print(sysconfig.get_path('purelib'))")
+# Locate the site-packages dir that actually has the cuDF wheels. pip without
+# --user normally writes to purelib, but on systems where purelib isn't
+# writable it falls back to user-site (~/.local/lib/pythonX.Y/site-packages),
+# and `sysconfig.get_path('purelib')` would point at an empty system dir.
+SITE_PKGS=""
+for cand in \
+    "$(python3 -c 'import sysconfig; print(sysconfig.get_path("purelib"))' 2>/dev/null)" \
+    "$(python3 -c 'import site; print(site.getusersitepackages())' 2>/dev/null)" \
+    "/usr/local/lib/python3.10/dist-packages" \
+    "/usr/lib/python3/dist-packages" \
+    "$HOME/.local/lib/python3.10/site-packages"; do
+    if [ -n "$cand" ] && [ -d "$cand/libcudf" ]; then
+        SITE_PKGS="$cand"
+        break
+    fi
+done
+if [ -z "$SITE_PKGS" ]; then
+    SITE_PKGS=$(python3 -c "import sysconfig; print(sysconfig.get_path('purelib'))")
+fi
+echo "[build_sirius] Python site-packages with cuDF: $SITE_PKGS"
 NVCOMP_DIR="$SITE_PKGS/nvidia/libnvcomp/lib64"
 if [ -f "$NVCOMP_DIR/libnvcomp.so.5" ] && [ ! -f "$NVCOMP_DIR/libnvcomp.so" ]; then
     ln -sf "$NVCOMP_DIR/libnvcomp.so.5" "$NVCOMP_DIR/libnvcomp.so"

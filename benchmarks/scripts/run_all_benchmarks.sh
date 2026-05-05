@@ -53,7 +53,7 @@ for arg in "$@"; do
         *) echo "Unknown argument: $arg"; exit 1 ;;
     esac
 done
-EXTRA_FLAGS="$EXTRA_FLAGS $MIN_FLAG"
+EXTRA_FLAGS="$EXTRA_FLAGS $TEST_FLAG $MIN_FLAG"
 
 MODE="FULL"
 [ -n "$EXTRA_FLAGS" ] && MODE="TEST"

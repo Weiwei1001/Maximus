@@ -330,7 +330,11 @@ for _cand in \
     /usr/lib/python3.12/dist-packages \
     /usr/local/lib/python3/dist-packages \
     "$(python3 -c 'import site; print(site.getsitepackages()[0])' 2>/dev/null)" \
-    "$(python3 -c 'import sysconfig; print(sysconfig.get_path(\"purelib\"))' 2>/dev/null)"; do
+    "$(python3 -c 'import sysconfig; print(sysconfig.get_path(\"purelib\"))' 2>/dev/null)" \
+    "$(python3 -c 'import site; print(site.getusersitepackages())' 2>/dev/null)" \
+    "$HOME/.local/lib/python3.10/site-packages" \
+    "$HOME/.local/lib/python3.11/site-packages" \
+    "$HOME/.local/lib/python3.12/site-packages"; do
     if [ -n "$_cand" ] && [ -d "$_cand/nvidia/libnvcomp/lib64" ]; then
         _MAXIMUS_PIP_CANDIDATES="$_cand"
         break
